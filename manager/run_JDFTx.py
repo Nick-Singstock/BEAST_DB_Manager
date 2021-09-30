@@ -1,0 +1,507 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Musgrave Group
+
+@author: zaba1157, nisi6161
+"""
+
+from JDFTx import JDFTx
+import os
+from ase.io import read
+from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, GPMin, MDMin, FIRE
+from ase.io.trajectory import Trajectory
+from ase.neb import NEB
+import argparse
+import subprocess
+from ase.optimize.minimahopping import MinimaHopping
+
+opj = os.path.join
+ope = os.path.exists
+
+def conv_logger(txt, out_file = 'conv.log'):
+    if os.path.exists(out_file):
+        with open(out_file,'r') as f:
+            old = f.read()
+    else:
+        old = ''
+    with open(out_file,'w') as f:
+        f.write(old + txt + '\n')
+
+# ensure forces don't get too large or stop job
+def force_checker(max_force = 500):
+    if 'opt.log' in os.listdir():
+        try:
+            with open('opt.log', 'r') as f:
+                opt_text = f.read()
+        except:
+            print('Unable to read opt.log for force checker.')
+    elif 'neb.log' in os.listdir():
+        try:
+            with open('neb.log', 'r') as f:
+                opt_text = f.read()
+        except:
+            print('Unable to read neb.log for force checker.')
+    else:
+        return
+    if len(opt_text) == 0: return 
+    
+    opt = [line.split() for line in opt_text.split('\n') if line != '' and '*Force-consistent' not in line]
+    force = float(opt[-1][4])
+    assert force < max_force, 'ERROR: Calculation ended due to high forces. Edit Structure.'
+
+# add element to CONTCAR to fix bug
+def insert_el(filename):
+    """
+    Inserts elements line in correct position for Vasp 5? Good for
+    nebmovie.pl script in VTST-tools package
+    Args:
+        filename: name of file to add elements line
+    """
+
+    with open(filename, 'r') as f:
+        file = f.read()
+    contents = file.split('\n')
+    ele_line = contents[0]
+    if contents[5].split() != ele_line.split():
+        contents.insert(5, ele_line)
+    with open(filename, 'w') as f:
+        f.write('\n'.join(contents))
+
+# adds inputs_dos file to cmds
+def add_dos(cmds):
+    from pymatgen.core.structure import Structure
+    if not ope('./inputs_dos'):
+        return cmds
+    new_cmds = []
+    for cmd in cmds:
+        if 'density-of-states' in cmd:
+            print('WARNING: command density-of-states in inputs file is being overwritten by inputs_dos!')
+            continue
+        new_cmds += [cmd]
+    with open('./inputs_dos','r') as f:
+        dos = f.read()
+    st = Structure.from_file('./POSCAR')
+    
+    dos_line = ''
+    for line in dos.split('\n'):
+        if 'Orbital' in line and len(line.split()) == 3:
+            # Format: Orbital Atom_type orbital_type(s)
+            # Adds DOS for ALL atoms of this type and all requested orbitals
+            atom_type = line.split()[1]
+            indices = [i for i,el in enumerate(st.species) if str(el) == atom_type]
+            orbitals = [orb for orb in line.split()[2]]
+            assert all([orb in ['s','p','d','f'] for orb in orbitals]), 'ERROR: Not all orbital types allowed! ('+','.join(orbitals)+')'
+            for i in range(len(indices)):
+                for orbital in orbitals:
+                    dos_line += ' \\\nOrbital ' +atom_type + ' ' + str(i+1) + ' ' + orbital 
+        else:
+            dos_line += ' \\\n' + line
+    new_cmds += [('density-of-states', dos_line)]
+    return new_cmds
+
+# main function for calculations
+def run_calc(command_file, jdftx_exe):
+
+    notinclude = ['ion-species','ionic-minimize',
+                  'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
+                  'ion','climbing','pH','ph',
+                  'logfile','pseudos','nimages','max_steps','fmax','optimizer',
+                  'restart','parallel','safe-mode','hessian', 'step', 'Step',
+                  'opt-alpha', 'md-steps']
+
+    # setup default functions needed for running calcs
+    def open_inputs(inputs_file):
+        with open(inputs_file,'r') as f:
+            inputs = f.read()
+        return inputs
+    
+    def read_line(line):
+        line = line.strip()
+        if len(line) == 0 or line[0] == '#': 
+            return 0,0,'None'
+        linelist = line.split()
+        if linelist[0] in notinclude:
+#            if len(linelist) > 1:
+#                script_cmds[linelist[0]] = ' '.join(linelist[1:])
+                # command, value, type
+            return linelist[0], ' '.join(linelist[1:]), 'script'
+        else:
+            if len(linelist) > 1:
+#                tpl = (linelist[0], ' '.join(linelist[1:]))
+#                cmds.append(tpl)
+                return linelist[0], ' '.join(linelist[1:]), 'cmd'
+            else:
+                return line, '', 'cmd'
+        
+        conv_logger('Line not read: '+str(line))
+        return 0,0,'None'
+                
+    def read_commands(inputs, notinclude = notinclude):
+        cmds = []
+        script_cmds = {}
+#        with open(command_file,'r') as f:
+        for line in inputs.split('\n'):
+#            conv_logger('Line = ', line)
+            cmd, val, typ = read_line(line)
+            if typ == 'None':
+                continue
+            elif typ == 'script':
+                script_cmds[cmd] = val
+            elif typ == 'cmd':
+                tpl = (cmd, val)
+                cmds.append(tpl)
+
+        cmds += [('core-overlap-check', 'none')]
+        cmds = add_dos(cmds)
+        return cmds, script_cmds
+
+    inputs = open_inputs(command_file)
+    cmds, script_cmds = read_commands(inputs,notinclude)
+#    cmds = add_dos(cmds)
+
+    def calc_type(script_cmds):
+        if 'nimages' in script_cmds.keys():
+            calc = 'neb'
+        elif script_cmds['optimizer'] in ['MD','md']:
+            calc = 'md'
+        else:
+            calc = 'opt'
+        return calc
+
+    ctype = calc_type(script_cmds)
+#    psuedos = script_cmds['pseudos']
+#    max_steps = int(script_cmds['max_steps'])
+#    fmax = float(script_cmds['fmax'])
+#    restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
+#    parallel_neb = True if ('parallel' in script_cmds and script_cmds['parallel'] == 'True') else False
+#    climbing_neb = True if ('climbing' in script_cmds and script_cmds['climbing'] == 'True') else False
+#    safe_mode = False if ('safe-mode' in script_cmds and script_cmds['safe-mode'] == 'False') else True
+#    use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
+    
+    
+    jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
+    exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
+        
+        
+    def read_atoms(restart):
+        if restart:
+            atoms = read('CONTCAR',format='vasp')
+        else:
+            atoms = read('POSCAR',format='vasp')
+        return atoms
+    
+    def optimizer(imag_atoms,script_cmds,logfile='opt.log'):
+        """
+        ASE Optimizers:
+            BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, GPMin, MDMin and FIRE.
+        """
+        use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
+        opt_alpha = 70 if 'opt-alpha' not in script_cmds else int(script_cmds['opt-alpha'])
+        if 'optimizer' in script_cmds:
+            opt = script_cmds['optimizer']
+        else:
+            opt='BFGS'
+        
+        opt_dict = {'BFGS':BFGS, 'BFGSLineSearch':BFGSLineSearch,
+                    'LBFGS':LBFGS, 'LBFGSLineSearch':LBFGSLineSearch,
+                    'GPMin':GPMin, 'MDMin':MDMin, 'FIRE':FIRE}
+        if opt in ['BFGS','LBFGS']:
+            if use_hessian:
+                dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl',alpha=opt_alpha)
+            else:
+                dyn = opt_dict[opt](imag_atoms,logfile=logfile,alpha=opt_alpha)
+        elif opt == 'FIRE':
+            if use_hessian:
+                dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl',a=(opt_alpha/70) * 0.1)
+            else:
+                dyn = opt_dict[opt](imag_atoms,logfile=logfile,a=(opt_alpha/70) * 0.1)
+        else:
+            if use_hessian:
+                dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl')
+            else:
+                dyn = opt_dict[opt](imag_atoms,logfile=logfile)
+        return dyn
+        
+    def set_calc(cmds, script_cmds, outfile = os.getcwd()):
+        psuedos = script_cmds['pseudos']
+        return JDFTx(
+            executable = exe_cmd,
+            pseudoSet=psuedos,
+            commands=cmds,
+            outfile = outfile)
+        
+    def read_convergence():
+        '''
+        convergence example:
+        step 1
+        kpoints 1 1 1
+        
+        step 2
+        kpoints 3 3 3
+        '''
+        with open('convergence','r') as f:
+            conv_txt = f.read()
+        step = '1'
+        add_step = False
+        for line in conv_txt.split('\n'):
+            if any(x in line for x in ['step','Step']):
+                step = line.split()[-1]
+                if step == '0':
+                    add_step = True
+                if add_step:
+                    step  = str(int(step)+1) # update so steps are always indexed to 1
+            else:
+                cmd, val, typ = read_line(line)
+                if step in conv:
+                    conv[step][cmd] = (val,typ)
+                else:
+                    conv[step] = {cmd: (val,typ)}
+        return conv, len(conv)
+    
+    def read_out_nbands():
+        with open('out','r', errors='ignore') as f:
+            out_txt = f.read()
+        for line in out_txt.split('\n')[::-1]:
+            if 'nBands' in line and 'nElectrons' in line and 'nStates' in line:
+                return line.split()[3]
+        
+    def update_cmds(conv, step, cmds, script_cmds, update_wfns = False):
+        updates = conv[str(step)]
+        new_cmds = {}
+        for cmd, val in updates.items():
+            if val[1] == 'None':
+                continue
+            elif val[1] == 'script':
+                script_cmds[cmd] = val[0]
+            elif val[1] == 'cmd':
+                new_cmds[cmd] = val[0]
+        
+        if update_wfns:
+            ecut = '0'
+            nbands = '0'
+            if 'elec-cutoff' in new_cmds and step > 1 and 'elec-cutoff' in conv[str(step-1)]:
+                ecut = conv[str(step-1)]['elec-cutoff'][0]
+            if 'kpoint-folding' in new_cmds and step > 1 and 'kpoint-folding' in conv[str(step-1)]:
+                nbands = read_out_nbands()
+            if ecut != '0' or nbands != '0':
+                new_cmds['wavefunction'] = 'read wfns '+nbands+' '+ecut
+                new_cmds['elec-initial-fillings'] = 'read fillings '+nbands
+        
+        formatted_cmds = [(cmd,val) for cmd,val in new_cmds.items()]
+        formatted_cmds += [cmd for cmd in cmds if cmd[0] not in new_cmds]
+        return formatted_cmds, script_cmds
+    
+    def read_prev_step(file):
+        if not os.path.exists(file):
+            return 0
+        with open(file,'r') as f:
+            log = f.read()
+        step = 0
+        for line in log.split('\n'):
+            if 'Running Convergence Step:' in line:
+                step = int(line.split()[-1])
+        return step
+    
+    def clean_folder(folder = './', delete = True):
+        if not delete:
+            return
+        files_to_remove = ['wfns','fillings','eigenvals','fluidState']
+        for file in files_to_remove:
+            subprocess.call('rm '+folder+file, shell=True)
+    
+    if os.path.exists('conv.log'):
+        subprocess.call('rm conv.log', shell=True)
+        
+    steps = 1
+    conv = {}
+    previous_step = 0
+    
+    if ctype == 'md':
+        restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
+        atoms = read_atoms(restart)
+        
+        calculator = set_calc(cmds, script_cmds)
+        atoms.set_calculator(calculator)
+        
+        opt = MinimaHopping(atoms=atoms)
+        mdsteps = int(script_cmds['md-steps']) if 'md-steps' in script_cmds else 10
+        opt(totalsteps=mdsteps)
+        
+        atoms.write('CONTCAR',format="vasp", direct=True)
+        insert_el('CONTCAR')
+        
+        
+    if ctype == 'opt':
+        
+        if os.path.exists('convergence'):
+            # check if convergence file exists and setup convergence dictionary of inputs to update
+            conv, steps = read_convergence()
+            previous_step = read_prev_step('opt.log')
+            
+        assert len(conv) == 0 or set([int(x) for x in conv]) == set(i+1 for i in range(steps)), ('ERROR: '+
+                  'steps in convergence file must be sequential!')
+        
+        conv_logger('starting opt calc with '+str(steps)+' steps.')
+        for i in range(steps):
+            conv_logger('Step '+str(i+1)+' starting')
+            if i+1 < previous_step:
+                conv_logger('Step '+str(i+1)+' previously converged')
+                continue
+            
+            if len(conv) > 0:
+                cmds, script_cmds = update_cmds(conv, i+1, cmds, script_cmds)
+                conv_logger('updated cmds and script cmds with convergence file')
+                conv_logger('Running Convergence Step: '+str(i+1), 'opt.log')
+            
+            if i == 0:
+                restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
+            else:
+                restart = True
+            atoms = read_atoms(restart)
+    
+            calculator = set_calc(cmds, script_cmds)
+            atoms.set_calculator(calculator)
+    
+            #Structure optimization                
+            dyn = optimizer(atoms, script_cmds)
+    
+            def write_contcar(a=atoms):
+                a.write('CONTCAR',format="vasp", direct=True)
+                insert_el('CONTCAR')
+    
+#            Only energy and forces seem to be implemented in JDFTx.py. A Trajectory
+#            object must be attached so JDFTx does not error out trying to get stress
+            traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
+            dyn.attach(traj.write, interval=1)
+            dyn.attach(write_contcar,interval=1)
+            safe_mode = False if ('safe-mode' in script_cmds and script_cmds['safe-mode'] == 'False') else True
+            if safe_mode: 
+                dyn.attach(force_checker,interval=1)
+    
+            max_steps = int(script_cmds['max_steps'])
+            fmax = float(script_cmds['fmax'])
+            dyn.run(fmax=fmax,steps=max_steps)
+            traj.close()
+            conv_logger('Step '+str(i+1)+' complete!')
+            
+            if i+1 < steps:
+                clean_folder()
+
+    if ctype == 'neb':
+
+        if os.path.exists('convergence'):
+            # check if convergence file exists and setup convergence dictionary of inputs to update
+            conv, steps = read_convergence()
+            previous_step = read_prev_step('neb.log')
+            
+        assert len(conv) == 0 or set([int(x) for x in conv]) == set(i+1 for i in range(steps)), ('ERROR: '+
+                  'steps in convergence file must be sequential!')
+        
+        nimages = int(script_cmds['nimages'])
+        image_dirs = [str(i).zfill(2) for i in range(0,nimages+2)]
+        
+        conv_logger('starting neb calc with '+str(steps)+' steps.')
+        # setup steps
+        for ii in range(steps):
+            conv_logger('Step '+str(ii+1)+' starting')
+            if ii+1 < previous_step:
+                conv_logger('Step '+str(ii+1)+' previously converged')
+                continue
+            
+            if len(conv) > 0:
+                #cmds, script_cmds = update_cmds(conv[str(ii+1)], cmds, script_cmds)
+                cmds, script_cmds = update_cmds(conv, ii+1, cmds, script_cmds)
+                conv_logger('updated cmds and script cmds with convergence file')
+                conv_logger('Running Convergence Step: '+str(ii+1), 'neb.log')
+            
+            if ii == 0:
+                restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
+            else:
+                restart = True
+        
+            # read in neb images
+            try:
+                initial = read('00/CONTCAR')
+                final = read(opj(str(nimages+1).zfill(2),'CONTCAR'))
+            except:
+                assert False, 'ERROR: Add CONTCAR files to 00 and '+str(nimages+1).zfill(2)+' directories.'
+            
+            images = [initial]
+            if restart:
+                try:
+                    images += [read(opj(im,'CONTCAR')) for im in image_dirs[1:-1]]
+                except:
+                    images += [read(opj(im,'POSCAR')) for im in image_dirs[1:-1]]
+                    print('WARNING: CONTCAR files not found, starting from POSCARs')
+            else:
+                images += [read(opj(im,'POSCAR')) for im in image_dirs[1:-1]]
+            images += [final]
+        
+            parallel_neb = True if ('parallel' in script_cmds and script_cmds['parallel'] == 'True') else False
+            climbing_neb = True if ('climbing' in script_cmds and script_cmds['climbing'] == 'True') else False
+    
+            neb = NEB(images, parallel=parallel_neb, climb=climbing_neb) 
+            for im, image in enumerate(images[1:-1]):
+                image.calc = set_calc(cmds, script_cmds, outfile=opj(os.getcwd(),image_dirs[im+1]))
+                
+            dyn = optimizer(neb, script_cmds, logfile = 'neb.log')
+    
+            '''
+            Only energy and forces seem to be implemented in JDFTx.py. A Trajectory
+            object must be attached so JDFTx does not error out trying to get stress
+            '''
+            traj = Trajectory('neb.traj', 'w', neb, properties=['energy', 'forces'])
+    
+            def write_contcar(img_dir, image):
+                image.write(opj(img_dir,'CONTCAR'),format="vasp", direct=True)
+                insert_el(opj(img_dir,'CONTCAR'))
+    
+            for im,image in enumerate(images[1:-1]):
+                img_dir = image_dirs[im+1]
+                dyn.attach(Trajectory(opj(os.getcwd(),img_dir,'opt-'+img_dir+'.traj'), 'w', image,
+                                      properties=['energy', 'forces']))
+                dyn.attach(write_contcar, interval=1, img_dir=img_dir, image=image)
+    
+            safe_mode = False if ('safe-mode' in script_cmds and script_cmds['safe-mode'] == 'False') else True
+            if safe_mode: 
+                dyn.attach(force_checker,interval=1)
+            
+            max_steps = int(script_cmds['max_steps'])
+            fmax = float(script_cmds['fmax'])
+            dyn.run(fmax=fmax,steps=max_steps)
+            traj.close()
+            conv_logger('Step '+str(ii+1)+' complete!')
+            
+            if ii+1 < steps:
+                for folder in image_dirs:
+                    if folder in ['00', str(nimages+1).zfill(2)]:
+                        continue
+                    clean_folder(folder+'/')
+
+
+if __name__ == '__main__':
+    
+    jdftx_exe = os.environ['JDFTx']
+    
+    # optional, change to another directory (for parallel runs)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dir', help='Directory to run in and save files to.',
+                        type=str, default='./')
+    parser.add_argument('-g', '--gpu', help='If True, runs GPU install of JDFTx.',
+                        type=str, default='False')
+
+
+    args = parser.parse_args()
+    if args.dir != './':
+        os.chdir(args.dir)
+    if args.gpu == 'True':
+        try:
+            jdftx_exe = os.environ['JDFTx_GPU']
+        except:
+            print('Environment variable "JDFTx_GPU" not found, running standard JDFTx.')
+
+    command_file = 'inputs'
+    
+    conv_logger('Entering run function.')
+    run_calc(command_file, jdftx_exe)
