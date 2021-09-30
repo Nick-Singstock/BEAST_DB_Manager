@@ -95,7 +95,7 @@ class jdft_manager():
         subprocess.call(cmd, shell=True)
     
     def initialize_vars(self):
-        self.calc_subfolders = ['surfs', 'molecules', 'adsorbed', 'desorbed', 'neb']
+        self.calc_subfolders = ['surfs', 'molecules', 'adsorbed', 'desorbed', 'neb', 'bulks']
         self.data_file = os.path.join(results_folder, 'all_data.json')
         self.default_adsorbate_distance = 2.0
         self.default_desorbed_distance = 5.0
@@ -193,7 +193,8 @@ class jdft_manager():
                 continue
             if '__' in root:
                 continue
-            if verbose: print('\nPOSCAR/inputs found at:', root)
+            if verbose: 
+                print('\nFolder found at:', root)
             if root in all_data['converged']:
                 if verbose: print('Previously Converged.')
                 continue
@@ -215,7 +216,7 @@ class jdft_manager():
 #            sub_dirs = root.split(tag)[-1].split(os.sep)
             sub_dirs = root.split(os.sep)
             
-            if len(sub_dirs) < 4:
+            if len(sub_dirs) < 4 and calc_type != 'bulks':
                 if verbose: print('Not a calculation directory.')
                 continue
             if calc_type == 'neb' and len(sub_dirs) > 5:
@@ -258,6 +259,28 @@ class jdft_manager():
                     if not skip_high_forces: 
                         rerun.append(root)
                         if verbose: print('Molecule calc not converged. Adding to rerun.')
+                continue
+            
+            # save bulk data
+            elif calc_type == 'bulks':
+                if verbose: 
+                    if self.args.current_force == 'True': 
+                        print('Bulk calc read (force='+cf+')')
+                    else:
+                        print('Bulk calc read.')
+                bulk_name = sub_dirs[2]
+                if bulk_name not in all_data:
+                    all_data[bulk_name] = {}
+                if 'bulk' not in all_data[bulk_name]:
+                    all_data[bulk_name]['bulk'] = {}
+                all_data[bulk_name]['bulk'] = data
+                if data['converged']:
+                    all_data['converged'].append(root)
+                    if verbose: print('Bulk calc converged.')
+                else:
+                    if not skip_high_forces: 
+                        rerun.append(root)
+                        if verbose: print('Bulk calc not converged. Adding to rerun.')
                 continue
             
             # save surface data
