@@ -1131,6 +1131,8 @@ class jdft_manager():
                 bias_tag = root.split(os.sep)[-1]
             elif calc_type in ['adsorbed']:
                 bias_tag = root.split(os.sep)[-2]
+            elif calc_type == 'bulks':
+                continue
             if bias_tag == 'No_bias':
                 continue
             bias = h.get_bias(bias_tag)
