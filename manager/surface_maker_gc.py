@@ -18,13 +18,13 @@ def make_surface(file, folder, index, slab_height, vac_space, center):
     
     if not os.path.exists('../../surfs/'+folder+'_'+index):
         os.mkdir('../../surfs/'+folder+'_'+index)
-    if not os.path.exists('../../surfs/'+folder+'_'+index+'/all_surfs/'):
-        os.mkdir('../../surfs/'+folder+'_'+index+'/all_surfs/')
+    if not os.path.exists('../../surfs/'+folder+'_'+index+'/__all_surfs/'):
+        os.mkdir('../../surfs/'+folder+'_'+index+'/__all_surfs/')
 
     for i, slab in enumerate(all_slabs):
-        slab.to('POSCAR', '../../surfs/'+folder+'_'+index+'/all_surfs/' + 'POSCAR_'+str(i).zfill(2))
+        slab.to('POSCAR', '../../surfs/'+folder+'_'+index+'/__all_surfs/' + 'POSCAR_'+str(i).zfill(2))
     
-    print(str(i+1)+' slabs for '+folder+' ('+index+') generated at: '+'surfs/'+folder+'_'+index+'/all_surfs/')
+    print(str(i+1)+' slabs for '+folder+' ('+index+') generated at: '+'surfs/'+folder+'_'+index+'/__all_surfs/')
     print('Review surfaces and move best POSCAR into '+'surfs/'+folder+'_'+index+' to be managed by gc_manager.py')
 
 
