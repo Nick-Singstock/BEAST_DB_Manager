@@ -15,9 +15,24 @@ from ase.neb import NEB
 import argparse
 import subprocess
 from ase.optimize.minimahopping import MinimaHopping
+import numpy as np
 
 opj = os.path.join
 ope = os.path.exists
+
+
+'''
+TODO:
+    auto kpoints (bulk + surfs)
+    auto nbands
+    remove 0V surf calc dependency
+    remove any bias dependency for adsorbate calcs 
+'''
+
+try:
+    comp=os.environ['JDFTx_Computer']
+except:
+    comp='Eagle'
 
 def conv_logger(txt, out_file = 'conv.log'):
     if os.path.exists(out_file):
@@ -69,34 +84,56 @@ def insert_el(filename):
         f.write('\n'.join(contents))
 
 # adds inputs_dos file to cmds
-def add_dos(cmds):
+def add_dos(cmds, script_cmds):
     from pymatgen.core.structure import Structure
-    if not ope('./inputs_dos'):
+    if not ope('./inputs_dos') and not ('pdos' in script_cmds):
         return cmds
     new_cmds = []
     for cmd in cmds:
         if 'density-of-states' in cmd:
-            print('WARNING: command density-of-states in inputs file is being overwritten by inputs_dos!')
+            print('WARNING: command density-of-states in inputs file is being overwritten by inputs_dos.')
             continue
         new_cmds += [cmd]
-    with open('./inputs_dos','r') as f:
-        dos = f.read()
+        
+    dos_line = '' 
     st = Structure.from_file('./POSCAR')
     
-    dos_line = ''
-    for line in dos.split('\n'):
-        if 'Orbital' in line and len(line.split()) == 3:
-            # Format: Orbital Atom_type orbital_type(s)
-            # Adds DOS for ALL atoms of this type and all requested orbitals
-            atom_type = line.split()[1]
-            indices = [i for i,el in enumerate(st.species) if str(el) == atom_type]
-            orbitals = [orb for orb in line.split()[2]]
-            assert all([orb in ['s','p','d','f'] for orb in orbitals]), 'ERROR: Not all orbital types allowed! ('+','.join(orbitals)+')'
-            for i in range(len(indices)):
-                for orbital in orbitals:
-                    dos_line += ' \\\nOrbital ' +atom_type + ' ' + str(i+1) + ' ' + orbital 
-        else:
-            dos_line += ' \\\n' + line
+    if ope('./inputs_dos'):
+        with open('./inputs_dos','r') as f:
+            dos = f.read()
+       
+        for line in dos.split('\n'):
+            if 'Orbital' in line and len(line.split()) >= 3:
+                # Format: Orbital Atom_type orbital_type(s, spaced)
+                # Adds DOS for ALL atoms of this type and all requested orbitals
+                atom_type = line.split()[1]
+                indices = [i for i,el in enumerate(st.species) if str(el) == atom_type]
+                orbitals = line.split()[2:]
+                assert all([orb in ['s','p','px','py','pz','d','dxy','dxz','dyz','dz2','dx2-y2','f'] 
+                            for orb in orbitals]), ('ERROR: Not all orbital types allowed! ('+', '.join(orbitals)+')')
+                for i in range(len(indices)):
+                    for orbital in orbitals:
+                        dos_line += ' \\\nOrbital ' +atom_type + ' ' + str(i+1) + ' ' + orbital 
+            else:
+                dos_line += ' \\\n' + line
+    
+    # allow pdos line in script_cmds
+    if 'pdos' in script_cmds:
+        for pdos in script_cmds['pdos']:
+            if len(pdos.split()) > 1:
+                # Format (list): Atom_type orbital_type(s, spaced)
+                # Adds DOS for ALL atoms of this type and all requested orbitals
+                atom_type = pdos.split()[0]
+                indices = [i for i,el in enumerate(st.species) if str(el) == atom_type]
+                orbitals = pdos.split()[1:]
+                assert all([orb in ['s','p','px','py','pz','d','dxy','dxz','dyz','dz2','dx2-y2','f'] 
+                            for orb in orbitals]), ('ERROR: Not all orbital types allowed! ('+', '.join(orbitals)+')')
+                for i in range(len(indices)):
+                    for orbital in orbitals:
+                        dos_line += ' \\\nOrbital ' +atom_type + ' ' + str(i+1) + ' ' + orbital 
+            else:
+                dos_line += ' \\\n' + pdos
+    
     new_cmds += [('density-of-states', dos_line)]
     return new_cmds
 
@@ -108,7 +145,7 @@ def run_calc(command_file, jdftx_exe):
                   'ion','climbing','pH','ph',
                   'logfile','pseudos','nimages','max_steps','fmax','optimizer',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
-                  'opt-alpha', 'md-steps']
+                  'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS']
 
     # setup default functions needed for running calcs
     def open_inputs(inputs_file):
@@ -147,13 +184,18 @@ def run_calc(command_file, jdftx_exe):
             if typ == 'None':
                 continue
             elif typ == 'script':
+                if cmd in ['pdos','pDOS']:
+                    if 'pdos' not in script_cmds:
+                        script_cmds['pdos'] = []
+                    script_cmds['pdos'].append(val)
+                    continue
                 script_cmds[cmd] = val
             elif typ == 'cmd':
                 tpl = (cmd, val)
                 cmds.append(tpl)
 
-        cmds += [('core-overlap-check', 'none')]
-        cmds = add_dos(cmds)
+#        cmds += [('core-overlap-check', 'none')]
+        cmds = add_dos(cmds, script_cmds)
         return cmds, script_cmds
 
     inputs = open_inputs(command_file)
@@ -246,7 +288,7 @@ def run_calc(command_file, jdftx_exe):
         add_step = False
         for line in conv_txt.split('\n'):
             if any(x in line for x in ['step','Step']):
-                step = line.split()[-1]
+                step = line.split()[1]
                 if step == '0':
                     add_step = True
                 if add_step:
@@ -369,17 +411,39 @@ def run_calc(command_file, jdftx_exe):
             def write_contcar(a=atoms):
                 a.write('CONTCAR',format="vasp", direct=True)
                 insert_el('CONTCAR')
+                
+            e_conv = float(script_cmds['econv']) if 'econv' in script_cmds else 0.0
+            energy_log = []
+            def energy_convergence(a=atoms):
+                if e_conv > 0.0:
+                    e = a.get_potential_energy(force_consistent=False)
+                    if len(energy_log) > 1: # look at last two energies for consistency 
+                        if np.abs(e - energy_log[-1]) < e_conv and np.abs(e - energy_log[-2]) < e_conv:
+                            assert False, 'Stopping calculation based on energy convergence: dE < '+str(e_conv)
+                    energy_log.append(e)
+                # Done: add attachment to optimizer to stop running based on energy conv (assert False)
     
 #            Only energy and forces seem to be implemented in JDFTx.py. A Trajectory
 #            object must be attached so JDFTx does not error out trying to get stress
             traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
             dyn.attach(traj.write, interval=1)
             dyn.attach(write_contcar,interval=1)
+            
+            dyn.attach(energy_convergence,interval=1) # stop calculation on energy convergence if requested
+            
             safe_mode = False if ('safe-mode' in script_cmds and script_cmds['safe-mode'] == 'False') else True
             if safe_mode: 
                 dyn.attach(force_checker,interval=1)
-    
+            
+            
             max_steps = int(script_cmds['max_steps'])
+            
+            # single point calculation consistent notation
+            if max_steps == 0 and comp in ['Summit']:
+                max_steps = 1
+            elif max_steps == 1 and comp in ['Eagle']:
+                max_steps = 0
+                
             fmax = float(script_cmds['fmax'])
             dyn.run(fmax=fmax,steps=max_steps)
             traj.close()

@@ -1,0 +1,15 @@
+Step 0
+kpoint-folding 1 1 1
+elec-cutoff 16
+fmax 0.5
+
+Step 1
+kpoint-folding 3 3 1
+elec-cutoff 20
+fmax 0.01
+
+Step 2
+kpoint-folding 3 3 1
+elec-cutoff 20
+fmax 0.01
+max-steps 0
