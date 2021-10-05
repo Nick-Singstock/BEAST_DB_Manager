@@ -89,9 +89,9 @@ class jdft_manager():
         if verbose: print('Default input files and molecules added.')
         
         if overwrite or not os.path.exists('./manager_control.txt'):
-            self.run('cp ' + os.path.join(defaults_folder + 'manager_control.txt') + ' ./manager_control.txt')
+            self.run('cp ' + os.path.join(defaults_folder, 'manager_control.txt') + ' ./manager_control.txt')
         if overwrite or not os.path.exists('./readme.txt'):
-            self.run('cp ' + os.path.join(defaults_folder + 'readme.txt') + ' ./readme.txt')
+            self.run('cp ' + os.path.join(defaults_folder, 'readme.txt') + ' ./readme.txt')
         print('\nSuccessfully setup directory! Please see manager_control.txt for help.\n')
     
     def check_setup(self):
