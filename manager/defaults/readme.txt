@@ -8,15 +8,20 @@ jdft manager was built to manage a large number of JDFTx surface calculations.
 	calculations. All data is saved in the file results/all_data.json and can be used
 	for further analysis with python. 
 
-To begin, please add a surface POSCAR to a subfolder (e.g. SURF_01) in the calcs/surfs/ directory.
-	To manage this calculation, please add calculation parameters below. 
-	Note: New surfaces can be created from bulk structures with gen_surface.py
+To begin, either:
+	1) Add bulk POSCAR to 'calcs/bulks/name' and run manager
+	   Once bulk is converged, use 'surface_maker_gc.py' to generate surfaces in 'calcs/surfs/name_facet/__all_surfs'
+	   Select chosen surface amongst all generated and place 1 folder up in 'calcs/surfs/name_facet/POSCAR'
+
+	2) OR, Add a surface POSCAR directly to a new subfolder: 'calcs/surfs/surf_name'
+
+
+To manage this calculation, please add calculation parameters in 'manager_control.txt'. 
 
 	An example of how to manage a surface is included below for a surface named SURF_01 
-	which is to be converged first with no bias, then at 0 V, then at -0.1 and -0.5 V. 
-	Note: No bias (None) must always be included. 
-	Note: 0 V must be included in order to run additional biases.
-	Note: biases should be listed in Volts (RHE). "target-mu" will be updated based on "pcm-variant".
+	which is to be converged first with no bias, then at 0V, -0.1V and -0.5V.  
+	Note: biases should be listed in Volts vs SHE (0V). "target-mu" will be updated based on "pcm-variant".
+	Note: default system parameters for each calc_type can be changed in 'inputs/' folder
 	
 	"=" tag indicates a new surface
 	"+" tags refer to specific changes made to "inputs" file for respective surface.
@@ -27,35 +32,53 @@ To begin, please add a surface POSCAR to a subfolder (e.g. SURF_01) in the calcs
 	
 	Keywords -- for molecules/adsorbates these include: 
 		"Biases:" - List of all biases for adsorbate calcs, must be subset of surface biases. 
-					Also needed for all surfaces. Must be separated by ", ". Biases in RHE by default.
+					Also needed for all surfaces. Must be separated by ", ". Biases in SHE by default.
 		"Desorb:" - Creates desorbed state for NEB calcs at listed biases
-		"NEB:" - Creates an NEB calc, needs following params:
-				 1. Adsorbed state folder (e.g., 01). This should be the folder name in calcs/
-				 2. Bias for NEB (e.g., -0.1 V). Must be within molecule biases list.
-				 3. Images to run (e.g., 7)
-				 4. fmax tag (e.g., 0.05)
+		"NEB:" - Creates an NEB calc
+
 	Note: Inclusion of a molecule to be an adsorbate will run the corresponding molecule in the 
 	molecules/ folder at all requested biases in order to get binding energies.	
 
-=SURF_01
-Biases: [None, 0, -0.1, -0.5]
-+kpoint-folding 4 4 1
-+fmax 0.02
 
--MOL_01: [10, 11] 
+----- Syntax Example -----
+
+# setup managed surface, requires 'POSCAR' in folder with name 'calcs/surfs/SURF_01/BIASES'
+=SURF_01
+
+# set biases for this surface
+Biases: [None, 0, -0.1, -0.5]
+
+# set system-specific inputs tags (applies to surface and adsorbates)
++elec-initial-magnetization 0 no 
+
+# set system-specific convergence tags at corresponding step
++[2] max_steps 0
++[2] pdos element or bit als 
+# Note: runs corresponding orbitals for all elements in system of type 'element'
+
+# define molecule to add to surface for adsorbate calc 
+# Folder: calcs/adsorbed/SURF_01/MOL_01/BIASES/SITES/
+# MOL_01 must be in 'molecules/' folder
+# list defines adsorbtion sites, options are: 
+   [atom #, 'ontop', 'hollow', 'bridge', 'all', el symbol, (x,y,z) pos]
+-MOL_01: [10, 11] # places MOL_01 on atoms 10 and 11
+
+# Note: Molecules are also run in 'calcs/molecules/MOL/BIASES'
+
+# set non-standard distance for adsorbate above sites, default is 2.0
+Dist: 1.5 
+
+# set biases for adsorbate calc, must be within set of surface biases
 Biases: [0, -0.1]
+
+# set biases for desorbed SP calcs (used for NEB)
+Folder: calcs/desorbed/SURF_01/MOL_01/BIASES/SITES/
 Desorb: [0, -0.1]
 
-NEB: 01 -0.1 7 0.05
-NEB: 01 0 7 0.05
-
--MOL_02: [10]
-Biases: [-0.5]
-
-
------ CALCULATIONS BELOW -----
-
-
+# create NEB pathway between two images
+# Folder: calcs/neb/SURF_01/path_name/BIASES
+# 'BIAS' should be used in paths instead of specific biases
+NEB: path/to/init path/to/final nimages path_name [biases, to, run]
 
 
 
