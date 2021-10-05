@@ -10,15 +10,16 @@ import json
 import numpy as np
 from pymatgen.core.structure import Structure
 
-
+opj = os.path.join
+ope = os.path.exists
 hartree_to_ev = 27.2114
 
 
 class helper():
     
-    def read_inputs(self, folder):
+    def read_inputs(self, folder, file = 'inputs'):
         # returns a dictionary of inputs
-        with open(os.path.join(folder, 'inputs'), 'r') as f:
+        with open(os.path.join(folder, file), 'r') as f:
             input_text = f.read()
         tags = {}
         for line in input_text.split('\n'):
@@ -396,5 +397,65 @@ class helper():
                 refs[k] = v
         
         return refs
+    
+    def read_convergence(self, root):
+        '''
+        convergence example:
+        step 1
+        kpoints 1 1 1
+        
+        step 2
+        kpoints 3 3 3
+        '''
+        with open(opj(root, 'convergence'),'r') as f:
+            conv_txt = f.read()
+        step = '1'
+        add_step = False
+        conv_dic = {}
+        for line in conv_txt.split('\n'):
+            if any(x in line for x in ['step','Step']):
+                step = line.split()[1]
+                if step == '0':
+                    add_step = True
+                if add_step:
+                    step  = str(int(step)+1) # update so steps are always indexed to 1
+                if step not in conv_dic:
+                    conv_dic[step] = {}
+            else:
+                cmd, val = line.split()[0], ' '.join(line.split()[1:])
+                if cmd in conv_dic[step]:
+                    # multiple versions of same command (i.e. pdos)
+                    if type(conv_dic[step][cmd]) == list:
+                        conv_dic[step][cmd].append(val)
+                    else:
+                        conv_dic[step][cmd] = [conv_dic[step][cmd], val]
+                else:
+                    # single version of command
+                    conv_dic[step][cmd] = val
+        return conv_dic
+    
+    def write_convergence(self, root, conv_dic):
+        txt = ''
+        assert '1' in conv_dic, 'METAERROR: Value "1" not in convergence dictionary, cannot write.'
+        for step, vals in conv_dic.items():
+            if step == '1':
+                txt += 'step 1\n'
+            else:
+                txt += '\nstep '+step + '\n'
+            
+            for cmd, val in vals.items():
+                if type(val) == list:
+                    for v in vals:
+                        txt += cmd + ' ' + v + '\n'
+                else:
+                    txt += cmd + ' ' + val + '\n'
+        
+        # write convergence file
+        with open(opj(root, 'convergence'), 'w') as f:
+            f.write(txt)
+        
+        
+        
+
     
     

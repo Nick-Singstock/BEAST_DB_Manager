@@ -11,10 +11,13 @@ import argparse
 import subprocess
 import json
 from pymatgen.core.structure import Structure
+from pymatgen.io.vasp.inputs import Kpoints
 import numpy as np
 from adsorbate_helper import save_structures, add_adsorbates, write_parallel, minimum_movement_strs
 from jdft_helper import helper 
 h = helper()
+opj = os.path.join
+ope = os.path.exists
 
 # Eagle defaults
 calc_folder = 'calcs/'
@@ -49,14 +52,19 @@ class jdft_manager():
         if self.args.setup == 'True':
             print('Setting up initial directory for management.')
             self.__setup__()
+        
+        self.pseudoMap = {'SG15' : 'SG15/$ID_ONCV_PBE.upf', # readable format
+                          'GBRV' : 'GBRV/$ID_pbe.uspp', # TODO: (not readable)
+                          'GBRV_v1.5' : 'GBRV_v1.5/$ID_pbe_v1.uspp.F.UPF'} # readable format
 
     def __setup__(self, verbose = True, overwrite = False):
-        # make necessary subfolders
+        # make necessary head-folders
         for dir_to_make in [calc_folder, molecule_folder, inputs_folder, results_folder]:
             if not os.path.exists(dir_to_make):
                 os.mkdir(dir_to_make)
             else:
                 print('Directory: '+dir_to_make+' already exists. No changes made.')
+        # make calc sub-folders
         for cs in self.calc_subfolders:
             folder = os.path.join(calc_folder, cs)
             if not os.path.exists(folder):
@@ -82,6 +90,8 @@ class jdft_manager():
         
         if overwrite or not os.path.exists('./manager_control.txt'):
             self.run('cp ' + os.path.join(defaults_folder + 'manager_control.txt') + ' ./manager_control.txt')
+        if overwrite or not os.path.exists('./readme.txt'):
+            self.run('cp ' + os.path.join(defaults_folder + 'readme.txt') + ' ./readme.txt')
         print('\nSuccessfully setup directory! Please see manager_control.txt for help.\n')
     
     def check_setup(self):
@@ -481,7 +491,7 @@ class jdft_manager():
         new_roots = []
         managed_mols = []
         # setup molecule folders in calc_folder
-        if self.args.add_molecules == 'True':
+        if self.args.add_molecules == 'True': # TODO: add convergence file to mols?
             for mol, molv in managed['molecules'].items():
                 # ref_mols used for binding analysis, mol used for desorb SP calcs
                 ref_mols = self.get_ref_mols(mol)
@@ -514,6 +524,10 @@ class jdft_manager():
                         tags = ['target-mu '+ ('None' if bias in ['None','none','No_bias'] 
                                 else '%.4f' % self.get_mu(bias, h.read_inputs(bias_dir)))]
                         self.add_tags(bias_dir, tags)
+                        good_setup = self.set_input_system_params(bias_dir, 'molecules')
+                        if not good_setup:
+                            print('Setup failed: '+bias_dir)
+                            continue
                         new_roots.append(bias_dir)
                         print('Reference molecule '+ref_mol+' at bias '+h.get_bias_str(bias)+
                               ' properly setup for mol '+mol)
@@ -536,23 +550,23 @@ class jdft_manager():
                     continue
                 # root does not exist yet, check on bias dependency
                 bias = v['biases'][i]
-                if type(bias) == float and bias != 0.0:
-                    # bias is a non-zero voltage, ensure 0 is converged
-                    zero_root = os.path.join(calc_folder, 'surfs', surf, h.get_bias_str(0.0))
-                    if zero_root in converged:
-                        # upgrade from 0 V (which exists!)
-                        self.upgrade_calc(root, zero_root, bias, v['tags'] if 'tags' in v else [])
-                        new_roots.append(root)
-                    elif 0.0 not in v['biases']:
-                        # 0.0 not requested, run directly 
-                        good_setup = self.make_calc(calc_folder, surf, root, v, bias)
-                        if good_setup:
-                            new_roots.append(root)
-                        continue
-                    else:
-                        # waiting for 0.0V to converge
-                        continue
-                elif bias == 0.0:
+#                if type(bias) == float and bias != 0.0:
+#                    # bias is a non-zero voltage, ensure 0 is converged
+#                    zero_root = os.path.join(calc_folder, 'surfs', surf, h.get_bias_str(0.0))
+#                    if zero_root in converged:
+#                        # upgrade from 0 V (which exists!)
+#                        self.upgrade_calc(root, zero_root, bias, v['tags'] if 'tags' in v else [])
+#                        new_roots.append(root)
+#                    elif 0.0 not in v['biases']:
+#                        # 0.0 not requested, run directly 
+#                        good_setup = self.make_calc(calc_folder, surf, root, v, bias)
+#                        if good_setup:
+#                            new_roots.append(root)
+#                        continue
+#                    else:
+#                        # waiting for 0.0V to converge
+#                        continue
+                if type(bias) == float:
                     # bias is zero, ensure no-mu is converged
                     nm_root = os.path.join(calc_folder, 'surfs', surf, 'No_bias') 
                     if nm_root in converged:
@@ -569,31 +583,40 @@ class jdft_manager():
                         # waiting for No_bias to converge
                         continue
                 elif bias == 'No_bias':
-                    # initial setup of no-mu surface
-                    head_root = os.path.join(calc_folder, 'surfs', surf)
-                    if not os.path.exists(os.path.join(head_root, 'POSCAR')):
-                        print('POSCAR must be added to folder: '+head_root)
-                        continue
-                    else:
-                        if not os.path.exists(root):
-                            os.mkdir(root)
-                        self.run('cp '+os.path.join(head_root, 'POSCAR')+' '+os.path.join(root, 'POSCAR'))
-                    if not h.check_surface(os.path.join(root, 'POSCAR')):
-                        continue
-                    # copy inputs from inputs_folder and update based on tags
-                    self.run('cp '+os.path.join(inputs_folder, 'surfs_inputs')+' '+os.path.join(root, 'inputs'))
-                    
-                    # add convergence file
-                    if self.args.use_convergence == 'True':
-                        if os.path.exists(os.path.join(inputs_folder, 'convergence')):
-                            self.run('cp '+os.path.join(inputs_folder, 'convergence')+
-                                 ' '+os.path.join(root, 'convergence'))
-                        else:
-                            print('WARNING: "convergence" file not found in '+inputs_folder)
-                    
-                    if 'tags' in v:
-                        self.add_tags(root, v['tags'])
-                    new_roots.append(root)
+                    good_setup = self.make_calc(calc_folder, surf, root, v, bias)
+                    if good_setup:
+                        new_roots.append(root)
+                    continue
+#                    
+#                    # initial setup of no-mu surface
+#                    head_root = os.path.join(calc_folder, 'surfs', surf)
+#                    if not os.path.exists(os.path.join(head_root, 'POSCAR')):
+#                        print('POSCAR must be added to folder: '+head_root)
+#                        continue
+#                    else:
+#                        if not os.path.exists(root):
+#                            os.mkdir(root)
+#                        self.run('cp '+os.path.join(head_root, 'POSCAR')+' '+os.path.join(root, 'POSCAR'))
+#                    if not h.check_surface(os.path.join(root, 'POSCAR')):
+#                        continue
+#                    # copy inputs from inputs_folder and update based on tags
+#                    self.run('cp '+os.path.join(inputs_folder, 'surfs_inputs')+' '+os.path.join(root, 'inputs'))
+#                    
+#                    # add convergence file
+#                    if self.args.use_convergence == 'True':
+#                        if os.path.exists(os.path.join(inputs_folder, 'convergence')):
+#                            self.run('cp '+os.path.join(inputs_folder, 'convergence')+
+#                                 ' '+os.path.join(root, 'convergence'))
+#                        else:
+#                            print('WARNING: "convergence" file not found in '+inputs_folder)
+#                    
+#                    if 'tags' in v:
+#                        self.add_tags(root, v['tags'])
+#                    good_setup = self.set_input_system_params(root, 'surfs')
+#                    if not good_setup:
+#                        print('Setup failed: '+root)
+#                        continue
+#                    new_roots.append(root)
                 
             # 2) add adsorbates to converged surfaces at same bias
             if self.args.add_adsorbed == 'True':
@@ -652,14 +675,32 @@ class jdft_manager():
                                          ' '+os.path.join(sl, 'convergence'))
                                 else:
                                     print('WARNING: "convergence" file not found in '+inputs_folder)
+                                
+                                if 'conv-tags' in v or 'conv-tags' in mv:
+                                    convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
+                                    if 'conv-tags' in v: # add all tags from surface
+                                        for step, vals in v['conv-tags']:
+                                            if step in convtags:
+                                                convtags[step] += vals
+                                            else:
+                                                convtags[step] = vals
+                                    # update convergence file
+                                    self.set_conv_tags(sl, convtags)
                             
                             # tags is a list
                             tags = mv['tags'] if 'tags' in mv else []
-                            if 'tags' in v: tags += v['tags']
+                            if 'tags' in v: # add all tags from surface
+                                tags += v['tags']
 #                            tags += 'target-mu '+ ('None' if bias in ['None','none','No_bias'] else '%.2f'%bias)
                             tags += ['target-mu '+ ('None' if bias in ['None','none','No_bias'] 
                                      else '%.4f' % self.get_mu(bias, h.read_inputs(sl), tags))]
                             self.add_tags(sl, tags)
+                            
+                            # set nbands and kpts from surf
+                            good_setup = self.set_input_system_params(sl, 'adsorbed')
+                            if not good_setup:
+                                print('Setup failed: '+sl)
+                                continue
                             new_roots.append(sl)
                 
                     # setup single point calcs of molecules (at bias) above surface (at bias)
@@ -705,6 +746,17 @@ class jdft_manager():
                                              ' '+os.path.join(sl, 'convergence'))
                                     else:
                                         print('WARNING: "convergence" file not found in '+inputs_folder)
+                                    
+                                    if 'conv-tags' in v or 'conv-tags' in mv:
+                                        convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
+                                        if 'conv-tags' in v: # add all tags from surface
+                                            for step, vals in v['conv-tags']:
+                                                if step in convtags:
+                                                    convtags[step] += vals
+                                                else:
+                                                    convtags[step] = vals
+                                        # update convergence file
+                                        self.set_conv_tags(sl, convtags)
                                 
                                 # tags is a list
                                 tags = mv['tags'] if 'tags' in mv else []
@@ -714,6 +766,12 @@ class jdft_manager():
                                 if desorbed_single_point:
                                     tags += ['max_steps 0']
                                 self.add_tags(sl, tags)
+                                
+                                # set nbands and kpts from surf
+                                good_setup = self.set_input_system_params(sl, 'desorbed')
+                                if not good_setup:
+                                    print('Setup failed: '+sl)
+                                    continue
                                 new_roots.append(sl)
                         
             # Create NEB calcs from converged ads. and des. calcs
@@ -835,6 +893,17 @@ class jdft_manager():
                             if os.path.exists(os.path.join(inputs_folder, 'convergence')):
                                 self.run('cp '+os.path.join(inputs_folder, 'convergence')+
                                      ' '+os.path.join(neb_dir, 'convergence'))
+                            
+#                            if 'conv-tags' in v or 'conv-tags' in mv:
+#                                convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
+#                                if 'conv-tags' in v: # add all tags from surface
+#                                    for step, vals in v['conv-tags']:
+#                                        if step in convtags:
+#                                            convtags[step] += vals
+#                                        else:
+#                                            convtags[step] = vals
+#                                # update convergence file
+#                                self.set_conv_tags(neb_dir, convtags)
                         
                         print('Setup NEB folder: '+neb_dir)
                                                 
@@ -865,6 +934,9 @@ class jdft_manager():
                      ' '+os.path.join(root, 'convergence'))
             else:
                 print('WARNING: "convergence" file not found in '+inputs_folder)
+            
+            if 'conv-tags' in v:
+                self.set_conv_tags(root, v['conv-tags'])
         
         if 'tags' in v:
             tags = v['tags']
@@ -873,7 +945,38 @@ class jdft_manager():
         tags += ['target-mu '+ ('None' if bias in ['None','none','No_bias'] 
                  else '%.4f' % self.get_mu(bias, h.read_inputs(root), tags))]
         self.add_tags(root, tags)
+        
+        good_setup = self.set_input_system_params(calc_folder, 'surfs')
+        if not good_setup:
+            print('Setup failed: '+calc_folder)
+            return False
         return True
+    
+    def set_conv_tags(self, root, conv_tags):
+        if not ope(opj(root, 'convergence')):
+            return
+        conv_dic = h.read_convergence(root)
+        
+        new_conv_dic = {}
+        for step, vals in conv_tags.items():
+            for val_str in vals: 
+                cmd = val_str.split()[0]
+                val = ' '.join(val_str.split()[1:])
+                if cmd in new_conv_dic[step]:
+                    # multiple versions of same command (i.e. pdos)
+                    if type(new_conv_dic[step][cmd]) == list:
+                        new_conv_dic[step][cmd].append(val)
+                    else:
+                        new_conv_dic[step][cmd] = [new_conv_dic[step][cmd], val]
+                else:
+                    # single version of command
+                    new_conv_dic[step][cmd] = val
+        
+        for step, vdic in new_conv_dic.items():
+            for cmd, val in vdic.items():
+                conv_dic[step][cmd] = val
+        
+        h.write_convergence(root, conv_dic)
 
     def get_mol_loc(self, mol):
         if os.path.exists(os.path.join(molecule_folder, mol, 'POSCAR')):
@@ -910,9 +1013,18 @@ class jdft_manager():
                 inputs[tag_k] = tag_v
         h.write_inputs(inputs, root)
     
-    def upgrade_calc(self, new_root, old_root, bias, tags, verbose = True):
+    def upgrade_calc(self, new_root, old_root, bias, tags, verbose = True, copy_electronic = False):
+        # upgrade from similar type of calc, 
+        # do not need to update inputs of convergence aside from changing bias
         os.mkdir(new_root)
         self.run('cp ' + os.path.join(old_root, 'CONTCAR') + ' ' + os.path.join(new_root, 'POSCAR'))
+        
+        if copy_electronic:
+            for efile in ['wfns','fillings','eigenvals','fluidState']:
+                if os.path.exists(os.path.join(old_root, efile)):
+                    self.run('cp ' + os.path.join(old_root, efile) 
+                             + ' ' + os.path.join(new_root, efile))
+        
         # copy over convergence file
         if self.args.use_convergence == 'True' and os.path.exists(os.path.join(old_root, 'convergence')):
             self.run('cp ' + os.path.join(old_root, 'convergence') 
@@ -977,6 +1089,7 @@ class jdft_manager():
                 continue
             if line[0] == '#':
                 continue
+            
             if line[0] == '=':
                 # new surface 
                 surf = line[1:]
@@ -985,6 +1098,7 @@ class jdft_manager():
                 surf_bias = None
                 mol_bias = None
                 continue
+            
             if line[0] == '-':
                 # molecule for surface
                 mol = line.split(':')[0][1:]
@@ -998,7 +1112,8 @@ class jdft_manager():
                 managed[surf][mol] = {'sites': sites}
                 managed['molecules'][mol] = {'biases': []}
                 continue
-            if line[0] == '+':
+            
+            if line[0] == '+' and '[' not in line:
                 # tag for inputs file
                 if surf is None:
                     print('Error in manager_control: surface must be listed before adding "+" tags')
@@ -1013,6 +1128,31 @@ class jdft_manager():
                         managed[surf][mol]['tags'] = []
                     managed[surf][mol]['tags'].append(line[1:])
                 continue
+            
+            if line[0] == '+' and '[' in line and ']' in line:
+                # tags for convergence file
+                if surf is None:
+                    print('Error in manager_control: surface must be listed before adding "+" tags')
+                    error = True
+                    continue
+                step_number = line.split('[')[1][0]
+                val = line.split(']')[1]
+                if val[0] == ' ':
+                    val = val[1:]
+                if mol is None:
+                    if 'conv-tags' not in managed[surf]:
+                        managed[surf]['conv-tags'] = {}
+                    if step_number not in managed[surf]['conv-tags']:
+                        managed[surf]['conv-tags'][step_number] = []
+                    managed[surf]['conv-tags'][step_number].append(val)
+                else:
+                    if 'conv-tags' not in managed[surf][mol]:
+                        managed[surf][mol]['conv-tags'] = {}
+                    if step_number not in managed[surf][mol]['conv-tags']:
+                            managed[surf][mol]['conv-tags'][step_number] = []
+                    managed[surf][mol]['conv-tags'][step_number].append(val)
+                continue
+                
             if 'Biases:' in line:
                 if surf is None:
                     print('Error in manager_control: surface must be listed before biases using "=".')
@@ -1036,6 +1176,7 @@ class jdft_manager():
                     managed[surf][mol]['biases'] = mol_bias
                     managed['molecules'][mol]['biases'] += mol_bias
                 continue
+            
             if 'Desorb:' in line:
                 # use this command to setup desorbed calculations
                 if surf is None:
@@ -1058,6 +1199,7 @@ class jdft_manager():
                 managed[surf][mol]['desorb'] = desorb_bias
                 managed['molecules'][mol]['desorb'] = True
                 continue
+            
             if 'Dist:' in line:
                 # use this command to assign adsorbate/desorbed distance from surf
                 if surf is None:
@@ -1074,6 +1216,7 @@ class jdft_manager():
                 else:
                     managed[surf][mol]['ads_dist'] = mol_dist
                 continue
+            
             if 'NEB:' in line:
                 # within surf, format: 
                 #       NEB: path/to/init path/to/final nimages name [biases, to, run] 
@@ -1105,6 +1248,8 @@ class jdft_manager():
         return managed
 
     def add_calc_inputs(self, folders):
+        # setup calcs NOT IN MANAGER_CONTROL.TXT (cannot use values from this)
+        properly_setup = []
         for root in folders:
             # get type of calculation
             calc_type = None
@@ -1126,18 +1271,92 @@ class jdft_manager():
                 else:
                     print('WARNING: "convergence" file not found in '+inputs_folder)
             
+            good_setup = self.set_input_system_params(root, calc_type)
+            if not good_setup:
+                continue
+            
             # add bias tag to inputs if needed
             if calc_type in ['surfs','molecules','desorbed','neb']: # bias is last listed
                 bias_tag = root.split(os.sep)[-1]
             elif calc_type in ['adsorbed']:
                 bias_tag = root.split(os.sep)[-2]
             elif calc_type == 'bulks':
+                properly_setup.append(root)
                 continue
             if bias_tag == 'No_bias':
+                properly_setup.append(root)
                 continue
             bias = h.get_bias(bias_tag)
             tags = ['target-mu %.4f' % self.get_mu(bias, h.read_inputs(root))]
             self.add_tags(root, tags)
+            properly_setup.append(root)
+        return properly_setup
+    
+    def set_input_system_params(self, root, calc_type, kpoint_density = 1000):
+        # called when setting up new calcs from scratch or setting up calcs from manager_control
+        st = Structure.from_file(opj(root, 'POSCAR'))
+        tags = h.read_inputs(root)
+        
+        if tags['kpoint-folding'] == '*':
+            # set kpoint-folding for bulk systems
+            if calc_type in ['bulks','molecules']:
+                kpts = Kpoints.automatic_density(st, kpoint_density).as_dict()
+                tags['kpoint-folding'] = ' '.join(kpts['kpoints'][0])
+            
+            # set kpoints for surfs from bulk calcs
+            elif calc_type in ['surfs']:
+                try: # try to get bulk inputs from __all_surfs folder (from bulk)
+                    bulk_tags = h.read_inputs(opj(os.sep.join(root.split(os.sep)[:-1]),
+                                                  '__all_surfs'),file='bulk_inputs')
+                    kpts = bulk_tags['kpoint-folding']
+                    tags['kpoint-folding'] = ' '.join(kpts.split()[0:2] + ['1'])
+                except:
+                    print('ERROR: kpoint-folding cannot be set for: '+root)
+                    return False
+            
+            elif calc_type in ['adsorbed','desorbed']:
+                try: # copy kpoint-folding from surfs
+                    surf_inputs = h.read_inputs(os.sep.join(root.replace('adsorbed',
+                                                'surfs').replace('desorbed',
+                                                'surfs').split(os.sep)[:-1]))
+                    tags['kpoint-folding'] = surf_inputs['kpoint-folding']
+                except:
+                    print('ERROR: kpoint-folding cannot be set for: '+root)
+                    return False
+            
+            else:
+                print('ERROR: kpoint-folding cannot be set for: '+root)
+                return False
+            
+        # set elec-n-bands for all systems 
+        tags['elec-n-bands'] = self.set_elec_n_bands(root)
+        
+        h.write_inputs(tags, root)
+        return True
+    
+    def set_elec_n_bands(self, root, band_scaling = 1.2):
+        st = Structure.from_file(opj(root, 'POSCAR'))
+        tags = h.read_inputs(root)
+        
+        psdir = os.environ['JDFTx_pseudos']
+        ps_type = tags['pseuods'] if 'pseudos' in tags else 'GBRV'
+        ps_key = opj(psdir, self.pseudoMap[ps_type])
+        els = [s.species_string for s in st.sites]
+        el_dic = {el: els.count(el) for el in els}
+        # get electrons from psd files
+        nelec = 0
+        for el, count in el_dic.items():
+            file = ps_key.replace('$ID', el.lower())
+            with open(file, 'r') as f:
+                ps_txt = f.read()
+            zval = [line for line in ps_txt.split('\n') if 'Z valence' in line # GBRV
+                    or 'z_valence' in line][0] # SG15
+            electrons = int(float(zval.split()[0])) if 'Z' in zval else (
+                        int(float(zval.split()[1].replace('"',''))))
+            nelec += electrons * count
+        nbands_add = int(nelec / 2) + 10
+        nbands_mult = int((nelec / 2) * band_scaling)
+        return max([nbands_add, nbands_mult])
 
     def get_running_jobs_dirs(self):
         p = subprocess.Popen(['squeue' ,'-o', '"%Z %T"'],   #can be user specific, add -u username 
@@ -1277,6 +1496,7 @@ class jdft_manager():
         
         # make new surfaces based on manager_control.txt file, add new calcs to add_inputs
         new_folders = []
+        inputs_added = []
         if self.args.make_new == 'True':
             new_folders = self.make_new_calcs(all_data['converged'])
             if new_folders == False:
@@ -1286,23 +1506,23 @@ class jdft_manager():
             # add inputs to any created file with a POSCAR and no 'inputs'. 
             # Does not need to be in manager_control.txt
             if len(add_inputs) > 0:
-                self.add_calc_inputs(add_inputs)
+                inputs_added = self.add_calc_inputs(add_inputs)
         
         # run jobs with added 'inputs'
         # molecules should only be run if requested or in manager_control
         # neb calcs should be handled differently ? submission is the same, inputs is all that's changed.
         #   sub_folders should start with single point calcs after setup! 
         # bias calcs should pass structure forward from nomu -> 0V -> other biases
-        if self.args.run_new == 'True' and len(new_folders + add_inputs + run_new) > 0:
+        if self.args.run_new == 'True' and len(new_folders + inputs_added + run_new) > 0:
             if len(run_new) > 0:
                 h.update_run_new(run_new)
             if parallel == 1:
-                self.run_new_calcs(new_folders + add_inputs + run_new)
+                self.run_new_calcs(new_folders + inputs_added + run_new)
         
-        # rerun calcs
+        # run calcs in parallel 
         all_roots = []
         if self.args.run_new == 'True':
-            all_roots += new_folders + add_inputs + run_new
+            all_roots += new_folders + inputs_added + run_new
         if self.args.rerun_unconverged == 'True':
             all_roots += rerun
         if parallel > 1:
@@ -1320,18 +1540,21 @@ class jdft_manager():
 run_script = True    
 
 # set computer defaults
-try:
-    home_dir = os.environ['JDFTx_home']
-except:
-    assert False, "Error: Environment variable 'JDFTx_home' must be set and point to jdftx location"
+#try:
+#    home_dir = os.environ['JDFTx_home']
+#except:
+#    assert False, "Error: Environment variable 'JDFTx_home' must be set and point to jdftx location"
 try:
     core_architecture = int(os.environ['CORES_PER_NODE'])
 except:
     print("Warning: 'CORES_PER_NODE' not found, cores per node set to 36.")
     core_architecture = 36
     
-defaults_folder = os.path.join(home_dir, 'bin/JDFTx_Tools/manager/defaults/')
-run_command = 'python '+ os.path.join(home_dir, 'bin/JDFTx_Tools/sub_JDFTx.py')
+#defaults_folder = os.path.join(home_dir, 'bin/JDFTx_Tools/manager/defaults/')
+#run_command = 'python '+ os.path.join(home_dir, 'bin/JDFTx_Tools/sub_JDFTx.py')
+manager_home = os.environ['JDFTx_manager_home']
+defaults_folder = os.path.join(manager_home, 'defaults')
+run_command = 'python '+ os.path.join(manager_home, 'sub_JDFTx.py')
 
 # all files to include in backup
 files_to_backup = ['CONTCAR','POSCAR','out','inputs','opt.log','Ecomponents','neb.log']    

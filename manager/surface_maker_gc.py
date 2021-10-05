@@ -6,6 +6,7 @@
 from pymatgen.core.surface import SlabGenerator, Structure
 import os
 import argparse
+import subprocess
 
 def make_surface(file, folder, index, slab_height, vac_space, center):
     st = Structure.from_file(file)
@@ -23,6 +24,10 @@ def make_surface(file, folder, index, slab_height, vac_space, center):
 
     for i, slab in enumerate(all_slabs):
         slab.to('POSCAR', '../../surfs/'+folder+'_'+index+'/__all_surfs/' + 'POSCAR_'+str(i).zfill(2))
+    
+    # copy inputs for bulk for surf kpoints
+    subprocess.call('cp inputs '+ '../../surfs/'+
+                    folder+'_'+index+'/__all_surfs/bulk_inputs', shell=True)
     
     print(str(i+1)+' slabs for '+folder+' ('+index+') generated at: '+'surfs/'+folder+'_'+index+'/__all_surfs/')
     print('Review surfaces and move best POSCAR into '+'surfs/'+folder+'_'+index+' to be managed by gc_manager.py')

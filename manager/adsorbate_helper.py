@@ -833,7 +833,7 @@ def minimum_movement_strs(init, final, same_threshold = 0.4):
         for ii,fs in enumerate(fsites):
             if fs.species_string != el or ii in used_sites:
                 continue
-            dist = fs.distance_from_point(site.coords)
+            dist = fs.distance(site)
             if dist < same_threshold:
                 fnew[i] = fs
                 used_sites.append(ii)

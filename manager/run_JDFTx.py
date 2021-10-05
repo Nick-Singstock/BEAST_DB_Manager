@@ -16,6 +16,8 @@ import argparse
 import subprocess
 from ase.optimize.minimahopping import MinimaHopping
 import numpy as np
+from jdft_helper import helper 
+h = helper()
 
 opj = os.path.join
 ope = os.path.exists
@@ -141,7 +143,7 @@ def add_dos(cmds, script_cmds):
 def run_calc(command_file, jdftx_exe):
 
     notinclude = ['ion-species','ionic-minimize',
-                  'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
+                  #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
                   'ion','climbing','pH','ph',
                   'logfile','pseudos','nimages','max_steps','fmax','optimizer',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
@@ -158,16 +160,21 @@ def run_calc(command_file, jdftx_exe):
         if len(line) == 0 or line[0] == '#': 
             return 0,0,'None'
         linelist = line.split()
+        
+        defaults = ['default','inputs']
         if linelist[0] in notinclude:
-#            if len(linelist) > 1:
-#                script_cmds[linelist[0]] = ' '.join(linelist[1:])
-                # command, value, type
-            return linelist[0], ' '.join(linelist[1:]), 'script'
+            # command, value, type
+            cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'script'
+            if val in defaults:
+                val = h.read_inputs('./')[cmd]
+            return cmd, val, typ
         else:
             if len(linelist) > 1:
-#                tpl = (linelist[0], ' '.join(linelist[1:]))
-#                cmds.append(tpl)
-                return linelist[0], ' '.join(linelist[1:]), 'cmd'
+                # command, value, type
+                cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'cmd'
+                if val in defaults:
+                    val = h.read_inputs('./')[cmd]
+                return cmd, val, typ
             else:
                 return line, '', 'cmd'
         
