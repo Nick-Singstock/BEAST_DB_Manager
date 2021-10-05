@@ -1,32 +1,50 @@
-kpoint-folding 4 4 1
-kpoint 0 0 0 1
-elec-cutoff 20
-elec-smearing Fermi 0.008
-spintype z-spin
+### Functional ###
 elec-ex-corr gga
-latt-move-scale 1 1 0
+van-der-waals   
 
-fluid LinearPCM
-pcm-variant CANDLE
-fluid-solvent H2O
-#van-der-waals
+### Electronic Parameters ###
+elec-cutoff 20 
+elec-n-bands *   # system dependent, (Nelec / 2) * 1.2 OR + 10
+kpoint-folding *
+electronic-minimize nIterations 100 energyDiffThreshold  1e-07
+elec-smearing Fermi 0.001 
+elec-initial-magnetization 0 no  
+spintype z-spin
+core-overlap-check none
+converge-empty-states yes
 
-fluid-cation Na+ 0.5
-fluid-anion F- 0.5
-
-electronic-minimize energyDiffThreshold 1e-07
+### Lattice / Unit Cell ###
+latt-move-scale 1 1 1 
+lattice-minimize nIterations 100
+symmetries none 
 coulomb-interaction periodic
+coords-type Lattice
 
-dump End Dtot BoundCharge
+### Solvation & Bias ###
+#fluid LinearPCM  
+#pcm-variant CANDLE 
+#fluid-solvent H2O
+#fluid-cation Na+ 0.5
+#fluid-anion F- 0.5
+#target-mu *
+
+### Output Files ###
+dump End Dtot BoundCharge 
 dump End State
 dump End Forces
 dump End Ecomponents
-#dump Electronic State
-#dump Fluid State
 
-logfile outfile
-pseudos SG15
-max_steps 200
-fmax 0.01
-optimizer FIRE
-restart False
+### Density of States ###
+#dump End DOS  
+#pdos Total
+
+### ASE Parameters ###
+logfile ase_out
+pseudos GBRV
+restart False 
+max_steps 100 
+fmax 0.01 
+econv 1e-6
+safe-mode True
+optimizer LBFGS
+opt-alpha 120
