@@ -162,18 +162,20 @@ def run_calc(command_file, jdftx_exe):
         linelist = line.split()
         
         defaults = ['default','inputs']
+        inputs = h.read_inputs('./')
+        
         if linelist[0] in notinclude:
             # command, value, type
             cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'script'
             if val in defaults:
-                val = h.read_inputs('./')[cmd]
+                val = inputs[cmd]
             return cmd, val, typ
         else:
             if len(linelist) > 1:
                 # command, value, type
                 cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'cmd'
                 if val in defaults:
-                    val = h.read_inputs('./')[cmd]
+                    val = inputs[cmd]
                 return cmd, val, typ
             else:
                 return line, '', 'cmd'
@@ -290,7 +292,7 @@ def run_calc(command_file, jdftx_exe):
         kpoints 3 3 3
         '''
         with open('convergence','r') as f:
-            conv_txt = f.read()
+            conv_txt = f.read()        
         step = '1'
         add_step = False
         for line in conv_txt.split('\n'):
