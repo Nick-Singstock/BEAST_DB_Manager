@@ -4,7 +4,7 @@ van-der-waals
 
 ### Electronic Parameters ###
 elec-cutoff 20 
-elec-n-bands *   # system dependent, (Nelec / 2) * 1.2 OR + 10
+elec-n-bands *
 kpoint-folding *
 electronic-minimize nIterations 100 energyDiffThreshold  1e-07
 elec-smearing Fermi 0.001 
@@ -17,7 +17,7 @@ converge-empty-states yes
 latt-move-scale 1 1 1 
 lattice-minimize nIterations 100
 symmetries none 
-coulomb-interaction periodic
+coulomb-interaction Periodic
 coords-type Lattice
 
 ### Solvation & Bias ###
@@ -35,12 +35,13 @@ dump End Forces
 dump End Ecomponents
 
 ### Density of States ###
-#dump End DOS  
+# will this dump cause an error?
+dump End DOS
 #pdos Total
 
 ### ASE Parameters ###
 logfile ase_out
-pseudos GBRV
+pseudos GBRV_v1.5
 restart False 
 max_steps 100 
 fmax 0.01 
@@ -48,3 +49,4 @@ econv 1e-6
 safe-mode True
 optimizer LBFGS
 opt-alpha 120
+
