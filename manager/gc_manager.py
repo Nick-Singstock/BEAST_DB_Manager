@@ -1301,7 +1301,7 @@ class jdft_manager():
             # set kpoint-folding for bulk systems
             if calc_type in ['bulks','molecules']:
                 kpts = Kpoints.automatic_density(st, kpoint_density).as_dict()
-                tags['kpoint-folding'] = ' '.join(kpts['kpoints'][0])
+                tags['kpoint-folding'] = ' '.join([str(k) for k in kpts['kpoints'][0]])
             
             # set kpoints for surfs from bulk calcs
             elif calc_type in ['surfs']:
