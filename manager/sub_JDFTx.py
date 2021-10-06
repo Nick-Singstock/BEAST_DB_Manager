@@ -75,14 +75,14 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
 
     if short_recursive == 'True': # removed time constraint
         # short_recursive command runs timer script before and after JDFT to check if walltime is hit
-        writelines+='timeout 10 python /home/nicksingstock/bin/JDFTx_Tools/timer.py > timer'+'\n'
+        writelines+='timeout 10 python '+os.path.join(jdftx_python_dir,'timer.py')+' > timer'+'\n'
         
         time_lim = str(3600 * time - 100)
         if gpu == 'True':
             writelines+='timeout '+time_lim+' ' + 'python '+script+' -g True > '+out+'\n'
         else:
             writelines+='timeout '+time_lim+' ' + 'python '+script+' > '+out+'\n'
-        writelines+='timeout 10 python /home/nicksingstock/bin/JDFTx_Tools/timer.py > timer'+'\n'
+        writelines+='timeout 10 python '+os.path.join(jdftx_python_dir,'timer.py')+' > timer'+'\n'
 
     else:
         if gpu == 'True':
@@ -126,9 +126,9 @@ def write_bridges(nodes,cores,time,out,partition,qos,script,short_recursive,proc
     if short_recursive == 'True':
         time_lim = str(3600 * time - 100)
         # short_recursive command runs timer script before and after JDFT to check if walltime is hit
-        writelines+='timeout 10 python /home/nicksingstock/bin/JDFTx_Tools/timer.py > timer'+'\n'
+        writelines+='timeout 10 python '+os.path.join(jdftx_python_dir,'timer.py')+' > timer'+'\n'
         writelines+='timeout '+time_lim+' ' + 'python '+script+' > '+out+'\n'
-        writelines+='timeout 10 python /home/nicksingstock/bin/JDFTx_Tools/timer.py > timer'+'\n'
+        writelines+='timeout 10 python '+os.path.join(jdftx_python_dir,'timer.py')+' > timer'+'\n'
 
     else:
         writelines+='python '+script+' > '+out+'\n'
@@ -160,9 +160,9 @@ def recursive_restart():
 
 if __name__ == '__main__':
     
-    jdftx_tools_module_dir = os.environ['JDFTx_Tools_dir']
+    jdftx_python_dir = os.environ['JDFTx_manager_home']
     
-    script = opj(jdftx_tools_module_dir,'run_JDFTx.py')
+    script = opj(jdftx_python_dir,'run_JDFTx.py')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--nodes', help='Number of nodes',
