@@ -28,7 +28,7 @@ class JDFTx(Calculator):
                 pseudoSetMap = {
                         'SG15' : 'SG15/$ID_ONCV_PBE.upf',
                         'GBRV' : 'GBRV/$ID_pbe.uspp',
-        					  'GBRV_v1.5' : 'GBRV_v1.5/$ID_pbe_v1.uspp.F.UPF',
+        					  'GBRV_v1.5' : 'GBRV_v1.5/$ID_pbe_v1.uspp',
                         'GBRV-pbe' : 'GBRV/$ID_pbe.uspp',
                         'GBRV-lda' : 'GBRV/$ID_lda.uspp',
                         'GBRV-pbesol' : 'GBRV/$ID_pbesol.uspp',
