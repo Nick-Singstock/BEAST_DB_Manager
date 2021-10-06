@@ -1339,7 +1339,7 @@ class jdft_manager():
         tags = h.read_inputs(root)
         
         psdir = os.environ['JDFTx_pseudos']
-        ps_type = tags['pseuods'] if 'pseudos' in tags else 'GBRV'
+        ps_type = tags['pseudos'] if 'pseudos' in tags else 'GBRV'
         ps_key = opj(psdir, self.pseudoMap[ps_type])
         els = [s.species_string for s in st.sites]
         el_dic = {el: els.count(el) for el in els}
