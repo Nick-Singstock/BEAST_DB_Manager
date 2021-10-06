@@ -1329,7 +1329,7 @@ class jdft_manager():
                 return False
             
         # set elec-n-bands for all systems 
-        tags['elec-n-bands'] = self.set_elec_n_bands(root)
+        tags['elec-n-bands'] = str(self.set_elec_n_bands(root))
         
         h.write_inputs(tags, root)
         return True
