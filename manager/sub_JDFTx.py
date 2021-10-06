@@ -21,7 +21,7 @@ try:
 except:
     comp='Eagle'
 
-def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu):
+def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testing):
 #    if short_recursive == 'True':
 #        if time != 4: 
 #            print('Time limit set to 04:00:00 from short_recursive')
@@ -30,11 +30,17 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu):
 #            print('Nodes set to 4 from short_recursive')
 #            nodes = 4
 #        out = 'sc_'+out
-
+    testing = True if testing == 'True' else False
     np=nodes*cores
     writelines = '#!/bin/bash'+'\n'
     writelines+='#SBATCH -J '+out+'\n'
-    writelines+='#SBATCH --time='+str(time)+':00:00'+'\n'
+    if testing:
+        if comp == 'Summit':
+            writelines+='#SBATCH --time=0:30:00'+'\n'
+        elif comp == 'Eagle':
+            writelines+='#SBATCH --time=1:00:00'+'\n'
+    else:
+        writelines+='#SBATCH --time='+str(time)+':00:00'+'\n'
     writelines+='#SBATCH -o '+out+'-%j.out'+'\n'
     writelines+='#SBATCH -e '+out+'-%j.err'+'\n'
 
@@ -49,13 +55,17 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu):
     if qos=='high' and comp == 'Eagle':
         writelines+='#SBATCH --qos=high'+'\n'
 
-    if time == 1 and comp == 'Eagle':
+    if (time == 1 or testing) and comp == 'Eagle':
         writelines+='#SBATCH --partition=debug\n'
+        
     if comp == 'Summit':
         if gpu == 'True':
             writelines+='#SBATCH --partition sgpu\n'
+        elif testing:
+            writelines+='#SBATCH --partition shas-testing\n'
         else:
             writelines+='#SBATCH --partition shas\n'    
+        
     writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
     if comp == 'Summit':
         writelines+='SLURM_EXPORT_ENV=ALL\n'
@@ -63,7 +73,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu):
     #writelines+='module load comp-intel/2020.1.217 intel-mpi/2020.1.217 cuda/10.2.89 vasp/6.1.1 mkl/2020.1.217 gsl/2.5/gcc openmpi/4.0.4/gcc-8.4.0 gcc/7.4.0'+'\n\n'
     writelines+='module load '+modules+'\n\n'
 
-    if short_recursive == 'True':
+    if short_recursive == 'True': # removed time constraint
         # short_recursive command runs timer script before and after JDFT to check if walltime is hit
         writelines+='timeout 10 python /home/nicksingstock/bin/JDFTx_Tools/timer.py > timer'+'\n'
         
@@ -160,7 +170,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--cores', help='Number of cores',
                         type=int, default=os.environ['CORES_PER_NODE'])
     parser.add_argument('-t', '--time', help='Time limit',
-                        type=int, default=48)
+                        type=int, default=int(os.environ['JDFTx_Default_Time']))
     parser.add_argument('-o', '--outfile', help='Outfile name',
                         type=str, required=True)
     parser.add_argument('-a', '--allocation', help='Allocation',
@@ -174,6 +184,8 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--processes', help='Number of JDFT processes, should be <= nstates (see irr. kpoints). '+
                         'Total cores / processes = threads per process (int for high eff.)', type=int, default=8)
     parser.add_argument('-g', '--gpu', help='If True, runs GPU install of JDFTx',
+                        type=str, default='False')
+    parser.add_argument('-test', '--test_queue', help='If True, runs job on test queue',
                         type=str, default='False')
 
     args = parser.parse_args()
@@ -190,7 +202,7 @@ if __name__ == '__main__':
     # Multiple write options depending on computer
     if comp == 'Eagle' or comp == 'Summit':
         write(args.nodes,args.cores,args.time,args.outfile,args.allocation,args.qos,		
-              script, args.recursive, args.processes, args.gpu)
+              script, args.recursive, args.processes, args.gpu, args.test_queue)
     elif comp == 'Bridges2':
         write_bridges(args.nodes,args.cores,args.time,outfile,args.partition,args.qos,
                       script, args.recursive, args.processes)
