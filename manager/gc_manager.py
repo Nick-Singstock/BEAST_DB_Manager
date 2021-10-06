@@ -164,7 +164,7 @@ class jdft_manager():
         parser.add_argument('-b', '--backup', help='Whether to backup calcs folder. Default False.',
                             type=str, default='False')
         parser.add_argument('-conv', '--use_convergence', help='If True, copy convergence file to new calcs.',
-                            type=str, default='False')
+                            type=str, default='True')
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
