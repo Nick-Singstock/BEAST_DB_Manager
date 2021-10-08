@@ -8,7 +8,7 @@ import os
 import argparse
 import subprocess
 
-def make_surface(file, folder, index, slab_height, vac_space, center, stoich):
+def make_surface(file, folder, index, slab_height, vac_space, center, stoich, order = True):
     st = Structure.from_file(file)
     mindex = tuple([int(x) for x in index])
     
@@ -29,7 +29,12 @@ def make_surface(file, folder, index, slab_height, vac_space, center, stoich):
                 keep_surfs.append(surf)
         all_slabs = keep_surfs
         print('Kept '+str(len(all_slabs))+' surfaces with preserved stoichiometry.')
-
+    
+    if order:
+        new_slabs = []
+        for slab in all_slabs:
+            new_slabs.append(order_st(slab))
+        all_slabs = new_slabs
     
     if not os.path.exists('../../surfs/'+folder+'_'+index):
         os.mkdir('../../surfs/'+folder+'_'+index)
@@ -46,6 +51,20 @@ def make_surface(file, folder, index, slab_height, vac_space, center, stoich):
     print(str(i+1)+' slabs for '+folder+' ('+index+') generated at: '+'surfs/'+folder+'_'+index+'/__all_surfs/')
     print('Review surfaces and move best POSCAR into '+'surfs/'+folder+'_'+index+' to be managed by gc_manager.py')
 
+def order_st(st):
+    els = [s.species_string for s in st.sites]
+    dic = {el: els.count(el) for el in els}
+    new_sites = []
+    for el in dic:
+        for s in st.sites:
+            sel = s.species_string
+            if sel != el:
+                continue
+            new_sites.append(s)
+    new_st = Structure.from_sites(new_sites)
+    return new_st
+    
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

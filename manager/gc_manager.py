@@ -13,7 +13,8 @@ import json
 from pymatgen.core.structure import Structure
 from pymatgen.io.vasp.inputs import Kpoints
 import numpy as np
-from adsorbate_helper import save_structures, add_adsorbates, write_parallel, minimum_movement_strs
+from adsorbate_helper import (save_structures, add_adsorbates, write_parallel, 
+                              minimum_movement_strs, assign_selective_dynamics)
 from jdft_helper import helper 
 h = helper()
 opj = os.path.join
@@ -477,7 +478,7 @@ class jdft_manager():
         return new_folders
 
     def setup_managed_calcs(self, managed, converged, ads_distance = None, 
-                            desorbed_single_point = True):
+                            desorbed_single_point = True, surf_selective_dyn = True):
         '''
         Sets up all new calculations based on inputs from manager_control.txt
         '''
@@ -575,7 +576,8 @@ class jdft_manager():
                         new_roots.append(root)
                     elif 'No_bias' not in v['biases']:
                         # No bias not requested, run directly 
-                        good_setup = self.make_calc(calc_folder, surf, root, v, bias)
+                        good_setup = self.make_calc(calc_folder, surf, root, v, bias, 
+                                                    sd = surf_selective_dyn)
                         if good_setup:
                             new_roots.append(root)
                         continue
@@ -583,7 +585,8 @@ class jdft_manager():
                         # waiting for No_bias to converge
                         continue
                 elif bias == 'No_bias':
-                    good_setup = self.make_calc(calc_folder, surf, root, v, bias)
+                    good_setup = self.make_calc(calc_folder, surf, root, v, bias,
+                                                sd = surf_selective_dyn)
                     if good_setup:
                         new_roots.append(root)
                     continue
@@ -913,7 +916,7 @@ class jdft_manager():
 
         return new_roots
 
-    def make_calc(self, calc_folder, surf, root, v, bias):
+    def make_calc(self, calc_folder, surf, root, v, bias, sd = True, sd_dist = 2.0):
         head_root = os.path.join(calc_folder, 'surfs', surf)
         if not os.path.exists(os.path.join(head_root, 'POSCAR')):
             print('POSCAR must be added to folder: '+head_root)
@@ -922,8 +925,16 @@ class jdft_manager():
             if not os.path.exists(root):
                 os.mkdir(root)
             self.run('cp '+os.path.join(head_root, 'POSCAR')+' '+os.path.join(root, 'POSCAR'))
+        # check surface 
         if not h.check_surface(os.path.join(root, 'POSCAR')):
             return False
+        
+        # assign selective dynamics if requested
+        if sd:
+            st = Structure.from_file(opj(root, 'POSCAR'))
+            new_st = assign_selective_dynamics(st, sd_dist)
+            new_st.to('POSCAR', opj(root, 'POSCAR'))
+        
         # copy inputs from inputs_folder and update based on tags
         self.run('cp '+os.path.join(inputs_folder, 'surfs_inputs')+' '+os.path.join(root, 'inputs'))
         

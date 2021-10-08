@@ -17,8 +17,8 @@ converge-empty-states yes
 latt-move-scale 0 0 0
 lattice-minimize nIterations 00
 symmetries none 
-coulomb-interaction Slab 001
-coords-type Lattice
+#coulomb-interaction Slab 001
+#coords-type Lattice
 
 ### Solvation & Bias ###
 fluid LinearPCM  

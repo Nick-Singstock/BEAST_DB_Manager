@@ -201,7 +201,7 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
         return temp_list
 
 def add_adsorbates(surface_st, adsorbates, ads_distance = 2.0, sites_allowed = ['ontop', 'bridge','hollow'],
-                   min_dist = 0.5, freeze_depth = 1.8, molecules_loc = '', z_dir = 2):
+                   min_dist = 0.5, freeze_depth = 2.0, molecules_loc = '', z_dir = 2):
     adsorbate_sts = {}
 #    for adss, locs in adsorbates.items():
 #        ads_st = surface_st.copy()

@@ -17,8 +17,8 @@ converge-empty-states yes
 latt-move-scale 0 0 0 
 lattice-minimize nIterations 0
 symmetries none 
-coulomb-interaction Periodic
-coords-type Lattice
+#coulomb-interaction Periodic
+#coords-type Lattice
 
 ### Solvation & Bias ###
 fluid LinearPCM  
