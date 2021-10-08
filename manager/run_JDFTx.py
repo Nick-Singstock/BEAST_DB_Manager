@@ -147,7 +147,7 @@ def run_calc(command_file, jdftx_exe):
                   'ion','climbing','pH','ph',
                   'logfile','pseudos','nimages','max_steps','fmax','optimizer',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
-                  'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS']
+                  'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type']
 
     # setup default functions needed for running calcs
     def open_inputs(inputs_file):
@@ -240,6 +240,15 @@ def run_calc(command_file, jdftx_exe):
             atoms = read('CONTCAR',format='vasp')
         else:
             atoms = read('POSCAR',format='vasp')
+        
+        if 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['bulk','periodic','Bulk','Periodic']:
+            return atoms
+        elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['slab','Slab','surf','Surf']:
+            atoms.set_pbc([True, True, False])
+        
+        # default: periodic
+#        else: 
+#            atoms.set_pbc([True, True, False])
         return atoms
     
     def optimizer(imag_atoms,script_cmds,logfile='opt.log'):
