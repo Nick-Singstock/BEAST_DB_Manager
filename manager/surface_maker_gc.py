@@ -79,15 +79,16 @@ def get_repeat_slab(st, units, vac, center = True):
     sts.make_supercell([1, 1, units])
     
     lattice_lens = [sts.lattice.a, sts.lattice.b, sts.lattice.c + vac]
-    lattice_angles = st.lattice.angles
+    lattice_angles = sts.lattice.angles
     lattice = Lattice.from_lengths_and_angles(lattice_lens, lattice_angles)
+
     species = [s.species_string for s in sts.sites]
-    coords = [s.coords for s in sts.sites]
+    coords = [s.frac_coords * [1, 1, sts.lattice.c/(sts.lattice.c + vac)] for s in sts.sites]
     
     if center:
-        coords = [c + [0, 0, vac/2] for c in coords]
+        coords = [c + [0, 0, 0.25] for c in coords]
     
-    slab = Structure(lattice, species, coords, coords_are_cartesian=True)
+    slab = Structure(lattice, species, coords, coords_are_cartesian=False)
     return slab
 
 
