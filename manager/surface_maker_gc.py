@@ -60,7 +60,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--center', help='Whether to center slab in unit cell (default True)',
                         type=str, default='True')
     parser.add_argument('-ps', '--preserve_stoich', help='Whether to only keep surfaces with the same '+
-                        'stoichiometry as the bulk, useful for multinary systems (default True)',
+                        'stoichiometry as the bulk, useful for multinary systems (default False)',
                         type=str, default='False')
 
     args = parser.parse_args()

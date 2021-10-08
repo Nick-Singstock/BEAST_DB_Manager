@@ -621,7 +621,7 @@ class jdft_manager():
             # 2) add adsorbates to converged surfaces at same bias
             if self.args.add_adsorbed == 'True':
                 for mol, mv in v.items():
-                    if mol in ['biases','tags','NEB']:
+                    if mol in ['biases','tags','conv-tags','NEB']:
                         continue
                     if mol not in managed_mols:
                         print('Cannot add adsorbate, molecule '+mol+' not setup correctly.')
