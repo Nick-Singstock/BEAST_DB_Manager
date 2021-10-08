@@ -413,6 +413,7 @@ class helper():
         add_step = False
         conv_dic = {}
         for line in conv_txt.split('\n'):
+            if line == '' or line == ' ': continue
             if any(x in line for x in ['step','Step']):
                 step = line.split()[1]
                 if step == '0':

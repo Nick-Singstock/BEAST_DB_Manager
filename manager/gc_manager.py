@@ -946,7 +946,7 @@ class jdft_manager():
                  else '%.4f' % self.get_mu(bias, h.read_inputs(root), tags))]
         self.add_tags(root, tags)
         
-        good_setup = self.set_input_system_params(calc_folder, 'surfs')
+        good_setup = self.set_input_system_params(root, 'surfs')
         if not good_setup:
             print('Setup failed: '+calc_folder)
             return False
@@ -962,6 +962,8 @@ class jdft_manager():
             for val_str in vals: 
                 cmd = val_str.split()[0]
                 val = ' '.join(val_str.split()[1:])
+                if step not in new_conv_dic:
+                    new_conv_dic[step] = {}
                 if cmd in new_conv_dic[step]:
                     # multiple versions of same command (i.e. pdos)
                     if type(new_conv_dic[step][cmd]) == list:
