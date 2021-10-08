@@ -35,21 +35,22 @@ def make_surface(file, folder, index, slab_height, vac_space, center):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', help='File to read',
-                        type=str, default="POSCAR")
-    parser.add_argument('-i', '--index', help='Surface Miller Index',
+    parser.add_argument('-f', '--file', help='File to read (default CONTCAR)',
+                        type=str, default="CONTCAR")
+    parser.add_argument('-i', '--index', help='Surface Miller Index (default 100)',
                         type=str, default="100")
-    parser.add_argument('-sh', '--slab_height', help='Height of the slab',
+    parser.add_argument('-sh', '--slab_height', help='Height of the slab (default 10)',
                         type=int, default=10)
-    parser.add_argument('-vh', '--vac_space', help='Height of vacuum space',
+    parser.add_argument('-vh', '--vac_space', help='Height of vacuum space (default 15)',
                         type=int, default=15)
-    parser.add_argument('-c', '--center', help='Whether to center slab in unit cell',
-                        type=int, default=15)
+    parser.add_argument('-c', '--center', help='Whether to center slab in unit cell (default True)',
+                        type=str, default='True')
 
     args = parser.parse_args()
 	
 #    mindex = tuple([int(x) for x in args.index])
     
     folder_name = os.getcwd().split(os.sep)[-1]
+    center = True if args.center == 'True' else False
 	
     make_surface(args.file, folder_name, args.index, args.slab_height, args.vac_space, args.center)
