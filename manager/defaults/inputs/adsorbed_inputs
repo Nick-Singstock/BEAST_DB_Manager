@@ -49,4 +49,5 @@ econv 1e-6
 safe-mode True
 optimizer LBFGS
 opt-alpha 120
+lattice-type slab
 

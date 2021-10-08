@@ -245,6 +245,8 @@ def run_calc(command_file, jdftx_exe):
             return atoms
         elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['slab','Slab','surf','Surf']:
             atoms.set_pbc([True, True, False])
+        elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['mol','Mol','isolated']:
+            atoms.set_pbc([False, False, False])
         
         # default: periodic
 #        else: 

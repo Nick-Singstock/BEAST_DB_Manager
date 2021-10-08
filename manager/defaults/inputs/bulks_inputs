@@ -44,9 +44,11 @@ logfile ase_out
 pseudos GBRV_v1.5
 restart False 
 max_steps 100 
-fmax 0.01 
+# only econv for bulk, no fmax 
+fmax 0.00
 econv 1e-6
 safe-mode True
 optimizer LBFGS
 opt-alpha 120
+lattice-type bulk
 
