@@ -8,27 +8,33 @@ import os
 import argparse
 import subprocess
 
-def make_surface(file, folder, index, slab_height, vac_space, center, stoich, order = True):
+def make_surface(file, folder, index, slab_height, vac_space, center, stoich, order = True,
+                 repeat = 'False'):
     st = Structure.from_file(file)
     mindex = tuple([int(x) for x in index])
     
-    slabgen = SlabGenerator(st, mindex, slab_height, vac_space, center_slab=center)
-    all_slabs = slabgen.get_slabs(symmetrize = True)
-    print("The slab has %s termination." %(len(all_slabs)))
-    
-    if stoich:
-        keep_surfs = []
-        bulk_els = [s.species_string for s in st.sites]
-        bulk_dic = {el: bulk_els.count(el) for el in bulk_els}
-        for surf in all_slabs:
-            surf_els = [s.species_string for s in surf.sites]
-            surf_dic = {el: surf_els.count(el) for el in surf_els}
-            
-            stoich_compare = [surf_dic[el] / v if el in surf_dic else 0 for el,v in bulk_dic.items()]
-            if all([x == stoich_compare[0] for x in stoich_compare]):
-                keep_surfs.append(surf)
-        all_slabs = keep_surfs
-        print('Kept '+str(len(all_slabs))+' surfaces with preserved stoichiometry.')
+    repeat = False if repeat == 'False' else int(repeat)
+    if repeat == False:
+        # standard pymatgen surface generation
+        slabgen = SlabGenerator(st, mindex, slab_height, vac_space, center_slab=center)
+        all_slabs = slabgen.get_slabs(symmetrize = True)
+        print("The slab has %s termination." %(len(all_slabs)))
+        
+        if stoich:
+            keep_surfs = []
+            bulk_els = [s.species_string for s in st.sites]
+            bulk_dic = {el: bulk_els.count(el) for el in bulk_els}
+            for surf in all_slabs:
+                surf_els = [s.species_string for s in surf.sites]
+                surf_dic = {el: surf_els.count(el) for el in surf_els}
+                
+                stoich_compare = [surf_dic[el] / v if el in surf_dic else 0 for el,v in bulk_dic.items()]
+                if all([x == stoich_compare[0] for x in stoich_compare]):
+                    keep_surfs.append(surf)
+            all_slabs = keep_surfs
+            print('Kept '+str(len(all_slabs))+' surfaces with preserved stoichiometry.')
+    else:
+        all_slabs = [get_repeat_slab(st, repeat, vac_space, center)]
     
     if order:
         new_slabs = []
@@ -41,6 +47,9 @@ def make_surface(file, folder, index, slab_height, vac_space, center, stoich, or
     if not os.path.exists('../../surfs/'+folder+'_'+index+'/__all_surfs/'):
         os.mkdir('../../surfs/'+folder+'_'+index+'/__all_surfs/')
 
+    if len(slab) == 0:
+        print('ERROR: No surfaces generated with specified settings.')
+        
     for i, slab in enumerate(all_slabs):
         slab.to('POSCAR', '../../surfs/'+folder+'_'+index+'/__all_surfs/' + 'POSCAR_'+str(i).zfill(2))
     
@@ -64,7 +73,20 @@ def order_st(st):
     new_st = Structure.from_sites(new_sites)
     return new_st
     
+def get_repeat_slab(st, units, vac, center = True):
+    sts = st.copy()
+    sts.make_supercell([1, 1, units])
     
+    lattice = [sts.lattice.a, sts.lattice.b, sts.lattice.c + vac]
+    species = [s.species_string for s in sts.sites]
+    coords = [s.coords for s in sts.sites]
+    
+    if center:
+        coords = [c + [0, 0, vac/2] for c in coords]
+    
+    slab = Structure(lattice, species, coords, coords_are_cartesian=True)
+    return slab
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -81,6 +103,10 @@ if __name__ == '__main__':
     parser.add_argument('-ps', '--preserve_stoich', help='Whether to only keep surfaces with the same '+
                         'stoichiometry as the bulk, useful for multinary systems (default False)',
                         type=str, default='False')
+    parser.add_argument('-r', '--repeat_cell', help='False (default) or int. Generate surface by repeating bulk '+
+                        'in z-dir for (int) units. Useful when Pymatgen surface creation fails. '+
+                        'Folder is named using -i tag.',
+                        type=str, default='False')
 
     args = parser.parse_args()
 	
@@ -91,4 +117,4 @@ if __name__ == '__main__':
     stoich = True if args.preserve_stoich == 'True' else False
 	
     make_surface(args.file, folder_name, args.index, args.slab_height, 
-                 args.vac_space, args.center, stoich)
+                 args.vac_space, args.center, stoich, repeat = args.repeat)
