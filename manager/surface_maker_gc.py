@@ -103,7 +103,7 @@ if __name__ == '__main__':
     parser.add_argument('-ps', '--preserve_stoich', help='Whether to only keep surfaces with the same '+
                         'stoichiometry as the bulk, useful for multinary systems (default False)',
                         type=str, default='False')
-    parser.add_argument('-r', '--repeat_cell', help='False (default) or int. Generate surface by repeating bulk '+
+    parser.add_argument('-r', '--repeat_bulk', help='False (default) or int. Generate surface by repeating bulk '+
                         'in z-dir for (int) units. Useful when Pymatgen surface creation fails. '+
                         'Folder is named using -i tag.',
                         type=str, default='False')
@@ -117,4 +117,4 @@ if __name__ == '__main__':
     stoich = True if args.preserve_stoich == 'True' else False
 	
     make_surface(args.file, folder_name, args.index, args.slab_height, 
-                 args.vac_space, args.center, stoich, repeat = args.repeat)
+                 args.vac_space, args.center, stoich, repeat = args.repeat_bulk)
