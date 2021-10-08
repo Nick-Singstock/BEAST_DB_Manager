@@ -8,13 +8,27 @@ import os
 import argparse
 import subprocess
 
-def make_surface(file, folder, index, slab_height, vac_space, center):
+def make_surface(file, folder, index, slab_height, vac_space, center, stoich):
     st = Structure.from_file(file)
     mindex = tuple([int(x) for x in index])
     
     slabgen = SlabGenerator(st, mindex, slab_height, vac_space, center_slab=center)
     all_slabs = slabgen.get_slabs(symmetrize = True)
     print("The slab has %s termination." %(len(all_slabs)))
+    
+    if stoich:
+        keep_surfs = []
+        bulk_els = [s.species_string for s in st.sites]
+        bulk_dic = {el: bulk_els.count(el) for el in bulk_els}
+        for surf in all_slabs:
+            surf_els = [s.species_string for s in surf.sites]
+            surf_dic = {el: surf_els.count(el) for el in surf_els}
+            
+            stoich_compare = [surf_dic[el] / v if el in surf_dic else 0 for el,v in bulk_dic.items()]
+            if all([x == stoich_compare[0] for x in stoich_compare]):
+                keep_surfs.append(surf)
+        all_slabs = keep_surfs
+        print('Kept '+str(len(all_slabs))+' surfaces with preserved stoichiometry.')
 
     
     if not os.path.exists('../../surfs/'+folder+'_'+index):
@@ -45,6 +59,9 @@ if __name__ == '__main__':
                         type=int, default=15)
     parser.add_argument('-c', '--center', help='Whether to center slab in unit cell (default True)',
                         type=str, default='True')
+    parser.add_argument('-ps', '--preserve_stoich', help='Whether to only keep surfaces with the same '+
+                        'stoichiometry as the bulk, useful for multinary systems (default True)',
+                        type=str, default='False')
 
     args = parser.parse_args()
 	
@@ -52,5 +69,7 @@ if __name__ == '__main__':
     
     folder_name = os.getcwd().split(os.sep)[-1]
     center = True if args.center == 'True' else False
+    stoich = True if args.preserve_stoich == 'True' else False
 	
-    make_surface(args.file, folder_name, args.index, args.slab_height, args.vac_space, args.center)
+    make_surface(args.file, folder_name, args.index, args.slab_height, 
+                 args.vac_space, args.center, stoich)
