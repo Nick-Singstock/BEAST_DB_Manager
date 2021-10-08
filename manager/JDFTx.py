@@ -33,6 +33,7 @@ class JDFTx(Calculator):
                         'GBRV-lda' : 'GBRV/$ID_lda.uspp',
                         'GBRV-pbesol' : 'GBRV/$ID_pbesol.uspp',
                         'kjpaw': 'kjpaw/$ID_pbe-n-kjpaw_psl.1.0.0.upf',
+                        'dojo': 'dojo/$ID.upf',
                 }
 
                 #Get default values from environment:

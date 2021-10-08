@@ -55,8 +55,10 @@ class jdft_manager():
             self.__setup__()
         
         self.pseudoMap = {'SG15' : 'SG15/$ID_ONCV_PBE.upf', # readable format
-                          'GBRV' : 'GBRV/$ID_pbe.uspp', # TODO: (not readable)
-                          'GBRV_v1.5' : 'GBRV_v1.5/$ID_pbe_v1.uspp.F.UPF'} # readable format
+                          'GBRV' : 'GBRV/$ID_pbe.uspp', # not readable
+                          'GBRV_v1.5' : 'GBRV_v1.5/$ID_pbe_v1.uspp.F.UPF', # readable format
+                          'dojo': 'dojo/$ID.upf', # readable format
+                          } 
 
     def __setup__(self, verbose = True, overwrite = False):
         # make necessary head-folders
@@ -125,7 +127,7 @@ class jdft_manager():
         parser.add_argument('-v', '--save', help='Save all newly processed data, requires "check_calcs".'+
                             ' Default True.',type=str, default='True')
         parser.add_argument('-a', '--analyze', help='Runs analysis on converged calcs, requires "save".'+
-                            ' Default False.',type=str, default='False')
+                            ' Default False. INCOMPLETE.',type=str, default='False')
         parser.add_argument('-m', '--make_new', help='Make new calculations based on requested calcs.'+
                             ' Default True.',type=str, default='True')
         parser.add_argument('-rn', '--run_new', help='Run all newly setup calculations, requires "make_new".'+
@@ -139,10 +141,10 @@ class jdft_manager():
                             type=str, default='True')
         parser.add_argument('-mol', '--add_molecules', help='Add all requested molecules, requires "make_new".'+
                             ' Default True.',type=str, default='True')
-        parser.add_argument('-neb', '--make_neb', help='Makes NEB calculations from adsorbed+desorbed, '+
-                            'requires "make_new". Default False.',type=str, default='True')
+        parser.add_argument('-neb', '--make_neb', help='Makes NEB calculations from manager_control file, '+
+                            'requires "make_new". Default True.',type=str, default='True')
         parser.add_argument('-nebc', '--neb_climbing', help='If True, uses NEB climbing image. Requires'+
-                            ' "make_neb". Default False.',type=str, default='False')
+                            ' "make_neb". Default True.',type=str, default='True')
         parser.add_argument('-cf', '--current_force', help='If True, displays calc forces. Default True.',
                             type=str, default='True')
         parser.add_argument('-t', '--run_time', help='Time to run jobs. Default 12 (hours).',
@@ -164,7 +166,8 @@ class jdft_manager():
                             type=int, default=1)
         parser.add_argument('-b', '--backup', help='Whether to backup calcs folder. Default False.',
                             type=str, default='False')
-        parser.add_argument('-conv', '--use_convergence', help='If True, copy convergence file to new calcs.',
+        parser.add_argument('-conv', '--use_convergence', help='If True (default), copy convergence '+
+                           'file to new calc folders and update.',
                             type=str, default='True')
         self.args = parser.parse_args()
 
