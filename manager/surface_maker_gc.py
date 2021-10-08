@@ -12,8 +12,8 @@ def make_surface(file, folder, index, slab_height, vac_space, center):
     st = Structure.from_file(file)
     mindex = tuple([int(x) for x in index])
     
-    slabgen = SlabGenerator(st, folder_name, mindex, slab_height, vac_space, center_slab=center)
-    all_slabs = slabgen.get_slabs(symmetrize = False)
+    slabgen = SlabGenerator(st, mindex, slab_height, vac_space, center_slab=center)
+    all_slabs = slabgen.get_slabs(symmetrize = True)
     print("The slab has %s termination." %(len(all_slabs)))
 
     
