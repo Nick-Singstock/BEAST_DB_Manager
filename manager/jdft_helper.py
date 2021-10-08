@@ -413,8 +413,10 @@ class helper():
         add_step = False
         conv_dic = {}
         for line in conv_txt.split('\n'):
-            if line == '' or line == ' ': continue
-            if any(x in line for x in ['step','Step']):
+            if line == '' or line == ' ': 
+                continue
+#            print(line)
+            if any(x in line for x in ['step ','Step ']):
                 step = line.split()[1]
                 if step == '0':
                     add_step = True
@@ -437,16 +439,16 @@ class helper():
     
     def write_convergence(self, root, conv_dic):
         txt = ''
-        assert '1' in conv_dic, 'METAERROR: Value "1" not in convergence dictionary, cannot write.'
-        for step, vals in conv_dic.items():
+        assert '1' in conv_dic, 'METAERROR: Value Step 1 not in convergence dictionary, cannot write file.'
+        for step, step_dic in conv_dic.items():
             if step == '1':
                 txt += 'step 1\n'
             else:
                 txt += '\nstep '+step + '\n'
             
-            for cmd, val in vals.items():
+            for cmd, val in step_dic.items():
                 if type(val) == list:
-                    for v in vals:
+                    for v in val:
                         txt += cmd + ' ' + v + '\n'
                 else:
                     txt += cmd + ' ' + val + '\n'

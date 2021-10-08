@@ -1,14 +1,14 @@
-Step 0 - Rough Convergence
+Step 1 - Rough Convergence
 kpoint-folding 1 1 1
 elec-cutoff 16
 fmax 0.5
 
-Step 1 - Accurate Convergence
+Step 2 - Accurate Convergence
 kpoint-folding default
 elec-cutoff default
 fmax 0.01
 
-Step 2 - Single Point
+Step 3 - Single Point
 kpoint-folding default
 elec-cutoff default
 max-steps 0

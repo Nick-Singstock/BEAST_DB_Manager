@@ -963,15 +963,11 @@ class jdft_manager():
             return False
         return True
     
-    def set_conv_tags(self, root, conv_tags):
-        print(root)
-        print(conv_tags)
-        
+    def set_conv_tags(self, root, conv_tags):        
         if not ope(opj(root, 'convergence')):
             return
         conv_dic = h.read_convergence(root)
-        
-        print(conv_dic)
+#        print(conv_dic)
         
         new_conv_dic = {}
         for step, vals in conv_tags.items():
@@ -988,16 +984,13 @@ class jdft_manager():
                         new_conv_dic[step][cmd] = [new_conv_dic[step][cmd], val]
                 else:
                     # single version of command
-                    new_conv_dic[step][cmd] = val
-        
-        print(new_conv_dic)
+                    new_conv_dic[step][cmd] = val        
+#        print(new_conv_dic)
         
         for step, vdic in new_conv_dic.items():
             for cmd, val in vdic.items():
                 conv_dic[step][cmd] = val
-                
-        print(conv_dic)
-        
+#        print(conv_dic)
         h.write_convergence(root, conv_dic)
 
     def get_mol_loc(self, mol):
