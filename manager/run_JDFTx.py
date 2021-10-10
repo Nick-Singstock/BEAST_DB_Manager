@@ -438,6 +438,8 @@ def run_calc(command_file, jdftx_exe):
                 # for lattice optimizations, write contcar file from out file between steps
                 st = h.read_out_struct('./')
                 st.to('POSCAR','./CONTCAR')
+                dyn.atoms = read_atoms(True)
+                # TODO: Test lattice opt
                 
             e_conv = float(script_cmds['econv']) if 'econv' in script_cmds else 0.0
             energy_log = []
