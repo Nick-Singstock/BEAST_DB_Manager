@@ -9,11 +9,12 @@ import os
 import json
 import numpy as np
 from pymatgen.core.structure import Structure
+from pymatgen.core import Lattice
 
 opj = os.path.join
 ope = os.path.exists
 hartree_to_ev = 27.2114
-
+ang_to_bohr = 1.88973
 
 class helper():
     
@@ -195,6 +196,62 @@ class helper():
                             print('Error reading oxidation states')
                             return False
         return site_data, net_oxidation, net_mag, final_electrons, initial_electrons
+    
+    def read_out_struct(self, folder, site_data = False):
+        try:
+            with open(opj(folder, 'out'), 'r', errors='ignore') as f:
+                out_text = f.read()
+        except:
+            print('Error reading out file.')
+            return False
+                
+        record_ions = False
+        record_lattice = False
+        lattice = np.zeros((3,3))
+        no_atoms = True
+        no_lattice = True
+        if site_data:
+            spdata = {'selective_dynamics': []}
+        for line in out_text.split('\n'):
+            # get lattice
+            if '# Lattice vectors:' in line:
+                record_lattice = True
+                lattice_track = 0
+                continue
+            if record_lattice:
+                if 'unit cell volume' in line:
+                    record_lattice = False
+                    lattice = lattice.T
+                    continue
+                if 'R =' in line:
+                    continue
+                no_lattice = False
+                lattice[lattice_track] = np.array([float(x)/ang_to_bohr for x in line.split()[1:-1]])
+                lattice_track += 1
+            
+            # get ions
+            if 'Ionic positions in cartesian coordinates' in line:
+                record_ions = True
+                coords = []
+                species = []
+                continue
+            if record_ions:
+                if 'ion' not in line:
+                    record_ions = False
+                    continue
+                species.append(line.split()[1])
+                coords.append([float(x)/(ang_to_bohr) for i,x in enumerate(line.split()[2:5])])
+                no_atoms = False
+                if site_data:
+                    spdata['selective_dynamics'] += int(line.split()[-1])
+        
+        if no_lattice or no_atoms:
+            return False
+        if site_data:
+            return Structure(lattice, species, coords, coords_are_cartesian=True, site_properties=spdata)
+        return Structure(lattice, species, coords, coords_are_cartesian=True)
+                
+        
 
     def read_contcar(self, folder):
         st = Structure.from_file(os.path.join(folder, 'CONTCAR'))
