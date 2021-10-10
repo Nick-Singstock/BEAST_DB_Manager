@@ -437,7 +437,7 @@ def run_calc(command_file, jdftx_exe):
             def contcar_from_out(a=atoms):
                 # for lattice optimizations, write contcar file from out file between steps
                 st = h.read_out_struct('./')
-                st.to('POSCAR','./CONTCAR')
+                st.to('POSCAR','./CONTCAR_lattice')
                 dyn.atoms = read_atoms(True)
                 # TODO: Test lattice opt
                 
