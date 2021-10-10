@@ -211,16 +211,18 @@ def run_calc(command_file, jdftx_exe):
     cmds, script_cmds = read_commands(inputs,notinclude)
 #    cmds = add_dos(cmds)
 
-    def calc_type(script_cmds):
+    def calc_type(cmds, script_cmds):
         if 'nimages' in script_cmds.keys():
             calc = 'neb'
         elif script_cmds['optimizer'] in ['MD','md']:
             calc = 'md'
+        elif 'lattice-minimize' in cmds:
+            calc = 'lattice'
         else:
             calc = 'opt'
         return calc
 
-    ctype = calc_type(script_cmds)
+    ctype = calc_type(cmds, script_cmds)
 #    psuedos = script_cmds['pseudos']
 #    max_steps = int(script_cmds['max_steps'])
 #    fmax = float(script_cmds['fmax'])
@@ -394,7 +396,7 @@ def run_calc(command_file, jdftx_exe):
         insert_el('CONTCAR')
         
         
-    if ctype == 'opt':
+    if ctype in ['opt','lattice']:
         
         if os.path.exists('convergence'):
             # check if convergence file exists and setup convergence dictionary of inputs to update
@@ -431,6 +433,11 @@ def run_calc(command_file, jdftx_exe):
             def write_contcar(a=atoms):
                 a.write('CONTCAR',format="vasp", direct=True)
                 insert_el('CONTCAR')
+            
+            def contcar_from_out(a=atoms):
+                # for lattice optimizations, write contcar file from out file between steps
+                st = h.read_out_struct('./')
+                st.to('POSCAR','./CONTCAR')
                 
             e_conv = float(script_cmds['econv']) if 'econv' in script_cmds else 0.0
             energy_log = []
@@ -447,7 +454,11 @@ def run_calc(command_file, jdftx_exe):
 #            object must be attached so JDFTx does not error out trying to get stress
             traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
             dyn.attach(traj.write, interval=1)
-            dyn.attach(write_contcar,interval=1)
+            
+            if ctype == 'opt':
+                dyn.attach(write_contcar,interval=1)
+            if ctype == 'lattice':
+                dyn.attach(contcar_from_out,interval=1)
             
             dyn.attach(energy_convergence,interval=1) # stop calculation on energy convergence if requested
             
