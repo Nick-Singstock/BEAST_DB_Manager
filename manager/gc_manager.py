@@ -966,13 +966,14 @@ class jdft_manager():
             return False
         return True
     
-    def set_conv_tags(self, root, conv_tags):        
+    def set_conv_tags(self, root, conv_tags, remove = False):        
         if not ope(opj(root, 'convergence')):
             return
         conv_dic = h.read_convergence(root)
 #        print(conv_dic)
         
         new_conv_dic = {}
+        # conv_tags is dic: {step: [list, of, cmd+val, strings]}
         for step, vals in conv_tags.items():
             for val_str in vals: 
                 cmd = val_str.split()[0]
@@ -993,7 +994,13 @@ class jdft_manager():
         for step, vdic in new_conv_dic.items():
             for cmd, val in vdic.items():
                 conv_dic[step][cmd] = val
-#        print(conv_dic)
+        
+        # remove steps if requested
+        if remove != False:
+            for r in remove: # list of steps to remove
+                if r in conv_dic:
+                    del conv_dic[r]
+            
         h.write_convergence(root, conv_dic)
 
     def get_mol_loc(self, mol):
@@ -1320,6 +1327,11 @@ class jdft_manager():
             if calc_type in ['bulks','molecules']:
                 kpts = Kpoints.automatic_density(st, kpoint_density).as_dict()
                 tags['kpoint-folding'] = ' '.join([str(k) for k in kpts['kpoints'][0]])
+                
+                if calc_type=='bulks' and self.args.use_convergence == 'True' and ope(opj(root,'convergence')):
+                    # update bulk convergence to not use fmax tags and remove SP step 3
+                    self.set_conv_tags(root, {'1': ['fmax 0.00'],'2': ['fmax 0.00']}, remove = ['3'])
+                    print('Convergence file updated for bulk: '+root)
             
             # set kpoints for surfs from bulk calcs
             elif calc_type in ['surfs']:
