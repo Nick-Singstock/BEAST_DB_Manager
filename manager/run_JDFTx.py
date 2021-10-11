@@ -488,12 +488,13 @@ def run_calc(command_file, jdftx_exe):
                 
             fmax = float(script_cmds['fmax'])
             
+            # using try loop for energy convergence assertion
             try:
                 dyn.run(fmax=fmax,steps=max_steps)
                 traj.close()
             except Exception as e:
-                conv_logger(e.message)
-                if e.message == 'Energy Converged':
+                conv_logger(e)
+                if 'Energy Converged' in e:
                     conv_logger('META: Energy Converged.')
                 else:
                     print(e)
