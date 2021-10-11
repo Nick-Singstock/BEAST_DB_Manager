@@ -45,9 +45,9 @@ pseudos GBRV_v1.5
 restart False 
 max_steps 100 
 fmax 0.01 
-econv 1e-6
+econv 1e-3
 safe-mode True
-optimizer LBFGS
+optimizer FIRE
 opt-alpha 120
 lattice-type mol
 
