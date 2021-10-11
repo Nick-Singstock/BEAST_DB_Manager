@@ -21,7 +21,7 @@ h = helper()
 
 opj = os.path.join
 ope = os.path.exists
-
+hartree_to_ev = 27.2114
 
 '''
 TODO:
@@ -374,7 +374,8 @@ def run_calc(command_file, jdftx_exe):
             return
         files_to_remove = ['wfns','fillings','eigenvals','fluidState']
         for file in files_to_remove:
-            subprocess.call('rm '+folder+file, shell=True)
+            if ope(opj(folder, file)):
+                subprocess.call('rm '+opj(folder,file), shell=True)
     
     if os.path.exists('conv.log'):
         subprocess.call('rm conv.log', shell=True)
@@ -446,7 +447,7 @@ def run_calc(command_file, jdftx_exe):
                 dyn.atoms.set_calculator(calculator)
                 # Done: Test lattice opt
                 
-            e_conv = float(script_cmds['econv']) if 'econv' in script_cmds else 0.0
+            e_conv = (float(script_cmds['econv']) if 'econv' in script_cmds else 0.0) 
             energy_log = []
             def energy_convergence(a=atoms):
                 if e_conv > 0.0:
@@ -455,7 +456,7 @@ def run_calc(command_file, jdftx_exe):
                         if np.abs(e - energy_log[-1]) < e_conv and np.abs(e - energy_log[-2]) < e_conv:
                             #dyn.max_steps = 0
                             conv_logger('Energy convergence satisfied.')
-                            assert False, 'Energy Converged'
+                            assert False, 'Energy Converged (code xkcd)'
                     energy_log.append(e)
                 # Done: add attachment to optimizer to stop running based on energy conv (assert False)
     
@@ -494,10 +495,10 @@ def run_calc(command_file, jdftx_exe):
                 traj.close()
             except Exception as e:
                 conv_logger(str(e))
-                if 'Energy Converged' in str(e):
-                    conv_logger('META: Energy Converged.')
+                if 'Energy Converged (code xkcd)' in str(e):
+                    conv_logger('META: Energy Converged Exception.')
                 else:
-                    print(e)
+                    print(e) # TODO: make sure this syntax will still print JDFT errors correctly
                     assert False, str(e)
             conv_logger('Step '+str(i+1)+' complete!')
             
