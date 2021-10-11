@@ -420,7 +420,7 @@ class helper():
         print('Data analysis not yet available. Please contact Nick to add.')
         return None #data_analysis(data)
     
-    @property
+#    @property
     def reference_molecules():
         refs = {'H': {'refs': ['H2'], 'coeffs': [0.5]},
                 'H2': {'refs': ['H2'], 'coeffs': [1]},

@@ -1014,8 +1014,8 @@ class jdft_manager():
     
     def get_ref_mols(self, mol):
         refs = []
-        for ref_mol in h.reference_molecules[mol]['refs']:
-            if h.reference_molecules[ref_mol]['refs'] == [ref_mol]:
+        for ref_mol in h.reference_molecules()[mol]['refs']:
+            if h.reference_molecules()[ref_mol]['refs'] == [ref_mol]:
                 refs += [ref_mol]
             else:
                 refs += self.get_ref_mols(ref_mol)
