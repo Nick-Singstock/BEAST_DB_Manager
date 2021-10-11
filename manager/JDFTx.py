@@ -101,8 +101,8 @@ class JDFTx(Calculator):
                 # Dumps
                 self.dumps = []
                 #self.addDump("End", "State")
-                #self.addDump("End", "Forces")
-                #self.addDump("End", "Ecomponents")
+                self.addDump("End", "Forces")
+                self.addDump("End", "Ecomponents")
 
                 #Run directory:
                 #self.runDir = tempfile.mkdtemp()
