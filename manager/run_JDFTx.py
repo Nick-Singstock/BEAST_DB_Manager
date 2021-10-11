@@ -453,7 +453,7 @@ def run_calc(command_file, jdftx_exe):
                     e = a.get_potential_energy(force_consistent=False)
                     if len(energy_log) > 1: # look at last two energies for consistency 
                         if np.abs(e - energy_log[-1]) < e_conv and np.abs(e - energy_log[-2]) < e_conv:
-                            dyn.nsteps = 1e15
+                            dyn.max_steps = 0
                             conv_logger('Energy convergence satisfied.')
                             #assert False, 'Stopping calculation based on energy convergence: dE < '+str(e_conv)
                     energy_log.append(e)
