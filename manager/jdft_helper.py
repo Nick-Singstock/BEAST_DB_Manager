@@ -260,10 +260,17 @@ class helper():
     def get_force(self, steps):
         return steps[-1]['force']
     
+    def get_energies(self, steps):
+        return [s['energy'] for s in steps]
+    
     def check_convergence(self, inputs, steps):
         force = self.get_force(steps)
+        energies = self.get_energies(steps)
         fmax = float(inputs['fmax'])
+        econv = float(inputs['econv']) if 'econv' in inputs else None
         if force <= fmax:
+            return True
+        elif econv is not None and len(energies) > 2 and np.abs(energies[-1]-energies[-2]) < econv:
             return True
         return False
     
