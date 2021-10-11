@@ -1070,12 +1070,12 @@ class jdft_manager():
         if bias == 'None':
             return 'None'
         assert 'fluid' in inputs, 'ERROR: fluid tag must be in inputs files to run biases!'
-        if inputs['fluid'] == 'LinearPCM' and 'pcm-variant' in inputs and inputs['pcm-variant'] == 'CANDLE':
+        pcm_var = inputs['pcm-variant'].replace(' ','') if 'pcm-variant' in inputs else 'None'
+        if inputs['fluid'] == 'LinearPCM' and pcm_var == 'CANDLE':
             Vref = 4.66
-        elif inputs['fluid'] == 'LinearPCM' and 'pcm-variant' in inputs and inputs['pcm-variant'] == 'GLSSA13':
+        elif inputs['fluid'] == 'LinearPCM' and pcm_var == 'GLSSA13':
             Vref = 4.68
-        elif inputs['fluid'] == 'NonlinearPCM' and ('pcm-variant' in inputs 
-                   and inputs['pcm-variant'] == 'GLSSA13'):
+        elif inputs['fluid'] == 'NonlinearPCM' and (pcm_var == 'GLSSA13'):
             Vref = 4.62
         elif inputs['fluid'] == 'SaLSA':
             Vref = 4.54
