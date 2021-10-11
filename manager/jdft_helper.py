@@ -202,8 +202,7 @@ class helper():
             with open(opj(folder, 'out'), 'r', errors='ignore') as f:
                 out_text = f.read()
         except:
-            print('Error reading out file.')
-            return False
+            assert False, 'Error reading out file.'
                 
         record_ions = False
         record_lattice = False
@@ -246,7 +245,7 @@ class helper():
                     spdata['selective_dynamics'] += int(line.split()[-1])
         
         if no_lattice or no_atoms:
-            return False
+            assert False, 'No lattice or no atoms. Out file structure not read correctly.'
         if site_data:
             return Structure(lattice, species, coords, coords_are_cartesian=True, site_properties=spdata)
         return Structure(lattice, species, coords, coords_are_cartesian=True)
@@ -381,7 +380,7 @@ class helper():
 #                continue
         return sites
 
-    def check_surface(self, file, dist = 8):
+    def check_surface(self, file, dist = 6):
         # check that surface seems reasonable for manager to handle
         st = Structure.from_file(file)
         # check that z-direction is long distance

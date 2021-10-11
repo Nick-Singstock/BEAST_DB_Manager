@@ -216,7 +216,9 @@ def run_calc(command_file, jdftx_exe):
             calc = 'neb'
         elif script_cmds['optimizer'] in ['MD','md']:
             calc = 'md'
-        elif any(['lattice-minimize' in c for c in cmds]):
+        elif any([('lattice-minimize' in c and 'nIterations' in c and 
+                   int(c.split('nIterations')[1].split()[0]) > 0 ) 
+                   for c in cmds]):
             calc = 'lattice'
         else:
             calc = 'opt'
@@ -400,6 +402,7 @@ def run_calc(command_file, jdftx_exe):
         
         
     if ctype in ['opt','lattice']:
+        conv_logger('ctype: '+ctype)
         
         if os.path.exists('convergence'):
             # check if convergence file exists and setup convergence dictionary of inputs to update
@@ -467,10 +470,10 @@ def run_calc(command_file, jdftx_exe):
             dyn.attach(traj.write, interval=1)
 
             if ctype == 'opt':
-                #conv_logger('Added write_contcar')
+                conv_logger('Added write_contcar')
                 dyn.attach(write_contcar,interval=1)
             if ctype == 'lattice':
-                #conv_logger('Added contcar_from_out')
+                conv_logger('Added contcar_from_out')
                 dyn.attach(contcar_from_out,interval=1)
             
             dyn.attach(energy_convergence,interval=1) # stop calculation on energy convergence if requested
@@ -499,7 +502,7 @@ def run_calc(command_file, jdftx_exe):
                 if 'Energy Converged (code xkcd)' in str(e):
                     conv_logger('META: Energy Converged Exception.')
                 else:
-                    print(e) # TODO: make sure this syntax will still print JDFT errors correctly
+                    print(e) # Done: make sure this syntax will still print JDFT errors correctly
                     assert False, str(e)
             conv_logger('Step '+str(i+1)+' complete!')
             
