@@ -493,12 +493,12 @@ def run_calc(command_file, jdftx_exe):
                 dyn.run(fmax=fmax,steps=max_steps)
                 traj.close()
             except Exception as e:
-                conv_logger(e)
-                if 'Energy Converged' in e:
+                conv_logger(str(e))
+                if 'Energy Converged' in str(e):
                     conv_logger('META: Energy Converged.')
                 else:
                     print(e)
-                    assert False
+                    assert False, str(e)
             conv_logger('Step '+str(i+1)+' complete!')
             
             if i+1 < steps:
