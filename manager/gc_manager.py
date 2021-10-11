@@ -1070,22 +1070,21 @@ class jdft_manager():
         if bias == 'None':
             return 'None'
         assert 'fluid' in inputs, 'ERROR: fluid tag must be in inputs files to run biases!'
+        fluid = inputs['fluid'].replace(' ','')
         pcm_var = inputs['pcm-variant'].replace(' ','') if 'pcm-variant' in inputs else 'None'
-        if inputs['fluid'] == 'LinearPCM' and pcm_var == 'CANDLE':
+        if fluid == 'LinearPCM' and pcm_var == 'CANDLE':
             Vref = 4.66
-        elif inputs['fluid'] == 'LinearPCM' and pcm_var == 'GLSSA13':
+        elif fluid == 'LinearPCM' and pcm_var == 'GLSSA13':
             Vref = 4.68
-        elif inputs['fluid'] == 'NonlinearPCM' and (pcm_var == 'GLSSA13'):
+        elif fluid == 'NonlinearPCM' and (pcm_var == 'GLSSA13'):
             Vref = 4.62
-        elif inputs['fluid'] == 'SaLSA':
+        elif fluid == 'SaLSA':
             Vref = 4.54
-        elif inputs['fluid'] == 'ClassicalDFT':
+        elif fluid == 'ClassicalDFT':
             Vref = 4.44
         else:
-            fld = inputs['fluid']
-            pcm = inputs['pcm-variant'] if 'pcm-variant' in inputs else 'None'
             assert False, ('ERROR: Fluid model must be in [CANDLE, SaLSA, ClassicalDFT]. '+
-                           'Other models not yet configured. ('+fld+', '+pcm+')')
+                           'Other models not yet configured. ('+fluid+', '+pcm_var+')')
         rhe_shift = 0
         if self.args.rhe_zeroed:
             #JDFT uses SHE as zero point. 0V vs RHE === (-0.0591 * pH) V vs SHE
