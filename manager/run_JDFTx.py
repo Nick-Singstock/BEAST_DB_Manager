@@ -216,13 +216,15 @@ def run_calc(command_file, jdftx_exe):
             calc = 'neb'
         elif script_cmds['optimizer'] in ['MD','md']:
             calc = 'md'
-        elif 'lattice-minimize' in cmds:
+        elif any(['lattice-minimize' in c for c in cmds]):
             calc = 'lattice'
         else:
             calc = 'opt'
         return calc
 
     ctype = calc_type(cmds, script_cmds)
+    conv_logger('ctype: '+ctype)
+
 #    psuedos = script_cmds['pseudos']
 #    max_steps = int(script_cmds['max_steps'])
 #    fmax = float(script_cmds['fmax'])
@@ -431,14 +433,17 @@ def run_calc(command_file, jdftx_exe):
             dyn = optimizer(atoms, script_cmds)
     
             def write_contcar(a=atoms):
+                #conv_logger('write_contcar')
                 a.write('CONTCAR',format="vasp", direct=True)
                 insert_el('CONTCAR')
             
             def contcar_from_out(a=atoms):
+                #conv_logger('contcar_from_out')
                 # for lattice optimizations, write contcar file from out file between steps
                 st = h.read_out_struct('./')
-                st.to('POSCAR','./CONTCAR_lattice')
+                st.to('POSCAR','./CONTCAR')
                 dyn.atoms = read_atoms(True)
+                dyn.atoms.set_calculator(calculator)
                 # TODO: Test lattice opt
                 
             e_conv = float(script_cmds['econv']) if 'econv' in script_cmds else 0.0
@@ -456,10 +461,12 @@ def run_calc(command_file, jdftx_exe):
 #            object must be attached so JDFTx does not error out trying to get stress
             traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
             dyn.attach(traj.write, interval=1)
-            
+
             if ctype == 'opt':
+                #conv_logger('Added write_contcar')
                 dyn.attach(write_contcar,interval=1)
             if ctype == 'lattice':
+                #conv_logger('Added contcar_from_out')
                 dyn.attach(contcar_from_out,interval=1)
             
             dyn.attach(energy_convergence,interval=1) # stop calculation on energy convergence if requested
