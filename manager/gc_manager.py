@@ -1082,8 +1082,10 @@ class jdft_manager():
         elif inputs['fluid'] == 'ClassicalDFT':
             Vref = 4.44
         else:
+            fld = inputs['fluid']
+            pcm = inputs['pcm-variant'] if 'pcm-variant' in inputs else 'None'
             assert False, ('ERROR: Fluid model must be in [CANDLE, SaLSA, ClassicalDFT]. '+
-                           'Other models not yet configured.')
+                           'Other models not yet configured. ('+fld+', '+pcm+')')
         rhe_shift = 0
         if self.args.rhe_zeroed:
             #JDFT uses SHE as zero point. 0V vs RHE === (-0.0591 * pH) V vs SHE
