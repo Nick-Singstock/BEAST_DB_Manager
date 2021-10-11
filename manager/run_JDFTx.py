@@ -444,7 +444,7 @@ def run_calc(command_file, jdftx_exe):
                 st.to('POSCAR','./CONTCAR')
                 dyn.atoms = read_atoms(True)
                 dyn.atoms.set_calculator(calculator)
-                # TODO: Test lattice opt
+                # Done: Test lattice opt
                 
             e_conv = float(script_cmds['econv']) if 'econv' in script_cmds else 0.0
             energy_log = []
@@ -453,7 +453,9 @@ def run_calc(command_file, jdftx_exe):
                     e = a.get_potential_energy(force_consistent=False)
                     if len(energy_log) > 1: # look at last two energies for consistency 
                         if np.abs(e - energy_log[-1]) < e_conv and np.abs(e - energy_log[-2]) < e_conv:
-                            assert False, 'Stopping calculation based on energy convergence: dE < '+str(e_conv)
+                            dyn.nsteps = 1e15
+                            conv_logger('Energy convergence satisfied.')
+                            #assert False, 'Stopping calculation based on energy convergence: dE < '+str(e_conv)
                     energy_log.append(e)
                 # Done: add attachment to optimizer to stop running based on energy conv (assert False)
     
