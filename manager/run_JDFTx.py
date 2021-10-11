@@ -453,9 +453,9 @@ def run_calc(command_file, jdftx_exe):
                     e = a.get_potential_energy(force_consistent=False)
                     if len(energy_log) > 1: # look at last two energies for consistency 
                         if np.abs(e - energy_log[-1]) < e_conv and np.abs(e - energy_log[-2]) < e_conv:
-                            dyn.max_steps = 0
+                            #dyn.max_steps = 0
                             conv_logger('Energy convergence satisfied.')
-                            #assert False, 'Stopping calculation based on energy convergence: dE < '+str(e_conv)
+                            assert False, 'Energy Converged'
                     energy_log.append(e)
                 # Done: add attachment to optimizer to stop running based on energy conv (assert False)
     
@@ -487,8 +487,17 @@ def run_calc(command_file, jdftx_exe):
                 max_steps = 0
                 
             fmax = float(script_cmds['fmax'])
-            dyn.run(fmax=fmax,steps=max_steps)
-            traj.close()
+            
+            try:
+                dyn.run(fmax=fmax,steps=max_steps)
+                traj.close()
+            except Exception as e:
+                conv_logger(e.message)
+                if e.message == 'Energy Converged':
+                    conv_logger('META: Energy Converged.')
+                else:
+                    print(e)
+                    assert False
             conv_logger('Step '+str(i+1)+' complete!')
             
             if i+1 < steps:
