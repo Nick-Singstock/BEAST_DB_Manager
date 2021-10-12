@@ -59,11 +59,15 @@ class helper():
         if len(opt_text) == 0:
             # no data yet
             return False #[{'energy': 'None', 'force': 'None', 'step': 0}]
-        steps = []
+        steps = {'1': []}
+        step = 1
         not_warned = True
         ionic_step = 0
         for i, line in enumerate(opt_text.split('\n')):
-            if ' Step ' in line or '*Force-consistent' in line or 'Convergence Step' in line:
+            if 'Convergence Step' in line:
+                step = int(line.split()[-1])
+                continue
+            if ' Step ' in line or '*Force-consistent' in line:
                 continue
             if line == '':
                 continue
@@ -76,7 +80,7 @@ class helper():
                 print('**** WARNING: High forces present in convergence. Check CONTCAR. ****')
                 not_warned = False
             ionic_step += 1
-            steps.append(step_dic)
+            steps[str(step)].append(step_dic)
         return steps
     
     def read_Ecomponents(self, folder):
@@ -262,15 +266,41 @@ class helper():
     def get_energies(self, steps):
         return [s['energy'] for s in steps]
     
-    def check_convergence(self, inputs, steps):
-        force = self.get_force(steps)
-        energies = self.get_energies(steps)
-        fmax = float(inputs['fmax'])
-        econv = float(inputs['econv']) if 'econv' in inputs else None
+    def check_convergence(self, folder, inputs, steps):
+        current_step = list(steps.keys())[-1]
+        fmax = 'None'
+        econv = 'None'
+        max_steps = 'None'
+        if ope(opj(folder, 'convergence')):
+            conv = self.read_convergence(folder)
+            last_step = list(conv.keys())[-1]
+            if current_step != last_step: # convergence is on last step
+                return False
+            if 'fmax' in conv[current_step]:
+                fmax = conv[current_step]['fmax']
+            if 'econv' in conv[current_step]:
+                econv = conv[current_step]['econv']
+            if 'max_steps' in conv[current_step]:
+                max_steps = conv[current_step]['max_steps']
+        
+        if fmax == 'None':
+            fmax = float(inputs['fmax'])
+        if econv == 'None':
+            econv = float(inputs['econv']) if 'econv' in inputs else 'None'
+        if max_steps == 'None':
+            max_steps = int(inputs['max_steps'])
+        
+        # check if convergence is complete based on force or energy convergence criteria (may change per step)
+        force = self.get_force(steps[current_step]) if len(steps[current_step]) > 0 else 1e6
+        energies = self.get_energies(steps[current_step]) if len(steps[current_step]) > 0 else 1e6
+        nsteps = len(steps[current_step])
+        
         if force <= fmax:
-            return True
-        elif econv is not None and len(energies) > 2 and np.abs(energies[-1]-energies[-2]) < econv:
-            return True
+            return True # force based convergence
+        elif econv != 'None' and len(energies) > 2 and np.abs(energies[-1]-energies[-2]) < econv:
+            return True # energy based convergence
+        elif nsteps > 0 and max_steps <= 1:
+            return True # convergence based on single point calc (no conv for hitting max_steps otherwise)
         return False
     
     def get_bias(self, bias_str):
@@ -293,10 +323,13 @@ class helper():
             return {'opt': 'None', 'inputs': inputs, 'converged': False,
                     'final_energy': 'None', 'contcar': 'None', 'current_force': 'None'}
         # check if calc has high forces
-        if opt_steps[-1]['force'] > 10:
+        current_step = list(opt_steps.keys())[-1]
+        current_force = opt_steps[current_step][-1]['force'] if len(opt_steps[current_step]) > 0 else 'None'
+        current_energy = opt_steps[current_step][-1]['energy'] if len(opt_steps[current_step]) > 0 else 'None'
+        if current_force != 'None' and current_force > 10:
             print('**** WARNING: High forces (> 10) in current step! May be divergent. ****')
         # check for convergence
-        conv = self.check_convergence(inputs, opt_steps)
+        conv = self.check_convergence(folder, inputs, opt_steps)
         contcar = 'None'
         if 'CONTCAR' in os.listdir(folder):
             contcar = self.read_contcar(folder)
@@ -311,11 +344,11 @@ class helper():
             net_oxi = out_sites[1]
             net_mag = out_sites[2]
             nfinal = out_sites[3]
-        return {'opt': opt_steps, 'current_force': opt_steps[-1]['force'],
-                'inputs': inputs, 'Ecomponents': ecomp, 
+        return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
+                'inputs': inputs, 'Ecomponents': ecomp, 'current_energy': current_energy,
                 'Ecomp_energy': ecomp['F'] if 'F' in ecomp else (ecomp['G'] if 'G' in ecomp else 'None'),
                 'converged': conv, 'contcar': contcar, 'nfinal': nfinal,
-                'final_energy': 'None' if not conv else opt_steps[-1]['energy'],
+                'final_energy': 'None' if not conv else current_energy,
                 'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag}
         
     def get_neb_data(self, folder, bias):
@@ -326,10 +359,13 @@ class helper():
             return {'opt': 'None', 'inputs': inputs, 'converged': False,
                     'final_energy': 'None', 'images': {}}
         # check if calc has high forces
-        if opt_steps[-1]['force'] > 10:
+        current_step = list(opt_steps.keys())[-1]
+        current_force = opt_steps[current_step][-1]['force'] if len(opt_steps[current_step]) > 0 else 'None'
+        current_energy = opt_steps[current_step][-1]['energy'] if len(opt_steps[current_step]) > 0 else 'None'
+        if current_force != 'None' and current_force > 10:
             print('**** WARNING: High forces (> 10) in current step! May be divergent. ****')
         # check for convergence
-        conv = self.check_convergence(inputs, opt_steps)
+        conv = self.check_convergence(folder, inputs, opt_steps)
         images = {}
         for root, folders, files in os.walk(folder):
             # look at subfolders
@@ -352,10 +388,10 @@ class helper():
                 nfinal = out_sites[3]
             images[image_num] = {'contcar': contcar, 'energy': energy, 'Ecomponents': ecomp, 'nfinal': nfinal,
                                  'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag}
-        return {'opt': opt_steps,
-                'inputs': inputs,
+        return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
+                'inputs': inputs, 'current_energy': current_energy,
                 'converged': conv,
-                'final_energy': 'None' if not conv else opt_steps[-1]['energy'],
+                'final_energy': 'None' if not conv else current_energy,
                 'images': images, 'path_energy': {k:v['energy'] for k,v in images.items()}}
         
     def get_sites(self, line):
