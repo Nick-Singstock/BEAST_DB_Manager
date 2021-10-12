@@ -67,7 +67,7 @@ class helper():
             if 'Convergence Step' in line:
                 step = int(line.split()[-1])
                 if str(step) not in steps:
-                    steps[str(step)] = {}
+                    steps[str(step)] = []
                 continue
             if ' Step ' in line or '*Force-consistent' in line:
                 continue
