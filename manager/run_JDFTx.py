@@ -459,7 +459,7 @@ def run_calc(command_file, jdftx_exe):
                         if np.abs(e - energy_log[-1]) < e_conv and np.abs(e - energy_log[-2]) < e_conv:
                             #dyn.max_steps = 0
                             conv_logger('Energy convergence satisfied.')
-                            conv_logger(str(e_conv), str(e), str(energy_log))
+                            conv_logger(str(e_conv) +' '+ str(e) +' '+ str(energy_log))
                             assert False, 'Energy Converged (code xkcd)'
                     energy_log.append(e)
                 # Done: add attachment to optimizer to stop running based on energy conv (assert False)

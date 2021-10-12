@@ -49,5 +49,5 @@ econv 1e-3
 safe-mode True
 optimizer FIRE
 opt-alpha 120
-lattice-type mol
+lattice-type periodic
 
