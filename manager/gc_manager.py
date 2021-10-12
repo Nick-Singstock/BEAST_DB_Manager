@@ -1347,10 +1347,10 @@ class jdft_manager():
             
             elif calc_type in ['adsorbed','desorbed']:
                 try: # copy kpoint-folding from surfs
-                    surf_inputs = h.read_inputs(os.sep.join(root.replace('adsorbed',
-                                                'surfs').replace('desorbed',
-                                                'surfs').split(os.sep)[:-1]))
-                    tags['kpoint-folding'] = surf_inputs['kpoint-folding']
+                    surf_subfolder = opj(calc_folder, 'surfs', root.split(os.sep)[2], '__all_surfs')
+                    bulk_tags = h.read_inputs(surf_subfolder, file='bulk_inputs')
+                    kpts = bulk_tags['kpoint-folding']
+                    tags['kpoint-folding'] = ' '.join(kpts.split()[0:2] + ['1'])
                 except:
                     print('ERROR: kpoint-folding cannot be set for: '+root)
                     return False
