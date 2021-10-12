@@ -685,7 +685,7 @@ class jdft_manager():
                                 if 'conv-tags' in v or 'conv-tags' in mv:
                                     convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
                                     if 'conv-tags' in v: # add all tags from surface
-                                        for step, vals in v['conv-tags']:
+                                        for step, vals in v['conv-tags'].items():
                                             if step in convtags:
                                                 convtags[step] += vals
                                             else:
@@ -756,7 +756,7 @@ class jdft_manager():
                                     if 'conv-tags' in v or 'conv-tags' in mv:
                                         convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
                                         if 'conv-tags' in v: # add all tags from surface
-                                            for step, vals in v['conv-tags']:
+                                            for step, vals in v['conv-tags'].items():
                                                 if step in convtags:
                                                     convtags[step] += vals
                                                 else:
