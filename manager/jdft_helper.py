@@ -279,11 +279,11 @@ class helper():
             if current_step != last_step: # convergence is on last step
                 return False
             if 'fmax' in conv[current_step]:
-                fmax = conv[current_step]['fmax']
+                fmax = float(conv[current_step]['fmax'])
             if 'econv' in conv[current_step]:
-                econv = conv[current_step]['econv']
+                econv = float(conv[current_step]['econv'])
             if 'max_steps' in conv[current_step]:
-                max_steps = conv[current_step]['max_steps']
+                max_steps = int(conv[current_step]['max_steps'])
         
         if fmax == 'None':
             fmax = float(inputs['fmax'])
