@@ -476,6 +476,7 @@ class helper():
                 'N2': {'refs': ['N2'], 'coeffs': [1]},
                 'N2H': {'refs': ['N2','H'], 'coeffs': [1,1]},
                 'NNH2': {'refs': ['N2','H'], 'coeffs': [1,2]},
+                'NHNH': {'refs': ['N2','H'], 'coeffs': [1,2]},
                 'NNH3': {'refs': ['N2','H'], 'coeffs': [1,3]},
                 'NH': {'refs': ['N2','H'], 'coeffs': [0.5,1]},
                 'NH2': {'refs': ['N2','H'], 'coeffs': [0.5,2]},
