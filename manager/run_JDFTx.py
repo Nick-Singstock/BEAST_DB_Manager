@@ -421,8 +421,10 @@ def run_calc(command_file, jdftx_exe):
             
             if len(conv) > 0:
                 cmds, script_cmds = update_cmds(conv, i+1, cmds, script_cmds)
-                conv_logger('updated cmds and script cmds with convergence file')
-                conv_logger('Running Convergence Step: '+str(i+1), 'opt.log')
+                conv_logger('\nUpdated cmds and script cmds with convergence file')
+                conv_logger('cmds: '+str(cmds))
+                conv_logger('script cmds: '+str(script_cmds))
+                conv_logger('\nRunning Convergence Step: '+str(i+1), 'opt.log')
             
             if i == 0:
                 restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
@@ -482,6 +484,9 @@ def run_calc(command_file, jdftx_exe):
             if safe_mode: 
                 dyn.attach(force_checker,interval=1)
             
+#            def kill_max_steps():
+#                pass
+            
             
             max_steps = int(script_cmds['max_steps'])
             
@@ -492,6 +497,9 @@ def run_calc(command_file, jdftx_exe):
                 max_steps = 0
                 
             fmax = float(script_cmds['fmax'])
+            
+            conv_logger('Max steps: '+str(max_steps))
+            conv_logger('fmax: '+str(fmax))
             
             # using try loop for energy convergence assertion
             try:
