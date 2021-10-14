@@ -36,7 +36,7 @@ try:
 except:
     comp='Eagle'
 
-def conv_logger(txt, out_file = 'conv.log'):
+def conv_logger(txt, out_file = 'calc.log'):
     if os.path.exists(out_file):
         with open(out_file,'r') as f:
             old = f.read()
@@ -121,6 +121,7 @@ def add_dos(cmds, script_cmds):
     
     # allow pdos line in script_cmds
     if 'pdos' in script_cmds:
+        conv_logger('pdos found in script cmds')
         for pdos in script_cmds['pdos']:
             if len(pdos.split()) > 1:
                 # Format (list): Atom_type orbital_type(s, spaced)
@@ -408,13 +409,14 @@ def run_calc(command_file, jdftx_exe):
             # check if convergence file exists and setup convergence dictionary of inputs to update
             conv, steps = read_convergence()
             previous_step = read_prev_step('opt.log')
+            print('convergence found: '+str(conv))
             
         assert len(conv) == 0 or set([int(x) for x in conv]) == set(i+1 for i in range(steps)), ('ERROR: '+
                   'steps in convergence file must be sequential!')
         
         conv_logger('starting opt calc with '+str(steps)+' steps.')
         for i in range(steps):
-            conv_logger('Step '+str(i+1)+' starting')
+            conv_logger('\nStep '+str(i+1)+' starting')
             if i+1 < previous_step:
                 conv_logger('Step '+str(i+1)+' previously converged')
                 continue
