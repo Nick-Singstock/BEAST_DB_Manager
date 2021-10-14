@@ -146,7 +146,7 @@ def run_calc(command_file, jdftx_exe):
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
                   'ion','climbing','pH','ph',
-                  'logfile','pseudos','nimages','max_steps','fmax','optimizer',
+                  'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
                   'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type']
 
@@ -314,7 +314,7 @@ def run_calc(command_file, jdftx_exe):
         step = '1'
         add_step = False
         for line in conv_txt.split('\n'):
-            if any(x in line for x in ['step','Step']):
+            if any(x in line for x in ['step ','Step ']):
                 step = line.split()[1]
                 if step == '0':
                     add_step = True
@@ -322,17 +322,21 @@ def run_calc(command_file, jdftx_exe):
                     step  = str(int(step)+1) # update so steps are always indexed to 1
             else:
                 cmd, val, typ = read_line(line)
+                if typ == 'None':
+                    continue
                 if step in conv:
                     # repeat convergence tags
-                    if cmd in conv[step] and type(conv[step]) == list:
-                        conv[step][cmd] += [(val,typ)]
+                    if cmd in conv[step] and type(conv[step][cmd][0]) == list:
+                        conv[step][cmd][0].append(val)
                     elif cmd in conv[step]:
-                        conv[step][cmd] = [conv[step][cmd]]
-                        conv[step][cmd] += [(val,typ)]
+                        conv[step][cmd] = [[conv[step][cmd][0]], conv[step][cmd][1]]
+                        conv[step][cmd][0].append(val)
                     else:
-                        conv[step][cmd] = (val,typ)
+                        # standard
+                        conv[step][cmd] = [val,typ]
                 else:
-                    conv[step] = {cmd: (val,typ)}
+                    # add new step 
+                    conv[step] = {cmd: [val,typ]}
         return conv, len(conv)
     
     def read_out_nbands():
@@ -346,6 +350,8 @@ def run_calc(command_file, jdftx_exe):
         updates = conv[str(step)]
         new_cmds = {}
         for cmd, val in updates.items():
+            # updates: {'cmd': [v, type], 'OR', [[v1, v2], type]}
+            # val = list
             if val[1] == 'None':
                 continue
             elif val[1] == 'script':
@@ -410,7 +416,7 @@ def run_calc(command_file, jdftx_exe):
         
         
     if ctype in ['opt','lattice']:
-        conv_logger('ctype: '+ctype)
+#        conv_logger('ctype: '+ctype)
         
         if os.path.exists('convergence'):
             # check if convergence file exists and setup convergence dictionary of inputs to update
@@ -429,7 +435,11 @@ def run_calc(command_file, jdftx_exe):
                 continue
             
             if len(conv) > 0:
+                # update all commands from convergence file
                 cmds, script_cmds = update_cmds(conv, i+1, cmds, script_cmds)
+                # update dos tags
+                cmds = add_dos(cmds, script_cmds)
+                
                 conv_logger('\nUpdated cmds and script cmds with convergence file')
                 conv_logger('cmds: '+str(cmds))
                 conv_logger('script cmds: '+str(script_cmds))
@@ -439,8 +449,9 @@ def run_calc(command_file, jdftx_exe):
                 restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
             else:
                 restart = True
+                
+            # set atoms object and calculator
             atoms = read_atoms(restart)
-    
             calculator = set_calc(cmds, script_cmds)
             atoms.set_calculator(calculator)
     
@@ -497,7 +508,8 @@ def run_calc(command_file, jdftx_exe):
 #                pass
             
             
-            max_steps = int(script_cmds['max_steps'])
+            max_steps = int(script_cmds['max_steps']) if 'max_steps' in script_cmds else (
+                        int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
             
             # single point calculation consistent notation
             if max_steps == 0 and comp in ['Summit']:
@@ -505,7 +517,8 @@ def run_calc(command_file, jdftx_exe):
             elif max_steps == 1 and comp in ['Eagle']:
                 max_steps = 0
                 
-            fmax = float(script_cmds['fmax'])
+#            fmax = float(script_cmds['fmax'])
+            fmax = float(script_cmds['fmax']) if 'fmax' in script_cmds else 0.01 # default 0.01
             
             conv_logger('Max steps: '+str(max_steps))
             conv_logger('fmax: '+str(fmax))
@@ -605,8 +618,11 @@ def run_calc(command_file, jdftx_exe):
             if safe_mode: 
                 dyn.attach(force_checker,interval=1)
             
-            max_steps = int(script_cmds['max_steps'])
-            fmax = float(script_cmds['fmax'])
+#            max_steps = int(script_cmds['max_steps'])
+            max_steps = int(script_cmds['max_steps']) if 'max_steps' in script_cmds else (
+                        int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
+            
+            fmax = float(script_cmds['fmax']) if 'fmax' in script_cmds else 0.0
             dyn.run(fmax=fmax,steps=max_steps)
             traj.close()
             conv_logger('Step '+str(ii+1)+' complete!')
