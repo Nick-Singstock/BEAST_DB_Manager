@@ -323,7 +323,14 @@ def run_calc(command_file, jdftx_exe):
             else:
                 cmd, val, typ = read_line(line)
                 if step in conv:
-                    conv[step][cmd] = (val,typ)
+                    # repeat convergence tags
+                    if cmd in conv[step] and type(conv[step]) == list:
+                        conv[step][cmd] += [(val,typ)]
+                    elif cmd in conv[step]:
+                        conv[step][cmd] = [conv[step][cmd]]
+                        conv[step][cmd] += [(val,typ)]
+                    else:
+                        conv[step][cmd] = (val,typ)
                 else:
                     conv[step] = {cmd: (val,typ)}
         return conv, len(conv)
@@ -409,7 +416,7 @@ def run_calc(command_file, jdftx_exe):
             # check if convergence file exists and setup convergence dictionary of inputs to update
             conv, steps = read_convergence()
             previous_step = read_prev_step('opt.log')
-            print('convergence found: '+str(conv))
+            conv_logger('convergence found: '+str(conv))
             
         assert len(conv) == 0 or set([int(x) for x in conv]) == set(i+1 for i in range(steps)), ('ERROR: '+
                   'steps in convergence file must be sequential!')
