@@ -1377,7 +1377,7 @@ class jdft_manager():
         # get electrons from psd files
         nelec = 0
         for el, count in el_dic.items():
-            file = ps_key.replace('$ID', el.lower())
+            file = ps_key.replace('$ID', el if ps_type in ['dojo'] else el.lower())
             with open(file, 'r') as f:
                 ps_txt = f.read()
             zval = [line for line in ps_txt.split('\n') if 'Z valence' in line # GBRV
