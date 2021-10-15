@@ -11,4 +11,4 @@ fmax 0.01
 Step 3 - Single Point
 kpoint-folding default
 elec-cutoff default
-max-steps 0
+max_steps 0

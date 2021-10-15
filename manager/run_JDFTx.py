@@ -385,13 +385,25 @@ def run_calc(command_file, jdftx_exe):
                 step = int(line.split()[-1])
         return step
     
-    def clean_folder(folder = './', delete = True):
+    def clean_folder(conv, step, folder = './', delete = True):
         if not delete:
             return
-        files_to_remove = ['wfns','fillings','eigenvals','fluidState']
-        for file in files_to_remove:
-            if ope(opj(folder, file)):
-                subprocess.call('rm '+opj(folder,file), shell=True)
+        elec_tags = ['kpoint-folding','elec-cutoff']
+        diffs = False
+        for tag in elec_tags:
+            t1 = tag in conv[str(step)]
+            t2 = tag in conv[str(step+1)]
+            if t1 != t2: # if tag in only one
+                diffs = True
+            # if tag in both and value is different
+            elif t1 == t2 and t1 and conv[str(step)][tag] != conv[str(step+1)][tag]:
+                diffs = True
+        
+        if diffs:
+            files_to_remove = ['wfns','fillings','eigenvals','fluidState']
+            for file in files_to_remove:
+                if ope(opj(folder, file)):
+                    subprocess.call('rm '+opj(folder,file), shell=True)
     
     if os.path.exists('conv.log'):
         subprocess.call('rm conv.log', shell=True)
@@ -429,7 +441,7 @@ def run_calc(command_file, jdftx_exe):
         
         conv_logger('starting opt calc with '+str(steps)+' steps.')
         for i in range(steps):
-            conv_logger('\nStep '+str(i+1)+' starting')
+            conv_logger('\nStep '+str(i+1)+' starting\n')
             if i+1 < previous_step:
                 conv_logger('Step '+str(i+1)+' previously converged')
                 continue
@@ -440,7 +452,7 @@ def run_calc(command_file, jdftx_exe):
                 # update dos tags
                 cmds = add_dos(cmds, script_cmds)
                 
-                conv_logger('\nUpdated cmds and script cmds with convergence file')
+                conv_logger('Updated cmds and script cmds with convergence file')
                 conv_logger('cmds: '+str(cmds))
                 conv_logger('script cmds: '+str(script_cmds))
                 conv_logger('\nRunning Convergence Step: '+str(i+1), 'opt.log')
@@ -504,10 +516,6 @@ def run_calc(command_file, jdftx_exe):
             if safe_mode: 
                 dyn.attach(force_checker,interval=1)
             
-#            def kill_max_steps():
-#                pass
-            
-            
             max_steps = int(script_cmds['max_steps']) if 'max_steps' in script_cmds else (
                         int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
             
@@ -537,7 +545,7 @@ def run_calc(command_file, jdftx_exe):
             conv_logger('Step '+str(i+1)+' complete!')
             
             if i+1 < steps:
-                clean_folder()
+                clean_folder(conv, i+1)
 
     if ctype == 'neb':
 
@@ -631,7 +639,7 @@ def run_calc(command_file, jdftx_exe):
                 for folder in image_dirs:
                     if folder in ['00', str(nimages+1).zfill(2)]:
                         continue
-                    clean_folder(folder+'/')
+                    clean_folder(conv, ii+1, folder+'/')
 
 
 if __name__ == '__main__':
