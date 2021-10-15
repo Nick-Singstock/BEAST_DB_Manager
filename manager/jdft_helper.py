@@ -466,12 +466,24 @@ class helper():
                 'H_H2O':{'refs': ['H2O', 'H'], 'coeffs': [1, 1]},
                 'H_H3O':{'refs': ['H2O', 'H2'], 'coeffs': [1, 1]},
                 'H2_H2O':{'refs': ['H2O', 'H2'], 'coeffs': [1, 1]},
+                
                 'O': {'refs': ['H2O','H2'], 'coeffs': [1,-1]},
+                'OH': {'refs': ['O','H'], 'coeffs': [1,1]},
+                'OOH': {'refs': ['O','H'], 'coeffs': [2,1]},
+                
                 'CO2': {'refs': ['CO2'], 'coeffs': [1]},
                 'CO': {'refs': ['CO2','O'], 'coeffs': [1,-1]},
                 'CHO': {'refs': ['CO','H'], 'coeffs': [1,1]},
                 'COH': {'refs': ['CHO'], 'coeffs': [1]},
+                
+                'OC': {'refs': ['CO'], 'coeffs': [1,]},
+                'OCO': {'refs': ['CO2'], 'coeffs': [1]},
+                'OCHO': {'refs': ['CO2','H'], 'coeffs': [1,1]},
+                'OCHOH': {'refs': ['CO2','H'], 'coeffs': [1,2]},
                 'OCH': {'refs': ['CHO'], 'coeffs': [1]},
+                'OCH2': {'refs': ['CO','H'], 'coeffs': [1,2]},
+                'OCH3': {'refs': ['CO','H'], 'coeffs': [1,3]},
+                
                 'N': {'refs': ['N2'], 'coeffs': [0.5]},
                 'N2': {'refs': ['N2'], 'coeffs': [1]},
                 'N2H': {'refs': ['N2','H'], 'coeffs': [1,1]},
@@ -481,10 +493,7 @@ class helper():
                 'NH': {'refs': ['N2','H'], 'coeffs': [0.5,1]},
                 'NH2': {'refs': ['N2','H'], 'coeffs': [0.5,2]},
                 'NH3': {'refs': ['N2','H'], 'coeffs': [0.5,3]},
-                'OC': {'refs': ['CO'], 'coeffs': [1,]},
-                'OCO': {'refs': ['CO2'], 'coeffs': [1]},
-                'OH': {'refs': ['O','H'], 'coeffs': [1,1]},
-                'OOH': {'refs': ['O','H'], 'coeffs': [2,1]},
+                
                 'S2': {'refs': ['S8'], 'coeffs': [0.25]},
                 'S4': {'refs': ['S8'], 'coeffs': [0.5]},
                 'S6': {'refs': ['S8'], 'coeffs': [0.75]},
