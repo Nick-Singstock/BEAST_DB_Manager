@@ -388,7 +388,7 @@ def run_calc(command_file, jdftx_exe):
     def clean_folder(conv, step, folder = './', delete = True):
         if not delete:
             return
-        elec_tags = ['kpoint-folding','elec-cutoff']
+        elec_tags = ['kpoint-folding', 'elec-cutoff', 'pseudos']
         diffs = False
         for tag in elec_tags:
             t1 = tag in conv[str(step)]
