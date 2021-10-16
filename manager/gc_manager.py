@@ -1331,7 +1331,9 @@ class jdft_manager():
                 
                 if calc_type=='bulks' and self.args.use_convergence == 'True' and ope(opj(root,'convergence')):
                     # update bulk convergence to not use fmax tags and remove SP step 3
-                    self.set_conv_tags(root, {'1': ['fmax 0.00'],'2': ['fmax 0.00'],}, remove=['3'])
+                    conv = h.read_convergence(root)
+                    steps = list(conv.keys())
+                    self.set_conv_tags(root, {s: ['fmax 0.00'] for s in steps[:-1]}, remove=[steps[-1]])
                     print('Convergence file updated for bulk: '+root)
             
             # set kpoints for surfs from bulk calcs
