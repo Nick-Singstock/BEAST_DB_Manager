@@ -294,7 +294,7 @@ class helper():
         
         # check if convergence is complete based on force or energy convergence criteria (may change per step)
         force = self.get_force(steps[current_step]) if len(steps[current_step]) > 0 else 1e6
-        energies = self.get_energies(steps[current_step]) if len(steps[current_step]) > 0 else 1e6
+        energies = self.get_energies(steps[current_step]) if len(steps[current_step]) > 0 else []
         nsteps = len(steps[current_step])
         
         if force <= fmax:
