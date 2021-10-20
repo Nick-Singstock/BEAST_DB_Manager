@@ -498,7 +498,11 @@ class jdft_manager():
         if self.args.add_molecules == 'True': # TODO: add convergence file to mols?
             for mol, molv in managed['molecules'].items():
                 # ref_mols used for binding analysis, mol used for desorb SP calcs
-                ref_mols = self.get_ref_mols(mol)
+                try:
+                    ref_mols = self.get_ref_mols(mol)
+                except:
+                    ref_mols = []
+                    print('WARNING: No reference molecules found for: '+mol+', add manually if needed.')
                 if 'desorb' in molv:
                     ref_mols += [mol]
                 else:
