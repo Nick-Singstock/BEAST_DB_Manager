@@ -55,6 +55,7 @@ def get_plot(plotter, energy_lim=[-5, 5], density_lim=None, flip_axes = True, co
     min_density = 0
     alldensities = []
     allenergies = []
+    added_keys = []
     plot = pretty_plot(8, 12)
 
     for key, idos in plotter._doses.items():
@@ -97,14 +98,21 @@ def get_plot(plotter, energy_lim=[-5, 5], density_lim=None, flip_axes = True, co
             x = y
             y = tmp
         
+        red_key = str(key).replace(' up','').replace(' down','')
+        if red_key in added_keys:
+            label = '__No_Label__' 
+        else:
+            label = red_key
+            added_keys.append(label)
+        
         if fill and flip_axes:
-            plt.fill_betweenx(y, np.zeros_like(y), x, color=colors[i % ncolors], label=str(key),
+            plt.fill_betweenx(y, np.zeros_like(y), x, color=colors[i % ncolors], label=label,
                               alpha = alpha[i % ncolors] if type(alpha) == list else alpha)
         elif fill:
-            plot.fill_between(x, np.zeros_like(x), y, color=colors[i % ncolors], label=str(key),
+            plot.fill_between(x, np.zeros_like(x), y, color=colors[i % ncolors], label=label,
                               alpha = alpha[i % ncolors] if type(alpha) == list else alpha)
         else:
-            plot.plot(x, y, color=colors[i % ncolors], label=str(key), linewidth=2,
+            plot.plot(x, y, color=colors[i % ncolors], label=label, linewidth=2,
                       alpha = alpha[i % ncolors] if type(alpha) == list else alpha)
         
         if not plotter.zero_at_efermi:
