@@ -30,8 +30,8 @@ def read_EF(txt):
     assert ef is not None, 'ERROR: no mu/EF found.'
     return ef * hartree_to_ev
 
-dos = {'up': {}, 'down': {}}
 efermi = read_EF(txt_out)
+dos = {'up': {}, 'down': {}, 'Efermi': efermi}
 edic = {'up': {}, 'down': {}}
 for ispin,spin in enumerate(['up','down']):
     # target format: {'up': {Fe_1: {'s': [], 'd': []}, 'Energy': [], 'Total': []}}
