@@ -306,7 +306,7 @@ class helper():
         return False
     
     def get_bias(self, bias_str):
-        if bias_str in ['No_bias']:
+        if bias_str in ['No_bias','None']:
             return 'No_bias'
         return float(bias_str[:-1])
     

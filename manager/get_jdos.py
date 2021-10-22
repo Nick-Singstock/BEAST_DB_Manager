@@ -13,6 +13,7 @@ hartree_to_ev = 27.2114
 fileup = 'dosUp'
 filedown = 'dosDn'
 
+remove_small_vals = False
 
 with open(fileup, 'r') as f:
     txt_up = f.read()
@@ -73,6 +74,8 @@ for ispin,spin in enumerate(['up','down']):
             
             # get dos average at energy
             dos_eav = np.average([vs[ii] for vs in value_list])
+            if remove_small_vals and dos_eav < 0.01:
+                dos_eav = 0.0
             
             # add total dos based on average value
             if key in ['Total']:
