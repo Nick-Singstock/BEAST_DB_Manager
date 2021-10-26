@@ -16,11 +16,12 @@ filedown = 'dosDn'
 remove_small_vals = False
 zero_fermi = True
 
-with open(fileup, 'r', errors='ignore') as f:
+print('Reading DOS files.')
+with open(fileup, 'r') as f:
     txt_up = f.read()
-with open(filedown, 'r', errors='ignore') as f:
+with open(filedown, 'r') as f:
     txt_down = f.read()
-with open('out', 'r') as f:
+with open('out', 'r', errors='ignore') as f:
     txt_out = f.read()
 
 def read_EF(txt):
@@ -31,6 +32,8 @@ def read_EF(txt):
             ef = float(line.split()[2])
     assert ef is not None, 'ERROR: no mu/EF found.'
     return ef * hartree_to_ev
+
+print('Formatting DOS.')
 
 efermi = read_EF(txt_out)
 dos = {'up': {}, 'down': {}, 'Efermi': efermi, 'zeroed_fermi': zero_fermi}
