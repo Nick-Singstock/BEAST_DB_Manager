@@ -14,6 +14,7 @@ fileup = 'dosUp'
 filedown = 'dosDn'
 
 remove_small_vals = False
+zero_fermi = True
 
 with open(fileup, 'r') as f:
     txt_up = f.read()
@@ -32,7 +33,7 @@ def read_EF(txt):
     return ef * hartree_to_ev
 
 efermi = read_EF(txt_out)
-dos = {'up': {}, 'down': {}, 'Efermi': efermi}
+dos = {'up': {}, 'down': {}, 'Efermi': efermi, 'zeroed_fermi': zero_fermi}
 edic = {'up': {}, 'down': {}}
 for ispin,spin in enumerate(['up','down']):
     # target format: {'up': {Fe_1: {'s': [], 'd': []}, 'Energy': [], 'Total': []}}
@@ -52,7 +53,7 @@ for ispin,spin in enumerate(['up','down']):
             continue
         
         # get energy in eV (centered @ efermi)
-        energy = values[keys.index('Energy')] * hartree_to_ev - efermi 
+        energy = values[keys.index('Energy')] * hartree_to_ev - (efermi if zero_fermi else 0.0)
         estr = '%.3f'%energy
         if estr in edic[spin]:
             edic[spin][estr].append(values)

@@ -64,7 +64,11 @@ def force_checker(max_force = 500):
     if len(opt_text) == 0: return 
     
     opt = [line.split() for line in opt_text.split('\n') if line != '' and '*Force-consistent' not in line]
-    force = float(opt[-1][4])
+    try:
+        force = float(opt[-1][4])
+    except:
+        conv_logger('Forces not read correctly from line: '+str(opt))
+        return
     assert force < max_force, 'ERROR: Calculation ended due to high forces. Edit Structure.'
 
 # add element to CONTCAR to fix bug
