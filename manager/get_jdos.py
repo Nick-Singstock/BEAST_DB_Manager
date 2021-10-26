@@ -16,9 +16,9 @@ filedown = 'dosDn'
 remove_small_vals = False
 zero_fermi = True
 
-with open(fileup, 'r') as f:
+with open(fileup, 'r', errors='ignore') as f:
     txt_up = f.read()
-with open(filedown, 'r') as f:
+with open(filedown, 'r', errors='ignore') as f:
     txt_down = f.read()
 with open('out', 'r') as f:
     txt_out = f.read()
