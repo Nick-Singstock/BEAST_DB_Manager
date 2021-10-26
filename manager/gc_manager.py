@@ -169,6 +169,8 @@ class jdft_manager():
         parser.add_argument('-conv', '--use_convergence', help='If True (default), copy convergence '+
                            'file to new calc folders and update.',
                             type=str, default='True')
+        parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 1000)',
+                            type=int, default=1000)
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -1323,6 +1325,7 @@ class jdft_manager():
         return properly_setup
     
     def set_input_system_params(self, root, calc_type, kpoint_density = 1000):
+        kpoint_density = self.args.kpoint_density
         # called when setting up new calcs from scratch or setting up calcs from manager_control
         st = Structure.from_file(opj(root, 'POSCAR'))
         tags = h.read_inputs(root)
@@ -1348,15 +1351,22 @@ class jdft_manager():
                     kpts = bulk_tags['kpoint-folding']
                     tags['kpoint-folding'] = ' '.join(kpts.split()[0:2] + ['1'])
                 except:
-                    print('ERROR: kpoint-folding cannot be set for: '+root)
-                    return False
+                    try:
+                        print('kpoints auto-generated for surface '+root.split(os.sep)[2]
+                              +' with density '+str(kpoint_density))
+                        kpts = Kpoints.automatic_density(st, kpoint_density).as_dict()
+                        tags['kpoint-folding'] = ' '.join([str(k) for k in kpts['kpoints'][0]])
+                    except:
+                        print('ERROR: kpoint-folding cannot be set for: '+root)
+                        return False
             
             elif calc_type in ['adsorbed','desorbed']:
-                try: # copy kpoint-folding from surfs
-                    surf_subfolder = opj(calc_folder, 'surfs', root.split(os.sep)[2], '__all_surfs')
-                    bulk_tags = h.read_inputs(surf_subfolder, file='bulk_inputs')
-                    kpts = bulk_tags['kpoint-folding']
-                    tags['kpoint-folding'] = ' '.join(kpts.split()[0:2] + ['1'])
+                try: # copy kpoint-folding from surfs (no longer bulk from surfs)
+#                    surf_subfolder = opj(calc_folder, 'surfs', root.split(os.sep)[2], '__all_surfs')
+                    surf_subfolder = opj(calc_folder, 'surfs', root.split(os.sep)[2], root.split(os.sep)[4])
+                    surf_tags = h.read_inputs(surf_subfolder, file='inputs') #bulk_inputs
+                    kpts = surf_tags['kpoint-folding']
+                    tags['kpoint-folding'] = kpts #' '.join(kpts.split()[0:2] + ['1'])
                 except:
                     print('ERROR: kpoint-folding cannot be set for: '+root)
                     return False
