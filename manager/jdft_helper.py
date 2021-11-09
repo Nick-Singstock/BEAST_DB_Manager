@@ -486,10 +486,13 @@ class helper():
                 
                 'N': {'refs': ['N2'], 'coeffs': [0.5]},
                 'N2': {'refs': ['N2'], 'coeffs': [1]},
+                'NN': {'refs': ['N2'], 'coeffs': [1]},
                 'N2H': {'refs': ['N2','H'], 'coeffs': [1,1]},
                 'NNH2': {'refs': ['N2','H'], 'coeffs': [1,2]},
                 'NHNH': {'refs': ['N2','H'], 'coeffs': [1,2]},
                 'NNH3': {'refs': ['N2','H'], 'coeffs': [1,3]},
+                'NHNH2': {'refs': ['N2','H'], 'coeffs': [1,3]},
+                'NH2NH2': {'refs': ['N2','H'], 'coeffs': [1,4]},
                 'NH': {'refs': ['N2','H'], 'coeffs': [0.5,1]},
                 'NH2': {'refs': ['N2','H'], 'coeffs': [0.5,2]},
                 'NH3': {'refs': ['N2','H'], 'coeffs': [0.5,3]},

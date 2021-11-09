@@ -400,6 +400,7 @@ class jdft_manager():
                 else:
 #                    print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
 #                          +' Added to rerun.')
+                    continue # TODO: remove after testing
                     if neb_data['opt'] != 'None' and neb_data['opt'][-1]['force'] < force_limit:
                         print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
                               +' Added to rerun.')
