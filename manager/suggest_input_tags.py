@@ -29,13 +29,14 @@ def set_elec_n_bands(root, file, psd, band_scaling, kpoint_density):
         assert False, 'Error reading '+file+' file (check existence).'
     psdir = os.environ['JDFTx_pseudos']
     
-    if psd != 'None':
+    if psd == 'None':
         try:
             tags = h.read_inputs(root)
             psd = tags['pseudos'] if 'pseudos' in tags else 'None'
             print('Pseudopotential set to '+psd+' from inputs file')
         except:
-            pass
+            psd = 'GBRV_v1.5'
+#            pass
     assert psd != 'None', 'No pseudopotential specified!'
         
     ps_key = opj(psdir, pseudoMap[psd])
@@ -75,7 +76,7 @@ def set_elec_n_bands(root, file, psd, band_scaling, kpoint_density):
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--pseudo', help='Pseudopotential to read (default to read inputs file)',
+    parser.add_argument('-p', '--pseudo', help='Pseudopotential to read (default to read inputs file or GBRV_v1.5)',
                         type=str, default='None')
     parser.add_argument('-f', '--file', help='File to read (default POSCAR)',
                         type=str, default='POSCAR')
