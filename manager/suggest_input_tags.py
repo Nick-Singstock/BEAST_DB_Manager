@@ -35,7 +35,7 @@ def set_elec_n_bands(root, file, psd, band_scaling, kpoint_density):
             psd = tags['pseudos'] if 'pseudos' in tags else 'None'
             print('Pseudopotential set to '+psd+' from inputs file')
         except:
-            psd = 'GBRV_v1.5'
+            psd = 'GBRV_v1.5' 
 #            pass
     assert psd != 'None', 'No pseudopotential specified!'
         
