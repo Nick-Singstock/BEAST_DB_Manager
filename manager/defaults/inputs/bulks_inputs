@@ -1,9 +1,9 @@
 ### Functional ###
 elec-ex-corr gga
-van-der-waals   
+van-der-waals D3
 
 ### Electronic Parameters ###
-elec-cutoff 20 
+elec-cutoff 20 100
 elec-n-bands *
 kpoint-folding *
 electronic-minimize nIterations 100 energyDiffThreshold  1e-07
@@ -33,6 +33,11 @@ dump End Dtot BoundCharge
 dump End State
 dump End Forces
 dump End Ecomponents
+dump End VfluidTot
+dump End ElecDensity
+dump End KEdensity
+dump End EigStats
+dump End BandEigs
 
 ### Density of States ###
 # will this dump cause an error?
