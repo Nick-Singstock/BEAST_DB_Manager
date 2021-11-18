@@ -1093,7 +1093,7 @@ class jdft_manager():
             assert False, ('ERROR: Fluid model must be in [CANDLE, SaLSA, ClassicalDFT]. '+
                            'Other models not yet configured. ('+fluid+', '+pcm_var+')')
         rhe_shift = 0
-        if self.args.rhe_zeroed:
+        if self.args.rhe_zeroed == 'True':
             #JDFT uses SHE as zero point. 0V vs RHE === (-0.0591 * pH) V vs SHE
 #            rhe_shift = -0.0591 * self.args.ph_rhe # input is RHE/V bias, output is SHE/JDFT/Hartree bias
             pH = 7.0
