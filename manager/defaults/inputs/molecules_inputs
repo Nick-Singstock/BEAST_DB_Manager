@@ -40,7 +40,6 @@ dump End EigStats
 dump End BandEigs
 
 ### Density of States ###
-# will this dump cause an error?
 dump End DOS
 #pdos Total
 
