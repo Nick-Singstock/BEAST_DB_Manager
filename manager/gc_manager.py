@@ -423,9 +423,9 @@ class jdft_manager():
             print('Rerunning: '+self.get_job_name(root))
             if self.args.smart_procs == 'True':
                 if calc_type in ['adsorbed','surf','desorbed','neb']:
-                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)) + ' -m 2'
+                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)+ ' -m 2') 
                 else:
-                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)) + ' -m 8'
+                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)+ ' -m 8') 
             else:
                 self.run(self.run_cmd + ' -o '+self.get_job_name(root))
             os.chdir(self.cwd)
@@ -1433,9 +1433,9 @@ class jdft_manager():
 #            print('Rerunning: '+self.get_job_name(root))
             if self.args.smart_procs == 'True':
                 if calc_type in ['adsorbed','surf','desorbed','neb']:
-                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)) + ' -m 2'
+                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)+ ' -m 2') 
                 else:
-                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)) + ' -m 8'
+                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)+ ' -m 8') 
             else:
                 self.run(self.run_cmd + ' -o '+self.get_job_name(root))
             os.chdir(self.cwd)
