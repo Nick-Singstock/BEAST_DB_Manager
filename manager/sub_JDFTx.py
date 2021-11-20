@@ -182,7 +182,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--partition', help='Partition for Bridges2 (RM, RM-shared)',
                         type=str,default='RM-shared')
     parser.add_argument('-m', '--processes', help='Number of JDFT processes, should be <= nstates (see irr. kpoints). '+
-                        'Total cores / processes = threads per process (int for high eff.)', type=int, default=8)
+                        'Total cores / processes = threads per process (int for high eff.)', type=int, default=2)
     parser.add_argument('-g', '--gpu', help='If True, runs GPU install of JDFTx',
                         type=str, default='False')
     parser.add_argument('-test', '--test_queue', help='If True, runs job on test queue',

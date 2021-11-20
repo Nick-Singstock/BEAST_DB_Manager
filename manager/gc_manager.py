@@ -171,6 +171,8 @@ class jdft_manager():
                             type=str, default='True')
         parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 1000)',
                             type=int, default=1000)
+        parser.add_argument('-sp', '--smart_procs', help='Whether to use smart system for setting number '+
+                            'of processes (default True)',type=str, default='True')
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -416,9 +418,16 @@ class jdft_manager():
         print('\n----- Rerunning unconverged calcs -----\n')
         
         for root in rerun:
+            calc_type = root.split(os.sep)[1]
             os.chdir(root)
             print('Rerunning: '+self.get_job_name(root))
-            self.run(self.run_cmd + ' -o '+self.get_job_name(root))
+            if self.args.smart_procs == 'True':
+                if calc_type in ['adsorbed','surf','desorbed','neb']:
+                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)) + ' -m 2'
+                else:
+                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)) + ' -m 8'
+            else:
+                self.run(self.run_cmd + ' -o '+self.get_job_name(root))
             os.chdir(self.cwd)
 
     def update_rerun(self, rerun):
@@ -1419,8 +1428,16 @@ class jdft_manager():
     def run_new_calcs(self, new_calcs):
         print('\n----- Running new calcs -----\n')
         for root in new_calcs:
+            calc_type = root.split(os.sep)[1]
             os.chdir(root)
-            self.run(self.run_cmd + ' -o '+self.get_job_name(root))
+#            print('Rerunning: '+self.get_job_name(root))
+            if self.args.smart_procs == 'True':
+                if calc_type in ['adsorbed','surf','desorbed','neb']:
+                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)) + ' -m 2'
+                else:
+                    self.run(self.run_cmd + ' -o '+self.get_job_name(root)) + ' -m 8'
+            else:
+                self.run(self.run_cmd + ' -o '+self.get_job_name(root))
             os.chdir(self.cwd)
             print('Calculation run: '+self.get_job_name(root))
     
