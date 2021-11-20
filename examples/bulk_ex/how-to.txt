@@ -1,0 +1,14 @@
+All needed files are included.
+
+Run: 'sub_JDFTx.py -o Au_test' 
+in this example folder to submit the 2-step Au bulk convergence.
+
+The job will run until the energy convergence criteria is met,
+job details will be output to 'opt.log' and 'out'.
+
+Alternatively, after 'gc_manager.py -s True' is used to setup a folder, 
+the Au POSCAR can be added to a new bulk folder and will be directly 
+managed by the gc_manager.py script. 
+1: Cp ./POSCAR path-to-gc-folder/calcs/bulks/Au/POSCAR
+2: cd path-to-gc-folder
+3: gc_manager.py -t 12
