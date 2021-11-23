@@ -124,9 +124,11 @@ def add_dos(cmds, script_cmds):
                 dos_line += ' \\\n' + line
     
     # allow pdos line in script_cmds
-    conv_logger('script_cmds '+str(script_cmds))
+#    conv_logger('script_cmds '+str(script_cmds))
     if 'pdos' in script_cmds:
         conv_logger('pdos found in script cmds')
+        if type(script_cmds['pdos']) == str:
+            script_cmds['pdos'] = [script_cmds['pdos']]
         for pdos in script_cmds['pdos']:
             conv_logger('pdos '+str(pdos))
             if len(pdos.split()) > 1:
@@ -671,5 +673,5 @@ if __name__ == '__main__':
 
     command_file = 'inputs'
     
-    conv_logger('Entering run function.')
+    conv_logger('\n\n----- Entering run function -----')
     run_calc(command_file, jdftx_exe)
