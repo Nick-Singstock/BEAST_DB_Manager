@@ -124,7 +124,6 @@ def add_dos(cmds, script_cmds):
                 dos_line += ' \\\n' + line
     
     # allow pdos line in script_cmds
-#    conv_logger('script_cmds '+str(script_cmds))
     if 'pdos' in script_cmds:
         conv_logger('pdos found in script cmds')
         if type(script_cmds['pdos']) == str:
