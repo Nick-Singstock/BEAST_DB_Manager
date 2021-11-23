@@ -127,12 +127,13 @@ def add_dos(cmds, script_cmds):
     if 'pdos' in script_cmds:
         conv_logger('pdos found in script cmds')
         for pdos in script_cmds['pdos']:
+            print(pdos)
             if len(pdos.split()) > 1:
                 # Format (list): Atom_type orbital_type(s, spaced)
                 # Adds DOS for ALL atoms of this type and all requested orbitals
-                atom_type = pdos.split()[0]
+                atom_type = pdos.split(' ')[0]
                 indices = [i for i,el in enumerate(st.species) if str(el) == atom_type]
-                orbitals = pdos.split()[1:]
+                orbitals = pdos.split(' ')[1:]
                 assert all([orb in ['s','p','px','py','pz','d','dxy','dxz','dyz','dz2','dx2-y2','f'] 
                             for orb in orbitals]), ('ERROR: Not all orbital types allowed! ('+', '.join(orbitals)+')')
                 for i in range(len(indices)):
