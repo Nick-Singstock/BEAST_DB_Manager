@@ -124,10 +124,11 @@ def add_dos(cmds, script_cmds):
                 dos_line += ' \\\n' + line
     
     # allow pdos line in script_cmds
+    conv_logger('script_cmds '+str(script_cmds))
     if 'pdos' in script_cmds:
         conv_logger('pdos found in script cmds')
         for pdos in script_cmds['pdos']:
-            print(pdos)
+            conv_logger('pdos '+str(pdos))
             if len(pdos.split()) > 1:
                 # Format (list): Atom_type orbital_type(s, spaced)
                 # Adds DOS for ALL atoms of this type and all requested orbitals
