@@ -10,8 +10,8 @@ import os
 import argparse
 import subprocess
 
-def make_surface(file, folder, index, slab_height, vac_space, center, stoich, primitive, order = True,
-                 repeat = 'False'):
+def make_surface(file, folder, index, slab_height, vac_space, center, stoich, primitive, symmetry,
+                 order = True, repeat = 'False'):
     st = Structure.from_file(file)
     mindex = tuple([int(x) for x in index])
     
@@ -24,7 +24,7 @@ def make_surface(file, folder, index, slab_height, vac_space, center, stoich, pr
     if repeat == False:
         # standard pymatgen surface generation
         slabgen = SlabGenerator(st, mindex, slab_height, vac_space, center_slab=center)
-        all_slabs = slabgen.get_slabs(symmetrize = True)
+        all_slabs = slabgen.get_slabs(symmetrize = True if symmetry == 'True' else False)
         print("The slab has %s termination." %(len(all_slabs)))
         
         if stoich:
@@ -119,6 +119,8 @@ if __name__ == '__main__':
                         type=str, default='False')
     parser.add_argument('-p', '--primitive', help='Whether to convert to primitive unit cell first '+
                         '(default False)', type=str, default='False')
+    parser.add_argument('-s', '--symmetry', help='Whether to make surface symmetric on top/bottom '+
+                        '(default True)', type=str, default='True')
 
     args = parser.parse_args()
 	
@@ -129,4 +131,5 @@ if __name__ == '__main__':
     stoich = True if args.preserve_stoich == 'True' else False
 	
     make_surface(args.file, folder_name, args.index, args.slab_height, 
-                 args.vac_space, args.center, stoich, args.primitive, repeat = args.repeat_bulk)
+                 args.vac_space, args.center, stoich, args.primitive, args.symmetry,
+                 repeat = args.repeat_bulk)
