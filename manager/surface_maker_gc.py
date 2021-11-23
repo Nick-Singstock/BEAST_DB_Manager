@@ -4,15 +4,21 @@
 #@author: Nick
 
 from pymatgen.core.surface import SlabGenerator, Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core import Lattice
 import os
 import argparse
 import subprocess
 
-def make_surface(file, folder, index, slab_height, vac_space, center, stoich, order = True,
+def make_surface(file, folder, index, slab_height, vac_space, center, stoich, primitive, order = True,
                  repeat = 'False'):
     st = Structure.from_file(file)
     mindex = tuple([int(x) for x in index])
+    
+    # get primitive
+    if primitive == 'True':
+        sga = SpacegroupAnalyzer(st)
+        st = sga.find_primitive()
     
     repeat = False if repeat == 'False' else int(repeat)
     if repeat == False:
@@ -111,6 +117,8 @@ if __name__ == '__main__':
                         'in z-dir for (int) units. Useful when Pymatgen surface creation fails. '+
                         'Folder is named using -i tag.',
                         type=str, default='False')
+    parser.add_argument('-p', '--primitive', help='Whether to convert to primitive unit cell first '+
+                        '(default False)', type=str, default='False')
 
     args = parser.parse_args()
 	
@@ -121,4 +129,4 @@ if __name__ == '__main__':
     stoich = True if args.preserve_stoich == 'True' else False
 	
     make_surface(args.file, folder_name, args.index, args.slab_height, 
-                 args.vac_space, args.center, stoich, repeat = args.repeat_bulk)
+                 args.vac_space, args.center, stoich, args.primitive, repeat = args.repeat_bulk)
