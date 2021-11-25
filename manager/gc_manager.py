@@ -422,9 +422,9 @@ class jdft_manager():
             os.chdir(root)
             print('Rerunning: '+self.get_job_name(root))
             if self.args.smart_procs == 'True':
-                print('debug: smart_procs = '+self.args.smart_procs, 'calc type:', calc_type)
+#                print('debug: smart_procs = '+self.args.smart_procs, 'calc type:', calc_type)
                 if calc_type in ['adsorbed','surf','desorbed','neb']:
-                    print('-procs 2')
+#                    print('-procs 2')
                     self.run(self.run_cmd + ' -o '+self.get_job_name(root)+ ' -m 2') 
                 else:
                     self.run(self.run_cmd + ' -o '+self.get_job_name(root)+ ' -m 8') 
@@ -1434,7 +1434,10 @@ class jdft_manager():
             os.chdir(root)
 #            print('Rerunning: '+self.get_job_name(root))
             if self.args.smart_procs == 'True':
+                print('debug: smart_procs:',self.args.smart_procs, 'calc type:', calc_type)
                 if calc_type in ['adsorbed','surf','desorbed','neb']:
+                    print('-procs 2')
+#                if calc_type in ['adsorbed','surf','desorbed','neb']:
                     self.run(self.run_cmd + ' -o '+self.get_job_name(root)+ ' -m 2') 
                 else:
                     self.run(self.run_cmd + ' -o '+self.get_job_name(root)+ ' -m 8') 
