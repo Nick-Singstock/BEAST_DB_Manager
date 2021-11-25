@@ -220,6 +220,7 @@ def run_calc(command_file, jdftx_exe):
 #    cmds = add_dos(cmds)
 
     def calc_type(cmds, script_cmds):
+        conv_logger('calc_type debug: '+str(cmds))
         if 'nimages' in script_cmds.keys():
             calc = 'neb'
         elif script_cmds['optimizer'] in ['MD','md']:
