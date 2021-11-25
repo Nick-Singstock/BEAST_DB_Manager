@@ -220,14 +220,13 @@ def run_calc(command_file, jdftx_exe):
 #    cmds = add_dos(cmds)
 
     def calc_type(cmds, script_cmds):
-        conv_logger('calc_type debug: '+str(cmds))
+#        conv_logger('calc_type debug: '+str(cmds))
         if 'nimages' in script_cmds.keys():
             calc = 'neb'
         elif script_cmds['optimizer'] in ['MD','md']:
             calc = 'md'
-        elif any([('lattice-minimize' in c and 'nIterations' in c and 
-                   int(c.split('nIterations')[1].split()[0]) > 0 ) 
-                   for c in cmds]):
+        elif any([('lattice-minimize' == c[0] and 'nIterations' in c[1] and 
+                   int(c[1].split()[1]) > 0 ) for c in cmds]):
             calc = 'lattice'
         else:
             calc = 'opt'
