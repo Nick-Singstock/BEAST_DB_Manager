@@ -30,7 +30,7 @@ symmetries none
 
 ### Output Files ###
 dump End Dtot BoundCharge 
-dump End State
+#dump End State #causes errors after lattice updates
 dump End Forces
 dump End Ecomponents
 dump End VfluidTot
