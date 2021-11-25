@@ -1357,20 +1357,20 @@ class jdft_manager():
             
             # set kpoints for surfs from bulk calcs
             elif calc_type in ['surfs']:
-                try: # try to get bulk inputs from __all_surfs folder (from bulk)
-                    bulk_tags = h.read_inputs(opj(os.sep.join(root.split(os.sep)[:-1]),
-                                                  '__all_surfs'),file='bulk_inputs')
-                    kpts = bulk_tags['kpoint-folding']
-                    tags['kpoint-folding'] = ' '.join(kpts.split()[0:2] + ['1'])
+#                try: # try to get bulk inputs from __all_surfs folder (from bulk)
+#                    bulk_tags = h.read_inputs(opj(os.sep.join(root.split(os.sep)[:-1]),
+#                                                  '__all_surfs'),file='bulk_inputs')
+#                    kpts = bulk_tags['kpoint-folding']
+#                    tags['kpoint-folding'] = ' '.join(kpts.split()[0:2] + ['1'])
+#                except:
+                try:
+                    kpts = Kpoints.automatic_density(st, kpoint_density).as_dict()
+                    tags['kpoint-folding'] = ' '.join([str(k) for k in kpts['kpoints'][0]])
+                    print('kpoints auto-generated for surface '+root.split(os.sep)[2]
+                          +' with density '+str(kpoint_density))
                 except:
-                    try:
-                        print('kpoints auto-generated for surface '+root.split(os.sep)[2]
-                              +' with density '+str(kpoint_density))
-                        kpts = Kpoints.automatic_density(st, kpoint_density).as_dict()
-                        tags['kpoint-folding'] = ' '.join([str(k) for k in kpts['kpoints'][0]])
-                    except:
-                        print('ERROR: kpoint-folding cannot be set for: '+root)
-                        return False
+                    print('ERROR: kpoint-folding cannot be set for: '+root)
+                    return False
             
             elif calc_type in ['adsorbed','desorbed']:
                 try: # copy kpoint-folding from surfs (no longer bulk from surfs)
