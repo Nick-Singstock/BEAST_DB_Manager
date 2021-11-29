@@ -173,6 +173,8 @@ class jdft_manager():
                             type=int, default=1000)
         parser.add_argument('-sp', '--smart_procs', help='Whether to use smart system for setting number '+
                             'of processes (default True)',type=str, default='True')
+        parser.add_argument('-cf', '--calc_fixer', help='Whether to use the smart error fixer for '+
+                            'failed calcs (default False)',type=str, default='False')
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -435,7 +437,8 @@ class jdft_manager():
     def update_rerun(self, rerun):
         for root in rerun:
             os.chdir(root)
-            self.failed_rerun_fixer(root, auto_delete = False)
+            self.failed_rerun_fixer(root, 
+                        auto_delete = True if self.args.calc_fixer == 'True' else False)
             inputs = h.read_inputs('./')
             inputs['restart'] = 'True'
             h.write_inputs(inputs, './')
@@ -445,8 +448,8 @@ class jdft_manager():
         '''
         Tries to fix errors that show up when rerunning a calc that previously failed.
         Current fixes:
-            1) Length of fillings is incorrect
-                Fix: delete fillings and ??? (just fillings doesn't seem to fix)
+            1) Length of state files (e.g., wfns) is incorrect
+                Fix: delete state files 
         '''
         try:
             with open('out', 'r', errors='ignore') as f:
@@ -456,11 +459,17 @@ class jdft_manager():
                 return True
             for line in end_lines:
                 # fillings is wrong size, NEED TO RERUN WITHOUT SYMMETRY (kpoints changes during opt)
-                if "Length of 'fillings' was" in line:
+                if "Length of '" in line:
                     if not auto_delete:
-                        print('fillings is incorrect size, job may fail: '+folder)
+                        print('"State" files are incorrect size, job may fail: '+folder)
                     else:
-                        self.run('rm fillings')
+                        print('"State" files are incorrect size, files removed.')
+                        cwd = os.getcwd()
+                        os.chdir(folder)
+                        for file in ['fillings','wfns','eigenvals','eigenStats','fluidState','nbound']:
+                            self.run('rm '+file)
+                        os.chdir(cwd)
+                        break
         except:
             pass
         return True
