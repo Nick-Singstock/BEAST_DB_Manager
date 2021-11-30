@@ -171,6 +171,9 @@ class jdft_manager():
                             type=str, default='True')
         parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 1000)',
                             type=int, default=1000)
+        parser.add_argument('-elec', '--copy_electronic', help='If True, copy electronic state files '+
+                           ' to new bias folders based on converged biases (default False).',
+                            type=str, default='False')
         parser.add_argument('-sp', '--smart_procs', help='Whether to use smart system for setting number '+
                             'of processes (default True)',type=str, default='True')
         parser.add_argument('-fix', '--calc_fixer', help='Whether to use the smart error fixer for '+
@@ -583,10 +586,15 @@ class jdft_manager():
                 bias = v['biases'][i]
                 if type(bias) == float:
                     # bias is zero, ensure no-mu is converged
-                    nm_root = os.path.join(calc_folder, 'surfs', surf, 'No_bias') 
-                    if nm_root in converged:
-                        # upgrade from no_bias (which exisits)
-                        self.upgrade_calc(root, nm_root, bias, v['tags'] if 'tags' in v else [])
+                    nomu_root = os.path.join(calc_folder, 'surfs', surf, 'No_bias') 
+                    zero_root = os.path.join(calc_folder, 'surfs', surf, '0.00V')
+                    if zero_root in converged:
+                        # upgrade from no_bias (which exists)
+                        self.upgrade_calc(root, zero_root, bias, v['tags'] if 'tags' in v else [])
+                        new_roots.append(root)
+                    elif nomu_root in converged:
+                        # upgrade from no_bias (which exists)
+                        self.upgrade_calc(root, nomu_root, bias, v['tags'] if 'tags' in v else [])
                         new_roots.append(root)
                     elif 'No_bias' not in v['biases']:
                         # No bias not requested, run directly 
@@ -1005,7 +1013,9 @@ class jdft_manager():
                 inputs[tag_k] = tag_v
         h.write_inputs(inputs, root)
     
-    def upgrade_calc(self, new_root, old_root, bias, tags, verbose = True, copy_electronic = False):
+    def upgrade_calc(self, new_root, old_root, bias, tags, verbose = True, ):
+        
+        copy_electronic = True if self.args.copy_electronic == 'True' else False
         # upgrade from similar type of calc, 
         # do not need to update inputs of convergence aside from changing bias
         os.mkdir(new_root)
