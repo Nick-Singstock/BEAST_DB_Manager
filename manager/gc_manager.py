@@ -173,7 +173,7 @@ class jdft_manager():
                             type=int, default=1000)
         parser.add_argument('-sp', '--smart_procs', help='Whether to use smart system for setting number '+
                             'of processes (default True)',type=str, default='True')
-        parser.add_argument('-cf', '--calc_fixer', help='Whether to use the smart error fixer for '+
+        parser.add_argument('-fix', '--calc_fixer', help='Whether to use the smart error fixer for '+
                             'failed calcs (default False)',type=str, default='False')
         self.args = parser.parse_args()
 
