@@ -1022,6 +1022,7 @@ class jdft_manager():
         self.run('cp ' + os.path.join(old_root, 'CONTCAR') + ' ' + os.path.join(new_root, 'POSCAR'))
         
         if copy_electronic:
+            print('copying electronic data from '+old_root+' to new calc: '+new_root)
             for efile in ['wfns','fillings','eigenvals','fluidState']:
                 if os.path.exists(os.path.join(old_root, efile)):
                     self.run('cp ' + os.path.join(old_root, efile) 
