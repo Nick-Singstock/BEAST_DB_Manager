@@ -581,22 +581,6 @@ class jdft_manager():
                     continue
                 # root does not exist yet, check on bias dependency
                 bias = v['biases'][i]
-#                if type(bias) == float and bias != 0.0:
-#                    # bias is a non-zero voltage, ensure 0 is converged
-#                    zero_root = os.path.join(calc_folder, 'surfs', surf, h.get_bias_str(0.0))
-#                    if zero_root in converged:
-#                        # upgrade from 0 V (which exists!)
-#                        self.upgrade_calc(root, zero_root, bias, v['tags'] if 'tags' in v else [])
-#                        new_roots.append(root)
-#                    elif 0.0 not in v['biases']:
-#                        # 0.0 not requested, run directly 
-#                        good_setup = self.make_calc(calc_folder, surf, root, v, bias)
-#                        if good_setup:
-#                            new_roots.append(root)
-#                        continue
-#                    else:
-#                        # waiting for 0.0V to converge
-#                        continue
                 if type(bias) == float:
                     # bias is zero, ensure no-mu is converged
                     nm_root = os.path.join(calc_folder, 'surfs', surf, 'No_bias') 
@@ -620,36 +604,6 @@ class jdft_manager():
                     if good_setup:
                         new_roots.append(root)
                     continue
-#                    
-#                    # initial setup of no-mu surface
-#                    head_root = os.path.join(calc_folder, 'surfs', surf)
-#                    if not os.path.exists(os.path.join(head_root, 'POSCAR')):
-#                        print('POSCAR must be added to folder: '+head_root)
-#                        continue
-#                    else:
-#                        if not os.path.exists(root):
-#                            os.mkdir(root)
-#                        self.run('cp '+os.path.join(head_root, 'POSCAR')+' '+os.path.join(root, 'POSCAR'))
-#                    if not h.check_surface(os.path.join(root, 'POSCAR')):
-#                        continue
-#                    # copy inputs from inputs_folder and update based on tags
-#                    self.run('cp '+os.path.join(inputs_folder, 'surfs_inputs')+' '+os.path.join(root, 'inputs'))
-#                    
-#                    # add convergence file
-#                    if self.args.use_convergence == 'True':
-#                        if os.path.exists(os.path.join(inputs_folder, 'convergence')):
-#                            self.run('cp '+os.path.join(inputs_folder, 'convergence')+
-#                                 ' '+os.path.join(root, 'convergence'))
-#                        else:
-#                            print('WARNING: "convergence" file not found in '+inputs_folder)
-#                    
-#                    if 'tags' in v:
-#                        self.add_tags(root, v['tags'])
-#                    good_setup = self.set_input_system_params(root, 'surfs')
-#                    if not good_setup:
-#                        print('Setup failed: '+root)
-#                        continue
-#                    new_roots.append(root)
                 
             # 2) add adsorbates to converged surfaces at same bias
             if self.args.add_adsorbed == 'True':
@@ -927,22 +881,8 @@ class jdft_manager():
                                 self.run('cp '+os.path.join(inputs_folder, 'convergence')+
                                      ' '+os.path.join(neb_dir, 'convergence'))
                             
-#                            if 'conv-tags' in v or 'conv-tags' in mv:
-#                                convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
-#                                if 'conv-tags' in v: # add all tags from surface
-#                                    for step, vals in v['conv-tags']:
-#                                        if step in convtags:
-#                                            convtags[step] += vals
-#                                        else:
-#                                            convtags[step] = vals
-#                                # update convergence file
-#                                self.set_conv_tags(neb_dir, convtags)
                         
                         print('Setup NEB folder: '+neb_dir)
-                                                
-#                            neb_set = setup_neb(os.path.join(ads_root, 'CONTCAR'), 
-#                                                os.path.join(des_root, 'CONTCAR'),
-#                                                nimages, neb_folder)
 
         return new_roots
 
