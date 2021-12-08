@@ -207,5 +207,6 @@ if __name__ == '__main__':
         write_bridges(args.nodes,args.cores,args.time,outfile,args.partition,args.qos,
                       script, args.recursive, args.processes)
     
-    os.system('sbatch submit.sh')
+    #os.system('sbatch submit.sh')
+    subprocess.call('sbatch submit.sh', shell=True)
     

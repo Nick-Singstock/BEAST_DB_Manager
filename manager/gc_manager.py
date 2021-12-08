@@ -1587,7 +1587,8 @@ defaults_folder = os.path.join(manager_home, 'defaults')
 run_command = 'python '+ os.path.join(manager_home, 'sub_JDFTx.py')
 
 # all files to include in backup
-files_to_backup = ['CONTCAR','POSCAR','out','inputs','opt.log','Ecomponents','neb.log']    
+files_to_backup = ['CONTCAR','POSCAR','out','inputs','opt.log','Ecomponents','neb.log',
+                   'convergence']    
     
 if __name__ == '__main__' and run_script:
     jm = jdft_manager()
