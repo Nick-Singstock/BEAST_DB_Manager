@@ -14,7 +14,7 @@ opj = os.path.join
 try:
     modules=' '.join(os.environ['JDFTx_mods'].split('_'))
 except:
-    modules='comp-intel/2020.1.217 intel-mpi/2020.1.217 cuda/10.2.89 vasp/6.1.1 mkl/2020.1.217 gsl/2.5/gcc openmpi/4.0.4/gcc-8.4.0 gcc/7.4.0'
+    modules='' #'comp-intel/2020.1.217 intel-mpi/2020.1.217 cuda/10.2.89 vasp/6.1.1 mkl/2020.1.217 gsl/2.5/gcc openmpi/4.0.4/gcc-8.4.0 gcc/7.4.0'
 
 try:
     comp=os.environ['JDFTx_Computer']
@@ -71,7 +71,12 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+='SLURM_EXPORT_ENV=ALL\n'
 
     #writelines+='module load comp-intel/2020.1.217 intel-mpi/2020.1.217 cuda/10.2.89 vasp/6.1.1 mkl/2020.1.217 gsl/2.5/gcc openmpi/4.0.4/gcc-8.4.0 gcc/7.4.0'+'\n\n'
-    writelines+='module load '+modules+'\n\n'
+    if comp == 'Eagle':
+        writelines+='module use -a /nopt/nrel/apps/modules/test/modulefiles'+'\n'
+#        writelines+='module load gcc/8.4.0 openmpi/4.1.1/gcc+cuda hdf5/1.10.7/gcc-ompi gsl/2.5/gcc cmake mkl'
+    
+    if modules != '':
+        writelines+='module load '+modules+'\n\n'
 
     if short_recursive == 'True': # removed time constraint
         # short_recursive command runs timer script before and after JDFT to check if walltime is hit
