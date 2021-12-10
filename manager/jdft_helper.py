@@ -119,8 +119,8 @@ class helper():
             ct_counter = {el: 0 for el in ct_els}
         
         for li,line in enumerate(out_text.split('\n')):
-            if 'nElectrons' in line and initial_electrons is None:
-                initial_electrons = float(line.split()[1])
+#            if 'nElectrons' in line and initial_electrons is None:
+#                initial_electrons = float(line.split()[1])
             if 'FillingsUpdate' in line:
                 final_electrons = float(line.split()[4])
             
