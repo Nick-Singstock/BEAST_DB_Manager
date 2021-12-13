@@ -43,10 +43,13 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+='#SBATCH --time='+str(time)+':00:00'+'\n'
     writelines+='#SBATCH -o '+out+'-%j.out'+'\n'
     writelines+='#SBATCH -e '+out+'-%j.err'+'\n'
-
-    writelines+='#SBATCH --tasks '+str(np)+'\n'
-    writelines+='#SBATCH --nodes '+str(nodes)+'\n'
-    writelines+='#SBATCH --ntasks-per-node '+str(cores)+'\n'
+    
+    if comp == 'Eagle' and gpu != 'True':
+        writelines+='#SBATCH -N 1 -n 2 -c 18 --hint=nomultithread'
+    else:
+        writelines+='#SBATCH --tasks '+str(np)+'\n'
+        writelines+='#SBATCH --nodes '+str(nodes)+'\n'
+        writelines+='#SBATCH --ntasks-per-node '+str(cores)+'\n'
 
     if alloc=='environ':
         writelines+='#SBATCH --account='+os.environ['JDFTx_allocation']+'\n'
@@ -66,10 +69,11 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         else:
             writelines+='#SBATCH --partition shas\n'    
     
-    if comp == 'Eagle' and gpu != 'True':
-        writelines+='#SBATCH --hint=nomultithread'
-        
-    writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
+#    if comp == 'Eagle' and gpu != 'True':
+#        writelines+='#SBATCH --hint=nomultithread'
+    
+    if comp != 'Eagle':
+        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
     if comp == 'Summit':
         writelines+='SLURM_EXPORT_ENV=ALL\n'
 
