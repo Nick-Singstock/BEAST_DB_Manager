@@ -245,9 +245,12 @@ def run_calc(command_file, jdftx_exe):
 #    use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
     
     
-    jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
-    exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
-        
+    if comp == 'Eagle':
+        exe_cmd = 'mpirun --bind-to none '+jdftx_exe
+    else:
+        jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
+        exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
+
         
     def read_atoms(restart):
         if restart:
@@ -674,3 +677,4 @@ if __name__ == '__main__':
     
     conv_logger('\n\n----- Entering run function -----')
     run_calc(command_file, jdftx_exe)
+
