@@ -894,7 +894,7 @@ class jdft_manager():
 
         return new_roots
 
-    def make_calc(self, calc_folder, surf, root, v, bias, sd = True, sd_dist = 2.0):
+    def make_calc(self, calc_folder, surf, root, v, bias, sd = True, sd_dist = 1.5):
         head_root = os.path.join(calc_folder, 'surfs', surf)
         if not os.path.exists(os.path.join(head_root, 'POSCAR')):
             print('POSCAR must be added to folder: '+head_root)
