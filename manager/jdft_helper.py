@@ -458,7 +458,7 @@ class helper():
         return None #data_analysis(data)
     
 #    @property
-    def reference_molecules(self):
+    def reference_molecules(self, verbose = True):
         refs = {'H': {'refs': ['H2'], 'coeffs': [0.5]},
                 'H2': {'refs': ['H2'], 'coeffs': [1]},
                 'H2O': {'refs': ['H2O'], 'coeffs': [1]},
@@ -504,12 +504,15 @@ class helper():
                 'S8': {'refs': ['S8'], 'coeffs': [1]},
                 }
         
-        if os.path.exists('./molecules/refs.json'):
-            with open('./molecules/refs.json', 'r') as f:
-                refs2 = json.load(f)
-            
-            for k,v in refs2.items():
-                refs[k] = v
+        try:
+            if os.path.exists('./molecules/refs.json'):
+                with open('./molecules/refs.json', 'r') as f:
+                    refs2 = json.load(f)
+                
+                for k,v in refs2.items():
+                    refs[k] = v
+        except:
+            if verbose: print('Added refs not properly read from molecules/refs.json.')
         
         return refs
     

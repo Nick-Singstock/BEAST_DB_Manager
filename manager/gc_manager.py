@@ -536,7 +536,6 @@ class jdft_manager():
             for mol, molv in managed['molecules'].items():
                 # ref_mols used for binding analysis, mol used for desorb SP calcs
 #                try:
-                print('test 1')
                 ref_mols = self.get_ref_mols(mol)
 #                except:
 #                    ref_mols = []
