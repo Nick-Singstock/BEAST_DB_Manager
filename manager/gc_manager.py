@@ -205,6 +205,7 @@ class jdft_manager():
         add_inputs = []
         run_new = []
         rerun = []
+        failed_calcs = []
         running_parallel = self.get_parallel_running() # TODO: setup function and rules
         if 'converged' not in all_data:
             all_data['converged'] = []
@@ -283,6 +284,8 @@ class jdft_manager():
                     if not skip_high_forces: 
                         rerun.append(root)
                         if verbose: print('Molecule calc not converged. Adding to rerun.')
+                    else:
+                        failed_calcs.append(root)
                 continue
             
             # save bulk data
@@ -305,6 +308,8 @@ class jdft_manager():
                     if not skip_high_forces: 
                         rerun.append(root)
                         if verbose: print('Bulk calc not converged. Adding to rerun.')
+                    else:
+                        failed_calcs.append(root)
                 continue
             
             # save surface data
@@ -330,6 +335,8 @@ class jdft_manager():
                     if not skip_high_forces: 
                         rerun.append(root)
                         if verbose: print('Surface calc not converged. Adding to rerun.')
+                    else:
+                        failed_calcs.append(root)
                 continue
             
             # save adsorbate and desorbed state calcs
@@ -373,6 +380,8 @@ class jdft_manager():
                         if not skip_high_forces: 
                             rerun.append(root)
                             if verbose: print('Adsorbed/Desorbed calc not converged. Adding to rerun.')
+                        else:
+                            failed_calcs.append(root)
                 else:
                     print('Surface: '+surf_name+' at bias '+bias_str+
                           ' must be converged before adsorbed/desorbed can be saved.')
@@ -380,6 +389,8 @@ class jdft_manager():
                         if not skip_high_forces: 
                             rerun.append(root)
                             if verbose: print('Adsorbed/Desorbed calc not converged. Adding to rerun.')
+                        else:
+                            failed_calcs.append(root)
                 continue
                     
             elif calc_type == 'neb':
@@ -417,7 +428,7 @@ class jdft_manager():
                         print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
                               +' Skipping due to high forces ('+neb_force+')')
                 continue
-        return all_data, add_inputs, rerun, run_new
+        return all_data, add_inputs, rerun, run_new, failed_calcs
 
     def rerun_calcs(self, rerun):
         print('\n----- Rerunning unconverged calcs -----\n')
@@ -1499,7 +1510,7 @@ class jdft_manager():
         if self.args.check_calcs == 'True':
             # scan through folders
             running_jobs_dirs = self.get_running_jobs_dirs()
-            all_data, add_inputs, rerun, run_new  = self.scan_calcs(all_data, running_jobs_dirs)
+            all_data, add_inputs, rerun, run_new, failed_calcs  = self.scan_calcs(all_data, running_jobs_dirs)
             # save all data 
             if self.args.save == 'True':
                 # run analysis of converged calcs
@@ -1518,6 +1529,8 @@ class jdft_manager():
             # save and rerun unconverged (if requested)
             with open(os.path.join(results_folder, 'unconverged.txt'), 'w') as f:
                 f.write('\n'.join(rerun))
+            with open(os.path.join(results_folder, 'failed.txt'), 'w') as f:
+                f.write('\n'.join(failed_calcs))
             if self.args.rerun_unconverged == 'True' and len(rerun) > 0: #self.args.check_calcs == 'True' and 
 #                print('\nRerunning unconverged calculations')
                 self.update_rerun(rerun)
