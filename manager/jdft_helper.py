@@ -458,7 +458,7 @@ class helper():
         return None #data_analysis(data)
     
 #    @property
-    def reference_molecules(self, verbose = True):
+    def reference_molecules(self, verbose = False):
         refs = {'H': {'refs': ['H2'], 'coeffs': [0.5]},
                 'H2': {'refs': ['H2'], 'coeffs': [1]},
                 'H2O': {'refs': ['H2O'], 'coeffs': [1]},
