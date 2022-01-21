@@ -202,6 +202,7 @@ class jdft_manager():
             4) Lists directories without inputs or CONTCARs to be started
         '''
         # look through all calc folders for converged calcs, unconverged calcs, and calcs to setup
+        ncalcs = 0
         add_inputs = []
         run_new = []
         rerun = []
@@ -220,6 +221,7 @@ class jdft_manager():
                 continue
             if verbose: 
                 print('\nFolder found at:', root)
+            ncalcs += 1
             if root in all_data['converged']:
                 if verbose: print('Previously Converged.')
                 continue
@@ -428,7 +430,7 @@ class jdft_manager():
                         print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
                               +' Skipping due to high forces ('+neb_force+')')
                 continue
-        return all_data, add_inputs, rerun, run_new, failed_calcs
+        return all_data, add_inputs, rerun, run_new, failed_calcs, ncalcs
 
     def rerun_calcs(self, rerun):
         print('\n----- Rerunning unconverged calcs -----\n')
@@ -1510,7 +1512,8 @@ class jdft_manager():
         if self.args.check_calcs == 'True':
             # scan through folders
             running_jobs_dirs = self.get_running_jobs_dirs()
-            all_data, add_inputs, rerun, run_new, failed_calcs  = self.scan_calcs(all_data, running_jobs_dirs)
+            all_data, add_inputs, rerun, run_new, failed_calcs, ncalcs  = self.scan_calcs(all_data, 
+                                                                                          running_jobs_dirs)
             # save all data 
             if self.args.save == 'True':
                 # run analysis of converged calcs
@@ -1575,7 +1578,8 @@ class jdft_manager():
         if self.args.backup == 'True':
             self.backup_calcs()
             
-        print('----- Done -----\n\n')
+        print('----- Done -----')
+        print('Number of Calcs Under Management: '+str(ncalcs)+'\n\n')
 
 
 
