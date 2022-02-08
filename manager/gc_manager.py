@@ -124,7 +124,7 @@ class jdft_manager():
                             type=int, default=12)
         parser.add_argument('-u', '--rerun_unconverged', help='Rerun all unconverged calculations being managed, '+
                             'requires "check_calcs". Default True.',type=str, default='True')
-        parser.add_argument('-g', '--gpu', help='Whether to run all calculations on gpu nodes.',
+        parser.add_argument('-g', '--gpu', help='If True, run all calculations on gpu nodes. Default False.',
                             type=str, default='False')
         parser.add_argument('-m', '--make_new', help='Make new calculations based on requested calcs.'+
                             ' Default True.',type=str, default='True')
