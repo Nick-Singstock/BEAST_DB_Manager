@@ -120,15 +120,23 @@ class jdft_manager():
         
         parser.add_argument('-s', '--setup', help='Setup downstream folders for management. (-s True)',
                             type=str, default='False')
-        parser.add_argument('-cc', '--check_calcs', help='Check convergence of all managed calculations. '+
-                            'Default True.',type=str, default='True')
+        parser.add_argument('-t', '--run_time', help='Time to run jobs. Default 12 (hours).',
+                            type=int, default=12)
         parser.add_argument('-u', '--rerun_unconverged', help='Rerun all unconverged calculations being managed, '+
                             'requires "check_calcs". Default True.',type=str, default='True')
-        parser.add_argument('-v', '--save', help='Save all newly processed data, requires "check_calcs".'+
+        parser.add_argument('-g', '--gpu', help='Whether to run all calculations on gpu nodes.',
+                            type=str, default='False')
+        parser.add_argument('-m', '--make_new', help='Make new calculations based on requested calcs.'+
                             ' Default True.',type=str, default='True')
+        parser.add_argument('-b', '--backup', help='Whether to backup calcs folder. Default False.',
+                            type=str, default='False')
+        parser.add_argument('-ra', '--read_all', help='Read all folders for new data. Does not use convergence '+
+                            'file to speed up reading. Default False.', type=str, default='False')
         parser.add_argument('-a', '--analyze', help='Runs analysis on converged calcs, requires "save".'+
                             ' Default False. INCOMPLETE.',type=str, default='False')
-        parser.add_argument('-m', '--make_new', help='Make new calculations based on requested calcs.'+
+        parser.add_argument('-cc', '--check_calcs', help='Check convergence of all managed calculations. '+
+                            'Default True.',type=str, default='True')
+        parser.add_argument('-v', '--save', help='Save all newly processed data, requires "check_calcs".'+
                             ' Default True.',type=str, default='True')
         parser.add_argument('-rn', '--run_new', help='Run all newly setup calculations, requires "make_new".'+
                             ' Default True.',type=str, default='True')
@@ -147,16 +155,12 @@ class jdft_manager():
                             ' "make_neb". Default True.',type=str, default='True')
         parser.add_argument('-cf', '--current_force', help='If True, displays calc forces. Default True.',
                             type=str, default='True')
-        parser.add_argument('-t', '--run_time', help='Time to run jobs. Default 12 (hours).',
-                            type=int, default=12)
         parser.add_argument('-n', '--nodes', help='Nodes per job. Default 1.',
                             type=int, default=1)
         parser.add_argument('-c', '--cores', help='Cores per node.',
                             type=int, default=core_architecture)
         parser.add_argument('-r', '--short_recursive', help='Run jobs recursively on short queue until complete.'+
                             ' Very helpful when queue is busy. Default False.',type=str, default='False')
-        parser.add_argument('-ra', '--read_all', help='Read all folders for new data. Does not use convergence '+
-                            'file to speed up reading. Default False.', type=str, default='False')
         parser.add_argument('-rhe', '--rhe_zeroed', help='If True, converts all biases to be zeroed '+
                             'at 0V vs. RHE rather than 0V vs. SHE (if False).', type=str, default='False')
         parser.add_argument('-q', '--qos', help='Whether qos should be high (True) or standard. Default False.',
@@ -164,8 +168,6 @@ class jdft_manager():
         parser.add_argument('-p', '--parallel', help='Runs multiple calcs together on a single node. Input'+
                             ' should be max number (int) of calcs to run together per node. Default 1.',
                             type=int, default=1)
-        parser.add_argument('-b', '--backup', help='Whether to backup calcs folder. Default False.',
-                            type=str, default='False')
         parser.add_argument('-conv', '--use_convergence', help='If True (default), copy convergence '+
                            'file to new calc folders and update.',
                             type=str, default='True')
@@ -190,6 +192,8 @@ class jdft_manager():
             self.run_cmd += ' -q high'
         if self.args.short_recursive == 'True':
             self.run_cmd += ' -r True'
+        if self.args.gpu == 'True':
+            self.run_cmd += ' -g True'
             
     def scan_calcs(self, all_data, running_dirs, verbose = True, force_limit = 50):
         '''
