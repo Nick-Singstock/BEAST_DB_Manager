@@ -125,7 +125,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='python '+script+' > '+out+'\n'
     writelines+='exit 0'+'\n'
     
-    print(writelines)
+#    print(writelines)
     
     with open('submit.sh','w') as f:
         f.write(writelines)
@@ -236,7 +236,7 @@ if __name__ == '__main__':
         outfile = 'python_out'
 
     # Multiple write options depending on computer
-    if comp == 'Eagle' or comp == 'Summit':
+    if comp == 'Eagle' or comp == 'Summit' or comp == 'Perlmutter':
         write(args.nodes,args.cores,args.time,args.outfile,args.allocation,args.qos,		
               script, args.recursive, args.processes, args.gpu, args.test_queue)
     elif comp == 'Bridges2':
