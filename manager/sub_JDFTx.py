@@ -50,8 +50,8 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     elif comp == 'Perlmutter': 
         writelines+='#SBATCH -q regular\n'
         writelines+='#SBATCH -N '+str(nodes)+'\n'
-        writelines+='#SBATCH -n 8\n'
-        writelines+='#SBATCH -c 32\n'                   #TODO: pick better numbers
+        writelines+='#SBATCH -n '+str(4*nodes)+'\n'
+        writelines+='#SBATCH -c '+str(16*nodes)+'\n'                   #TODO: pick better numbers
         writelines+='#SBATCH --ntasks-per-node=4\n'
         if gpu == 'True':
             writelines+='#SBATCH -C gpu\n'
@@ -102,7 +102,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     if comp == 'Perlmutter':
         writelines+='\n'+'export SLURM_CPU_BIND="cores"'+'\n'
         writelines+='export JDFTX_MEMPOOL_SIZE=8192'+'\n'           #TODO: pick a better number
-        writelines+='export MPICH_GPU_SUPPORT_ENABLED=1'+'\n'
+        writelines+='export MPICH_GPU_SUPPORT_ENABLED=1'+'\n\n'
     
     if modules != '' and comp not in ['Perlmutter']:
         writelines+='\nmodule load '+modules+'\n\n'
