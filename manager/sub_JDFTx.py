@@ -124,7 +124,9 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         else:
             writelines+='python '+script+' > '+out+'\n'
     writelines+='exit 0'+'\n'
-
+    
+    print(writelines)
+    
     with open('submit.sh','w') as f:
         f.write(writelines)
 

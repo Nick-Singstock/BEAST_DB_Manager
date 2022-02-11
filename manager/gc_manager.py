@@ -6,6 +6,9 @@ Created on Thu Sep 30 09:24:41 2021
 @author: NSing
 """
 
+import warnings
+warnings.filterwarnings("ignore")   # skip pymatgen yaml warnings 
+
 import os
 import argparse
 import subprocess
