@@ -46,13 +46,29 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     
     if comp == 'Eagle' and gpu != 'True':
         writelines+='#SBATCH -N 1 -n 2 -c 18 --hint=nomultithread'+'\n'
+        
+    elif comp == 'Perlmutter': 
+        writelines+='#SBATCH -q regular\n'
+        writelines+='#SBATCH -N '+str(nodes)+'\n'
+        writelines+='#SBATCH -n 8\n'
+        writelines+='#SBATCH -c 32\n'                   #TODO: pick better numbers
+        writelines+='#SBATCH --ntasks-per-node=4\n'
+        if gpu == 'True':
+            writelines+='#SBATCH -C gpu\n'
+            writelines+='#SBATCH --gpus-per-task=1\n'
+        
     else:
         writelines+='#SBATCH --tasks '+str(np)+'\n'
         writelines+='#SBATCH --nodes '+str(nodes)+'\n'
         writelines+='#SBATCH --ntasks-per-node '+str(cores)+'\n'
-
+    
     if alloc=='environ':
-        writelines+='#SBATCH --account='+os.environ['JDFTx_allocation']+'\n'
+        if comp == 'Perlmutter' and gpu == 'True':
+            writelines+='#SBATCH -A '+os.environ['JDFTx_allocation']+'_g\n'
+        elif comp == 'Perlmutter' and gpu != 'True':
+            writelines+='#SBATCH -A '+os.environ['JDFTx_allocation']+'\n'
+        else:
+            writelines+='#SBATCH --account='+os.environ['JDFTx_allocation']+'\n'
     else:
         writelines+='#SBATCH --account='+alloc+'\n'
     if qos=='high' and comp == 'Eagle':
@@ -72,17 +88,23 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
 #    if comp == 'Eagle' and gpu != 'True':
 #        writelines+='#SBATCH --hint=nomultithread'
     
-    if comp != 'Eagle':
-        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
+#    if comp != 'Eagle':
+#        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
     if comp == 'Summit':
         writelines+='SLURM_EXPORT_ENV=ALL\n'
+        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
 
     #writelines+='module load comp-intel/2020.1.217 intel-mpi/2020.1.217 cuda/10.2.89 vasp/6.1.1 mkl/2020.1.217 gsl/2.5/gcc openmpi/4.0.4/gcc-8.4.0 gcc/7.4.0'+'\n\n'
     if comp == 'Eagle':
         writelines+='\n'+'module use -a /nopt/nrel/apps/modules/test/modulefiles'+'\n'
 #        writelines+='module load gcc/8.4.0 openmpi/4.1.1/gcc+cuda hdf5/1.10.7/gcc-ompi gsl/2.5/gcc cmake mkl'
     
-    if modules != '':
+    if comp == 'Perlmutter':
+        writelines+='\n'+'export SLURM_CPU_BIND="cores"'+'\n'
+        writelines+='export JDFTX_MEMPOOL_SIZE=8192'+'\n'           #TODO: pick a better number
+        writelines+='export MPICH_GPU_SUPPORT_ENABLED=1'+'\n'
+    
+    if modules != '' and comp not in ['Perlmutter']:
         writelines+='\nmodule load '+modules+'\n\n'
 
     if short_recursive == 'True': # removed time constraint
