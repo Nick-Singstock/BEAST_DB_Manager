@@ -1583,6 +1583,7 @@ class jdft_manager():
         
         # backup calcs if requested
         if self.args.backup == 'True':
+            print('\n\nBacking up main files (this may take awhile)')
             self.backup_calcs()
             
         print('----- Done -----')
