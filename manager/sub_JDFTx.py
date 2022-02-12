@@ -88,8 +88,8 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
 #    if comp == 'Eagle' and gpu != 'True':
 #        writelines+='#SBATCH --hint=nomultithread'
     
-#    if comp != 'Eagle':
-#        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
+    if comp == 'Perlmutter':
+        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
     if comp == 'Summit':
         writelines+='SLURM_EXPORT_ENV=ALL\n'
         writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
