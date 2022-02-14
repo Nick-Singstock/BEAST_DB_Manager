@@ -101,7 +101,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     
     if comp == 'Perlmutter':
         writelines+='\n'+'export SLURM_CPU_BIND="cores"'+'\n'
-        writelines+='export JDFTX_MEMPOOL_SIZE=8192'+'\n'           #TODO: pick a better number
+        writelines+='export JDFTX_MEMPOOL_SIZE=128000'+'\n'        #(prev. 8192)
         writelines+='export MPICH_GPU_SUPPORT_ENABLED=1'+'\n\n'
     
     if modules != '' and comp not in ['Perlmutter']:
