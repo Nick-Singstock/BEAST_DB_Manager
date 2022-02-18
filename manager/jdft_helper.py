@@ -589,7 +589,8 @@ class helper():
                                  [self.ref_atom_electrons[k]*v for k,v in self.formula_to_dic(mol).items()])
                     
                     all_site_data[nsite] = {'binding_energy': binding_energy, 'site': binding_site,
-                                            'site_data': binding_site_data, 'nelec_diff': nelec_diff}
+                                            #'site_data': binding_site_data, 
+                                            'nelec_diff': nelec_diff}
                     if min_energy is None or binding_energy < min_energy:
                         min_energy = binding_energy
                         min_site = (binding_site, nsite)
@@ -605,12 +606,6 @@ class helper():
                                   'min_site_nbonds': min_site_data['nbonds'],
                                   'ads_atom': min_site_data['ads'], 'nelec_diff': min_nelec_diff,
                                   'all_site_data': all_site_data}
-                
-                for k,v in mol_data[bias].items():
-                    print(k, type(v))
-                for k,v in mol_data[bias]['all_site_data']['01'].items():
-                    print(k, type(v))
-                print('\n')
                 
             sys_analysis[mol] = mol_data
         return sys_analysis
