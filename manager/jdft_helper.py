@@ -605,6 +605,13 @@ class helper():
                                   'min_site_nbonds': min_site_data['nbonds'],
                                   'ads_atom': min_site_data['ads'], 'nelec_diff': min_nelec_diff,
                                   'all_site_data': all_site_data}
+                
+                for k,v in mol_data[bias].items():
+                    print(k, type(k))
+                    if type(v) == dict:
+                        for k2,v2 in v.items():
+                            print(k2, type(k2))
+                
             sys_analysis[mol] = mol_data
         return sys_analysis
     
