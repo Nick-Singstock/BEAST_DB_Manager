@@ -453,7 +453,7 @@ class helper():
         
         DONE: make analysis.csv (viewable with excel)
         '''
-        print('Data analysis not yet available. Please contact Nick to add.')
+        #print('Data analysis not yet available. Please contact Nick to add.')
         
         # scan through all entries (folders within subdirs)
         self.mols = {}
@@ -463,7 +463,7 @@ class helper():
                 continue
             # 1. deal with molecules (move to dict for now)
             if 'surf' not in entryv and 'bulk' not in entryv:
-                if entry not in self.reference_molecules:
+                if entry not in self.reference_molecules():
                     print('Entry not recognized: '+entry)
                     continue
                 self.mols[entry] = entryv
