@@ -584,7 +584,7 @@ class helper():
                         continue
                     binding_site = binding_site_data['ads_site']
                     nelec_diff = v['nfinal'] - surf_calc['nfinal'] - np.sum(
-                                 [self.ref_atom_electrons[k]*v for k,v in self.formula_to_dic(mol)])
+                                 [self.ref_atom_electrons[k]*v for k,v in self.formula_to_dic(mol).items()])
                     
                     all_site_data[nsite] = {'binding_energy': binding_energy, 'site': binding_site,
                                             'site_data': binding_site_data, 'nelec_diff': nelec_diff}
