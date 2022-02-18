@@ -10,6 +10,7 @@ import json
 import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.core import Lattice
+import re
 
 opj = os.path.join
 ope = os.path.exists
@@ -446,16 +447,248 @@ class helper():
             inputs['restart'] = 'False'
             self.write_inputs(inputs, root)
 
-    def analyze_data(self, data, ref_mols):
+    def analyze_data(self, all_data):
+        '''
+        Creates analysis.json
+        
+        DONE: make analysis.csv (viewable with excel)
+        '''
+        print('Data analysis not yet available. Please contact Nick to add.')
+        
+        # scan through all entries (folders within subdirs)
+        self.mols = {}
+        bulks = {}
+        for entry, entryv in all_data.items():
+            if entry == 'converged':
+                continue
+            # 1. deal with molecules (move to dict for now)
+            if 'surf' not in entryv and 'bulk' not in entryv:
+                if entry not in self.reference_molecules:
+                    print('Entry not recognized: '+entry)
+                    continue
+                self.mols[entry] = entryv
+            # 2. deal with bulk systems (move to dict for now)
+            if 'surf' not in entryv and 'bulk' in entryv:
+                bulks[entry] = entryv
+        
+        # create analysis dictionary
+        analysis = {}
+        for entry, data in all_data.items():
+            if entry == 'converged':
+                continue
+            if 'adsorbed' not in data or 'surf' not in data:
+                continue # need surface and adsorbates converged to do analysis on system 
+            
+            print('Analysis of system: '+entry)
+            
+            analysis[entry] = {'data': data}
+            if entry.split('_')[0] in bulks:
+                analysis[entry]['data']['bulk'] = bulks[entry.split('_')[0]]
+            else:
+                analysis[entry]['data']['bulk'] = 'None'
+            
+            # run system analysis function to get metrics 
+            analysis[entry]['analyzed'] = self.system_analysis(analysis[entry]['data'])
+        
+        # make analysis.csv
+        self.csv_analysis(analysis)
+        
+        # save data
+        file = 'results/analyzed.json'
+        with open(file,'w') as f:
+            json.dump(analysis, f)
+        return None
+    
+    def csv_analysis(self, analysis):
+        string = 'Surface/Ref,Adsorbate,Site_Number,Site_Atom,Ads. Energies at Respective Biases\n'
+        
+        # add ref atoms
+        biases = list(set([ b for mol in self.mols for b in self.mols[mol] ]))
+        string += 'Ref. Atoms,,,,' + ','.join(biases) + '\n\n'
+        ref_atoms = {}
+        for mol, bias_data in self.mols.items():
+            for bias in bias_data:
+                ra = self.ref_energies(self.formula_to_dic(mol), bias)
+                for atom, energy in ra.items():
+                    if atom not in ref_atoms:
+                        ref_atoms[atom] = {}
+                    ref_atoms[atom][bias] = energy * hartree_to_ev
+        for atom, atom_data in ref_atoms.items():
+            string += ',' + atom + ',,,' + ','.join([
+                    '' if b not in atom_data else '%.3f'%atom_data[b] for b in biases]) + '\n'
+        
+        # add surfaces 
+        for surf, surf_data in analysis.items():
+            mol_data = surf_data['analyzed']
+            biases = list(set([ b for mol in mol_data for b in mol_data[mol] ]))
+            string += '\n' + surf + ',,,,' + ','.join(biases) + '\n'
+            
+            
+            for mol, bias_data in mol_data.items():
+                ii = 0
+                mol_biases = list(set([b for b in bias_data]))
+                try:
+                    all_nsites = list(set([ n for b in mol_biases for n in bias_data[b]['all_site_data'] ]))
+                except:
+                    continue
+                for nsite in all_nsites:
+                    ads_site = bias_data[mol_biases[0]]['all_site_data'][nsite]['site']
+                    bias_vals = ','.join([ '' if b not in bias_data 
+                                          else '%.3f'%(bias_data[b]['all_site_data'][nsite]['binding_energy']) 
+                                          for b in biases])
+                    string += ',' + (mol+',' if ii==0 else ',') + nsite + ',' + ads_site + ',' + bias_vals + '\n'
+                    ii+=1
+        
+        # save data
+        file = 'results/binding_energies.csv'
+        with open(file,'w') as f:
+            f.write(string)
+    
+    def system_analysis(self, data):
         '''
         Main function for analyzing converged data from scan_calcs function
         Functions:
             1) Creates analyzed.json file containing:
-                - binding energies mapped over biases for each system
-                - NEB barriers mapped over biases for each NEB system
+                - DONE: binding energies mapped over biases for each system (in eV)
+                - DONE: get ads site (or sites, also get nsites)
+                - DONE: get ads dist to site (in Ang)
+                - DONE: get nelec delta (diff = ads_calc - surf - neutral_atoms)
+                
+                - Maybe: NEB barriers mapped over biases for each NEB system
+        
+        sys_analysis format:
+            {ads_name: {bias: data}}
         '''
-        print('Data analysis not yet available. Please contact Nick to add.')
-        return None #data_analysis(data)
+        sys_analysis = {}
+        ads_data = data['adsorbed']
+        surf_data = data['surf']
+        
+        for mol, bias_data in ads_data.items():
+            mol_data = {}
+            for bias, site_data in bias_data.items():
+                min_site = None
+                min_site_data = None
+                min_energy = None
+                all_site_data = {}
+                for nsite, v in site_data.items():
+                    surf_calc = surf_data[bias]
+                    if not v['converged'] or not surf_calc['converged']:
+                        continue # surf or ads not converged
+                    binding_energy = self.system_dHf(v['final_energy'] - surf_calc['final_energy'], 
+                                                     bias, self.formula_to_dic(mol))
+                    if binding_energy is None:
+                        continue
+                    binding_site_data = self.get_ads_sites(Structure.from_dict(v['contcar']), mol, 
+                                                           Structure.from_dict(surf_calc['contcar']), nsite)
+                    if binding_site_data is None:
+                        continue
+                    binding_site = binding_site_data['ads_site']
+                    nelec_diff = v['nfinal'] - surf_calc['nfinal'] - np.sum(
+                                 [self.ref_atom_electrons[k]*v for k,v in self.formula_to_dic(mol)])
+                    
+                    all_site_data[nsite] = {'binding_energy': binding_energy, 'site': binding_site,
+                                            'site_data': binding_site_data, 'nelec_diff': nelec_diff}
+                    if min_energy is None or binding_energy < min_energy:
+                        min_energy = binding_energy
+                        min_site = (binding_site, nsite)
+                        min_site_data = binding_site_data
+                        min_nelec_diff = nelec_diff
+                
+                if min_energy is None:
+                    mol_data[bias] = 'None'
+                    continue
+                mol_data[bias] = {'min_binding_energy': min_energy, 'energy_units': 'eV',
+                                  'min_site_atom': min_site[0], 'min_site_id': min_site[1],
+                                  'min_site_dist': min_site_data['dist'], 
+                                  'min_site_nbonds': min_site_data['nbonds'],
+                                  'ads_atom': min_site_data['ads'], 'nelec_diff': min_nelec_diff,
+                                  'all_site_data': all_site_data}
+            sys_analysis[mol] = mol_data
+        return sys_analysis
+    
+    def get_ads_sites(self, ads_st, ads, surf_st, nsite, same_threshold = 1.5, max_bond = 3.3):
+        # wrote this function without comments originally, no idea what's going on but it seems to work
+        ads_dic = self.formula_to_dic(ads)
+        site_dic = {}
+        ads_list = [(k, i) for k,v in ads_dic.items() for i in range(v)]
+        
+        ads_sites = [site for site in ads_st.sites 
+                     if not any([site.distance(s2) < same_threshold 
+                     and site.species_string == s2.species_string for s2 in surf_st.sites])]
+        
+        for atom in ads_list:
+            a = atom[0]
+            i = atom[1]
+            key = a+'_'+str(i)
+            try:
+                site = [s for s in ads_sites if s.species_string == a][i]
+            except:
+                print('Structure of adsorbate calc may be incorrect. Skipping.')
+                return None
+            site_dic[key] = {'site': site, 'dists': {str(ii).zfill(2): {'dist': site.distance(s2), 'site': s2}
+                             for ii, s2 in enumerate(ads_st.sites) if s2 != site}, 'atom': a}
+            site_dic[key]['bonds'] = {v['site'].species_string: v for k,v in site_dic[key]['dists'].items() 
+                                      if v['dist'] < max_bond and v['site'] not in ads_sites}
+            site_dic[key]['nbonds'] = len(site_dic[key]['bonds'])
+            site_dic[key]['min_bond'] = {k: v for k,v in site_dic[key]['bonds'].items() if v['dist'] == min([
+                                         b['dist'] for b in site_dic[key]['bonds'].values()])}
+        
+        min_bond = max_bond
+        min_atom = ''
+        for k1,v1 in site_dic.items():
+            for k2,v2 in v1['min_bond'].items():
+                if v2['dist'] < min_bond:
+                    min_bond = v2['dist']
+                    min_atom = v1['atom']
+                    min_site = k2
+                    min_sites = {k3: v3['dist'] for k3,v3 in v1['bonds'].items()}
+                    min_nbonds = v1['nbonds']
+        
+        if min_atom == '':
+            print('WARNING: No binding sites found: '+ads+' ('+nsite+')')
+            return {'full_bond_dic': site_dic, 'ads': min_atom, 'ads_site': '', 'dist': 10, 'nbonds': 0}
+        
+        return {'full_bond_dic': site_dic, 'ads': min_atom, 'ads_site': min_site, 'all_sites': min_sites,
+               'dist': min_bond, 'nbonds': min_nbonds}
+        
+    def ref_energies(self, mol_dic, bias):
+        all_ref_atoms = {'H': (['H3O','H2O'],[1,-1]), 
+                         'N': (['N2'], [1/2]), 
+                         'O': (['O2'], [1/2]),
+                         'C': (['CO2','O2'], [1,-1]),}
+        refs = {}
+        for atom in mol_dic:
+            if atom not in all_ref_atoms:
+                print('Analysis Debug: atom references not known: '+atom)
+                return None
+            
+            ref_mols = all_ref_atoms[atom][0]
+            for mol in ref_mols:
+                if mol not in self.mols:
+                    print('Analysis Error: reference molecule not calculated: '+mol)
+                    return None
+            
+            # get all biases shared by ref_mols
+#            all_biases = [b for b in self.mols[ref_mols[0]] if 
+#                          all([b in self.mols[r] and self.mols[r][b]['converged'] for r in ref_mols])]
+            
+            if not all([bias in self.mols[r] and self.mols[r][bias]['converged'] for r in ref_mols]):
+                print('Analysis Error: not all needed biases run for mols '+str(ref_mols))
+                return None
+                        
+            refs[atom] = (np.sum([all_ref_atoms[atom][1][i] 
+                          * self.mols[mol][bias]['final_energy'] for i,mol in enumerate(ref_mols)]))
+        return refs # in Hartree
+    
+    def system_dHf(self, total_energy, bias, mol_dic):
+        refs = self.ref_energies(mol_dic, bias)
+        if refs is None:
+            return None
+        return (total_energy - np.sum([refs[atom] * v for atom,v in mol_dic.items()])) * hartree_to_ev
+    
+    @property
+    def ref_atom_electrons(self):
+        return {'H': 1, 'O': 6, 'N': 5, 'C': 4, 'S': 6}
     
 #    @property
     def reference_molecules(self, verbose = False):
@@ -575,7 +808,48 @@ class helper():
         with open(opj(root, 'convergence'), 'w') as f:
             f.write(txt)
         
+    def formula_to_dic(self, formula):
+        assert '.' not in formula, 'ERROR: Cannot include decimals in formula. Only integers allowed.'
+        if '(' in formula:
+            first = formula.split('(')[0]
+            second = ''.join(formula.split('(')[1:]).split(')')[0]
+            coeff = ''.join(formula.split('(')[1:]).split(')')[1]
+            d = self.formula_to_dic(first)
+            for k, v in self.formula_to_dic(second).items():
+                if k in d:
+                    d[k] += v*int(coeff)
+                else:
+                    d[k] = v*int(coeff)
+            return d
         
+        # split formula to list by number
+        spl = [s for s in re.split('(\d+)',formula) if s != '']
+        els_list = []; el_frac = [];
+        for el in spl: 
+            if sum(1 for c in el if c.isupper()) == 1 and len(el) < 3:
+                # I am a single element, add me to the list please
+                els_list.append(el)
+                el_frac.append(1)
+            elif el.isdigit() == True:
+                # I am a number and should be calculated in to self.el_frac
+                el_frac[-1] = el_frac[-1] * int(el)
+            elif sum(1 for c in el if c.isupper()) > 1:
+                # I am more than one element and am here to cause trouble
+                els_split = re.sub( r"([A-Z])", r" \1", el).split()
+                els_list += els_split
+                for i in els_split:
+                    el_frac.append(1)
+        # combine duplicate elements
+        for el in els_list:
+            inds = [i for i, j in enumerate(els_list) if j == el]
+            if len(inds) > 1:
+                drop_ind = inds[1:]
+                drop_ind = drop_ind[::-1]
+                el_frac[inds[0]] = sum(el_frac[inds[i]] for i in range(len(inds)))
+                for d in drop_ind: del els_list[d]; del el_frac[d]
+        assert len(els_list) == len(el_frac), 'ERROR: elements and coefficients not balanced in "formula_to_dic".'
+#        assert all([ k in self.el_masses.keys() for k in els_list ]), 'ERROR: unknown element detected: '+formula
+        return {els_list[i]: el_frac[i] for i,_ in enumerate(els_list)}
         
 
     

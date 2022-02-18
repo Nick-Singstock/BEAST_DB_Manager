@@ -427,7 +427,7 @@ class jdft_manager():
                 else:
 #                    print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
 #                          +' Added to rerun.')
-                    continue # TODO: remove after testing
+                    continue # remove after testing
                     if neb_data['opt'] != 'None' and neb_data['opt'][-1]['force'] < force_limit:
                         print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
                               +' Added to rerun.')
@@ -541,7 +541,7 @@ class jdft_manager():
         new_roots = []
         managed_mols = []
         # setup molecule folders in calc_folder
-        if self.args.add_molecules == 'True': # TODO: add convergence file to mols?
+        if self.args.add_molecules == 'True': # add convergence file to mols?
             for mol, molv in managed['molecules'].items():
                 # ref_mols used for binding analysis, mol used for desorb SP calcs
 #                try:
@@ -1528,8 +1528,8 @@ class jdft_manager():
                     print('\n----- Running Calculation Analysis -----')
                     if len(all_data.keys()) < 2:
                         print('No data available yet!')
-                    else:
-                        all_data = h.analyze_data(all_data, h.reference_molecules)
+                    else: # TODO: make this work 
+                        h.analyze_data(all_data)
                 # save 
 #                if len(all_data.keys()) < 2:
                 print('\nSaving converged calculations.')
@@ -1612,8 +1612,9 @@ defaults_folder = os.path.join(manager_home, 'defaults')
 run_command = 'python '+ os.path.join(manager_home, 'sub_JDFTx.py')
 
 # all files to include in backup
-files_to_backup = ['CONTCAR','POSCAR','out','inputs','opt.log','Ecomponents','neb.log',
-                   'convergence']    
+files_to_backup = ['CONTCAR','POSCAR','inputs','opt.log','Ecomponents','neb.log','convergence',
+                   'out', # this could be removed to reduce data? 
+                   ]    
     
 if __name__ == '__main__' and run_script:
     jm = jdft_manager()
