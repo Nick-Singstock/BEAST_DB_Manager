@@ -607,10 +607,10 @@ class helper():
                                   'all_site_data': all_site_data}
                 
                 for k,v in mol_data[bias].items():
-                    print(k, type(k))
-                    if type(v) == dict:
-                        for k2,v2 in v.items():
-                            print(k2, type(k2))
+                    print(k, type(v))
+                for k,v in mol_data[bias]['all_site_data']['01'].items():
+                    print(k, type(v))
+                print('\n')
                 
             sys_analysis[mol] = mol_data
         return sys_analysis
