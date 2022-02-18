@@ -509,6 +509,8 @@ class helper():
         for mol, bias_data in self.mols.items():
             for bias in bias_data:
                 ra = self.ref_energies(self.formula_to_dic(mol), bias)
+                if ra is None:
+                    continue
                 for atom, energy in ra.items():
                     if atom not in ref_atoms:
                         ref_atoms[atom] = {}
