@@ -542,7 +542,8 @@ class helper():
                     ads_site = [bias_data[b]['all_site_data'][nsite]['site'] for b in bias_data
                                 if nsite in bias_data[b]['all_site_data']]
                     if not all([a == ads_site[0] for a in ads_site]):
-                        print('Ads site changes with bias for site '+nsite)
+                        print('Ads site changes with bias for '+mol+' at site '+nsite)
+                        ads_site = 'var'
                     else:
                         ads_site = ads_site[0]
                         
