@@ -458,6 +458,9 @@ class helper():
         # scan through all entries (folders within subdirs)
         self.mols = {}
         bulks = {}
+        
+        assert 'O2' in all_data, 'METAERROR: O2 not in all_data'
+        
         for entry, entryv in all_data.items():
             if entry == 'converged':
                 continue
