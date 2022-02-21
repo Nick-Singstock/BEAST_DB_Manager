@@ -535,7 +535,7 @@ class helper():
                     continue
                 for nsite in all_nsites:
                     ads_site = bias_data[mol_biases[0]]['all_site_data'][nsite]['site']
-                    bias_vals = ','.join([ '' if b not in bias_data 
+                    bias_vals = ','.join([ '' if (b not in bias_data or nsite not in bias_data[b]['all_site_data'])
                                           else '%.3f'%(bias_data[b]['all_site_data'][nsite]['binding_energy']) 
                                           for b in biases])
                     string += ',' + (mol+',' if ii==0 else ',') + nsite + ',' + ads_site + ',' + bias_vals + '\n'
