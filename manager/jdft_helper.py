@@ -459,7 +459,7 @@ class helper():
         self.mols = {}
         bulks = {}
         
-        assert 'O2' in all_data, 'METAERROR: O2 not in all_data'
+#        assert 'O2' in all_data, 'METAERROR: O2 not in all_data'
         
         for entry, entryv in all_data.items():
             if entry == 'converged':
@@ -474,7 +474,7 @@ class helper():
             if 'surf' not in entryv and 'bulk' in entryv:
                 bulks[entry] = entryv
                 
-        print(self.mols.keys())
+#        print(self.mols.keys())
         
         # create analysis dictionary
         analysis = {}
@@ -542,7 +542,7 @@ class helper():
                     ads_site = [bias_data[b]['all_site_data'][nsite]['site'] for b in bias_data
                                 if nsite in bias_data[b]['all_site_data']]
                     if not all([a == ads_site[0] for a in ads_site]):
-                        print('Ads site changes with bias for '+mol+' at site '+nsite)
+                        print('Ads site changes with bias for '+mol+' at '+surf+' site '+nsite)
                         ads_site = 'var'
                     else:
                         ads_site = ads_site[0]
