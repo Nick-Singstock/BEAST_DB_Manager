@@ -470,6 +470,8 @@ class helper():
             # 2. deal with bulk systems (move to dict for now)
             if 'surf' not in entryv and 'bulk' in entryv:
                 bulks[entry] = entryv
+                
+        print(self.mols.keys())
         
         # create analysis dictionary
         analysis = {}
@@ -534,7 +536,13 @@ class helper():
                 except:
                     continue
                 for nsite in all_nsites:
-                    ads_site = bias_data[mol_biases[0]]['all_site_data'][nsite]['site']
+                    ads_site = [bias_data[b]['all_site_data'][nsite]['site'] for b in bias_data
+                                if nsite in bias_data[b]['all_site_data']]
+                    if not all([a == ads_site[0] for a in ads_site]):
+                        print('Ads site changes with bias for site '+nsite)
+                    else:
+                        ads_site = ads_site[0]
+                        
                     bias_vals = ','.join([ '' if (b not in bias_data or nsite not in bias_data[b]['all_site_data'])
                                           else '%.3f'%(bias_data[b]['all_site_data'][nsite]['binding_energy']) 
                                           for b in biases])
@@ -707,6 +715,7 @@ class helper():
                 'O': {'refs': ['H2O','H2'], 'coeffs': [1,-1]},
                 'OH': {'refs': ['O','H'], 'coeffs': [1,1]},
                 'OOH': {'refs': ['O','H'], 'coeffs': [2,1]},
+                'O2': {'refs': ['O2'], 'coeffs': [1]},
                 
                 'CO2': {'refs': ['CO2'], 'coeffs': [1]},
                 'CO': {'refs': ['CO2','O'], 'coeffs': [1,-1]},
