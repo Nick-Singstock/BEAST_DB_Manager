@@ -3,9 +3,9 @@
 
 
 """
-Created on Tue Mar 30 11:33:52 2021
+Helper functions for gc_manager.py
 
-@author: NSing
+@author: Nick_Singstock
 """
 
 from pymatgen.core.surface import Structure

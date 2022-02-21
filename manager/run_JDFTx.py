@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Musgrave Group
+Musgrave Group. Functions to run JDFTx via python.
 
 @author: zaba1157, nisi6161
 """

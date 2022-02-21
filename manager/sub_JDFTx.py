@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov  6 20:43:05 2020
+Script to submit JDFTx calculations to supercomputers. 
 
-@author: zaba1157
+@author: zaba1157, nisi6161
 """
 import argparse
 import os

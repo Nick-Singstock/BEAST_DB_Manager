@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 30 09:24:41 2021
+High-throughput manager class for JDFTx calculations. Created alongside BEAST database. 
 
-@author: NSing
+@author: Nick_Singstock
 """
 
 #import warnings
@@ -1324,7 +1324,7 @@ class jdft_manager():
         
         if tags['kpoint-folding'] == '*':
             # set kpoint-folding for bulk systems
-            if calc_type in ['bulks','molecules']:
+            if calc_type in ['bulks',]: #'molecules'
                 kpts = Kpoints.automatic_density(st, kpoint_density).as_dict()
                 tags['kpoint-folding'] = ' '.join([str(k) for k in kpts['kpoints'][0]])
                 
@@ -1334,6 +1334,9 @@ class jdft_manager():
                     steps = list(conv.keys())
                     self.set_conv_tags(root, {s: ['fmax 0.00'] for s in steps[:-1]}, remove=[steps[-1]])
                     print('Convergence file updated for bulk: '+root)
+            
+            elif calc_type in ['molecules']:
+                tags['kpoint-folding'] = '1 1 1'
             
             # set kpoints for surfs from bulk calcs
             elif calc_type in ['surfs']:

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 30 09:32:44 2021
+Helper functions for gc_manager.py
 
-@author: NSing
+@author: Nick_Singstock
 """
 import os
 import json
