@@ -1555,6 +1555,7 @@ class jdft_manager():
                 self.update_rerun(rerun)
                 if parallel == 1:
                     self.rerun_calcs(rerun)
+                    print('\n',len(rerun),'calcs rerun.')
         
         # make new surfaces based on manager_control.txt file, add new calcs to add_inputs
         new_folders = []
@@ -1580,6 +1581,7 @@ class jdft_manager():
                 h.update_run_new(run_new)
             if parallel == 1:
                 self.run_new_calcs(new_folders + inputs_added + run_new)
+                print('\n',len(new_folders + inputs_added + run_new),'new calcs run.')
         
         # run calcs in parallel 
         all_roots = []
