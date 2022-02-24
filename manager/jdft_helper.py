@@ -504,11 +504,18 @@ class helper():
             json.dump(analysis, f)
         return None
     
+    def order_bias(self, bias_list):
+        bias_floats = [float(b.replace('V','')) for b in bias_list]
+        bias_floats.sort()
+        bias_sort = [b for bf in bias_floats for b in bias_list if float(b.replace('V','')) == bf]
+        assert len(bias_sort) == len(bias_list), 'METAERROR: Sorted bias list is incorrect length.'
+        return bias_sort
+    
     def csv_analysis(self, analysis):
-        string = 'Surface/Ref,Adsorbate,Site_Number,Site_Atom,Ads. Energies at Respective Biases\n'
+        string = 'Ref. Type/Surf,Atom/Mol/Ads,Site_Number,Site_Atom,Ref./Ads. Energies at Biases (eV)\n'
         
         # add ref atoms
-        biases = list(set([ b for mol in self.mols for b in self.mols[mol] ]))
+        biases = self.order_bias(list(set([ b for mol in self.mols for b in self.mols[mol] ])))
         string += 'Ref. Atoms,,,,' + ','.join(biases) + '\n\n'
         ref_atoms = {}
         for mol, bias_data in self.mols.items():
@@ -524,10 +531,18 @@ class helper():
             string += ',' + atom + ',,,' + ','.join([
                     '' if b not in atom_data else '%.3f'%atom_data[b] for b in biases]) + '\n'
         
+        # add ref. molecules
+        string += '\nRef. Mols.,,,,' + ','.join(biases) + '\n'
+        for mol, bias_data in self.mols.items():
+            energies = ['' if (b not in bias_data or not bias_data[b]['converged']) 
+                        else '%.3f'%(bias_data[b]['final_energy']*hartree_to_ev) 
+                        for b in biases]
+            string += ','+mol+',,,'+','.join(energies) + '\n'
+        
         # add surfaces 
         for surf, surf_data in analysis.items():
             mol_data = surf_data['analyzed']
-            biases = list(set([ b for mol in mol_data for b in mol_data[mol] ]))
+            biases = self.order_bias(list(set([ b for mol in mol_data for b in mol_data[mol] ])))
             string += '\n' + surf + ',,,,' + ','.join(biases) + '\n'
             
             
@@ -666,12 +681,27 @@ class helper():
         
         return {'full_bond_dic': site_dic, 'ads': min_atom, 'ads_site': min_site, 'all_sites': min_sites,
                'dist': min_bond, 'nbonds': min_nbonds}
-        
-    def ref_energies(self, mol_dic, bias):
-        all_ref_atoms = {'H': (['H3O','H2O'],[1,-1]), 
+    
+    def ref_atoms(self):
+        file = 'results/ref_atoms.json'
+        if os.path.exists(file):
+            with open(file,'r') as f:
+                all_ref_atoms = json.load(f)
+        else:
+            all_ref_atoms = {'H': (['H3O','H2O'],[1,-1]), 
                          'N': (['N2'], [1/2]), 
                          'O': (['O2'], [1/2]),
                          'C': (['CO2','O2'], [1,-1]),}
+        return all_ref_atoms
+        
+        
+    def ref_energies(self, mol_dic, bias):
+#        all_ref_atoms = {'H': (['H3O','H2O'],[1,-1]), 
+#                         'N': (['N2'], [1/2]), 
+#                         'O': (['O2'], [1/2]),
+#                         'C': (['CO2','O2'], [1,-1]),}
+        all_ref_atoms = self.ref_atoms()
+        
         refs = {}
         for atom in mol_dic:
             if atom not in all_ref_atoms:

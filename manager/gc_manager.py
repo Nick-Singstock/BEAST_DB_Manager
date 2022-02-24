@@ -139,6 +139,9 @@ class jdft_manager():
                             ' Default False. INCOMPLETE.',type=str, default='False')
         parser.add_argument('-cc', '--check_calcs', help='Check convergence of all managed calculations. '+
                             'Default True.',type=str, default='True')
+        parser.add_argument('-sd', '--selective_dynamics', 
+                            help='Whether to add selective dynamics to surface / adsorbate calcs. '+
+                            'Set to False for 2D materials. Default True.',type=str, default='True')
         parser.add_argument('-v', '--save', help='Save all newly processed data, requires "check_calcs".'+
                             ' Default True.',type=str, default='True')
         parser.add_argument('-rn', '--run_new', help='Run all newly setup calculations, requires "make_new".'+
@@ -527,10 +530,11 @@ class jdft_manager():
         return new_folders
 
     def setup_managed_calcs(self, managed, converged, ads_distance = None, 
-                            desorbed_single_point = True, surf_selective_dyn = True):
+                            desorbed_single_point = True): #surf_selective_dyn = True
         '''
         Sets up all new calculations based on inputs from manager_control.txt
         '''
+        sd = True if self.args.selective_dynamics == 'True' else False
         
         # Done: remove dependence upon No_bias calculation
         
@@ -619,7 +623,7 @@ class jdft_manager():
                     elif 'No_bias' not in v['biases']:
                         # No bias not requested, run directly 
                         good_setup = self.make_calc(calc_folder, surf, root, v, bias, 
-                                                    sd = surf_selective_dyn)
+                                                    sd = sd)
                         if good_setup:
                             new_roots.append(root)
                         continue
@@ -628,7 +632,7 @@ class jdft_manager():
                         continue
                 elif bias == 'No_bias':
                     good_setup = self.make_calc(calc_folder, surf, root, v, bias,
-                                                sd = surf_selective_dyn)
+                                                sd = sd)
                     if good_setup:
                         new_roots.append(root)
                     continue
@@ -667,7 +671,8 @@ class jdft_manager():
                         head_folder = os.path.join(calc_folder, 'adsorbed', surf, mol, h.get_bias_str(bias))
                         
                         # add molecule as adsorbate at all requested destinations
-                        surf_ads = add_adsorbates(st_surf, ads_dic, ads_distance = ads_dist)
+                        surf_ads = add_adsorbates(st_surf, ads_dic, ads_distance = ads_dist,
+                                                  freeze_depth=2.0 if sd else -1.0)
                         # save any new folders created, *** ANY EXISITING FOLDERS ARE IGNORED *** 
                         # does not use converged but has same functionality
                         # skipping earlier will miss new sites
@@ -741,7 +746,8 @@ class jdft_manager():
                             ads_dic = {mol: ['center']}
                             head_folder = os.path.join(calc_folder, 'desorbed', surf, mol, h.get_bias_str(bias))
                             surf_ads = add_adsorbates(st_surf, ads_dic, ads_distance = des_dist,
-                                                      molecules_loc = os.path.join(mol_root,'CONTCAR'))
+                                                      molecules_loc = os.path.join(mol_root,'CONTCAR'),
+                                                      freeze_depth=2.0 if sd else -1.0)
                             save_locs = save_structures(surf_ads[mol], head_folder, skip_existing = True,
                                                         single_loc=True)
                             if len(save_locs) == 0:

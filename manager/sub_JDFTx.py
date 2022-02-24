@@ -89,7 +89,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
 #        writelines+='#SBATCH --hint=nomultithread'
     
     if comp == 'Perlmutter':
-        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
+        writelines+='\nexport JDFTx_NUM_PROCS=1\n' 
     if comp == 'Summit':
         writelines+='SLURM_EXPORT_ENV=ALL\n'
         writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
