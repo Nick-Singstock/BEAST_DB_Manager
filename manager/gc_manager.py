@@ -133,6 +133,8 @@ class jdft_manager():
                             ' Default True.',type=str, default='True')
         parser.add_argument('-b', '--backup', help='Whether to backup calcs folder. Default False.',
                             type=str, default='False')
+        parser.add_argument('-dos', '--save_dos', help='Whether to save DOS data to all_data. Default False.',
+                            type=str, default='False')
         parser.add_argument('-ra', '--read_all', help='Read all folders for new data. Does not use convergence '+
                             'file to speed up reading. Default False.', type=str, default='False')
         parser.add_argument('-a', '--analyze', help='Runs analysis on converged calcs, requires "save".'+
@@ -274,6 +276,9 @@ class jdft_manager():
                 cf = '%.3f'%data['current_force'] if data['current_force'] != 'None' else 'None'
                 skip_high_forces = (False if (data['current_force'] == 'None' or 
                                               data['current_force'] < force_limit) else True)
+                if data['converged'] and self.args.save_dos == 'True':
+                    dos_data = h.get_jdos(root)
+                    data['dos'] = dos_data
             
             # save molecule data
             if calc_type == 'molecules':

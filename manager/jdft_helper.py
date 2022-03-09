@@ -11,6 +11,7 @@ import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.core import Lattice
 import re
+import subprocess
 
 opj = os.path.join
 ope = os.path.exists
@@ -93,7 +94,7 @@ class helper():
         except:
             print('ERROR: Cannot read Ecomponents file')
             return False
-        ecomp = {}
+        ecomp = {'units': 'H'}
         for line in ecomp_text.split('\n'):
             if '----' in line or len(line) == 0:
                 continue
@@ -322,6 +323,8 @@ class helper():
         inputs = self.read_inputs(folder)
         opt_steps = self.read_optlog(folder)
         ecomp = self.read_Ecomponents(folder)
+        eigStats = self.read_eigStats(folder)
+        atom_forces = self.read_forces(folder)
         if opt_steps == False or ecomp == False:
             return {'opt': 'None', 'inputs': inputs, 'converged': False,
                     'final_energy': 'None', 'contcar': 'None', 'current_force': 'None'}
@@ -333,6 +336,10 @@ class helper():
             print('**** WARNING: High forces (> 10) in current step! May be divergent. ****')
         # check for convergence
         conv = self.check_convergence(folder, inputs, opt_steps)
+        if ope(opj(folder, 'convergence')):
+            convergence = self.read_convergence(folder)
+        else:
+            convergence = {}
         contcar = 'None'
         if 'CONTCAR' in os.listdir(folder):
             contcar = self.read_contcar(folder)
@@ -352,7 +359,9 @@ class helper():
                 'Ecomp_energy': ecomp['F'] if 'F' in ecomp else (ecomp['G'] if 'G' in ecomp else 'None'),
                 'converged': conv, 'contcar': contcar, 'nfinal': nfinal,
                 'final_energy': 'None' if not conv else current_energy,
-                'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag}
+                'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag,
+                'convergence_file': convergence, 'eigStats': eigStats, 'energy_units': 'eV',
+                'atom_forces': atom_forces}
         
     def get_neb_data(self, folder, bias):
         # reads neb folder and returns data as a dictionary
@@ -854,6 +863,54 @@ class helper():
         # write convergence file
         with open(opj(root, 'convergence'), 'w') as f:
             f.write(txt)
+            
+    def read_eigStats(self, folder):
+        file = opj(folder, 'eigStats')
+        if ope(file):
+            with open(file, 'r') as f:
+                eig = f.read()
+            eigs = {'units': 'H'}
+            for line in eig.split('\n'):
+                key = line.split(': ')[0]
+                val = float(line.split(': ')[1].split(' ')[0])
+                eigs[key] = val
+            return eigs
+        return {}
+    
+    def read_forces(self, folder):
+        file = opj(folder, 'forces')
+        if ope(file):
+            with open(file, 'r') as f:
+                forces = f.read()
+            f = []
+            for ii,line in enumerate(forces.split('\n')):
+                if ii == 0 or len(line) == 0: continue
+                atom = line.split()[1]
+                sd = int(line.split()[5])
+                x = float(line.split()[2])
+                y = float(line.split()[3])
+                z = float(line.split()[4])
+                f.append({'atom': atom, 'number': ii, 'SD': sd, 'x': x, 'y': y, 'z': z})
+            return f
+        return []
+    
+    def get_jdos(self, folder, plot = False):
+        cwd = os.getcwd()
+        os.chdir(folder)
+        try:
+            subprocess.call('get_jdos.py', shell=True)
+            with open('jpdos.json','r') as f:
+                jdos = json.load(f)
+        except:
+            print('ERROR: Cannot read DOS info for:', folder)
+            jdos = {}
+        
+        if plot:
+            print('METAERROR: jdos plotting not yet added! Contact Nick.')
+            #self.plot_jdos(jdos)
+        
+        os.chdir(cwd)
+        return jdos
         
     def formula_to_dic(self, formula):
         assert '.' not in formula, 'ERROR: Cannot include decimals in formula. Only integers allowed.'
