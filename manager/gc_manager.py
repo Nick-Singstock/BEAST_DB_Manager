@@ -13,6 +13,7 @@ import os
 import argparse
 import subprocess
 import json
+from time import sleep
 from pymatgen.core.structure import Structure
 from pymatgen.io.vasp.inputs import Kpoints
 import numpy as np
@@ -459,7 +460,10 @@ class jdft_manager():
     def rerun_calcs(self, rerun):
         print('\n----- Rerunning unconverged calcs -----\n')
         
-        for root in rerun:
+        for ii,root in enumerate(rerun):
+            if ii%100 == 99:
+                print('\n...\n')
+                sleep(5) # pause for 5 seconds before submitting more jobs
             calc_type = root.split(os.sep)[1]
             os.chdir(root)
             print('Rerunning: '+self.get_job_name(root))
@@ -1432,7 +1436,10 @@ class jdft_manager():
 
     def run_new_calcs(self, new_calcs):
         print('\n----- Running new calcs -----\n')
-        for root in new_calcs:
+        for ii,root in enumerate(new_calcs):
+            if ii%100 == 99:
+                print('\n...\n')
+                sleep(5) # pause for 5 seconds before submitting more jobs
             calc_type = root.split(os.sep)[1]
             os.chdir(root)
 #            print('Rerunning: '+self.get_job_name(root))
