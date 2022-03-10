@@ -147,8 +147,42 @@ def add_dos(cmds, script_cmds):
     new_cmds += [('density-of-states', dos_line)]
     return new_cmds
 
+def autodos_sp(cmds, atoms):
+    els = list(set(atoms.get_chemical_symbols()))
+    doskeys = {'s': ['s'], 'p': ['p','px','py','pz'], 'd': ['d','dxy','dxz','dyz','dz2','dx2-y2']}
+    alldos = {'s': ['H',  
+                    'Li','Be',              'B','C','N','O','F',
+                    'Na','Mg',  'Cu','Zn',  'Al','Si','P','S','Cl',
+                    'K','Ca',   'Ag','Cd',  'Ga','Ge','As','Se','Br',
+                    'Rb','Sr',  'Au','Hg',  'In','Sn','Sb','Te','I'],
+              'p': ['B','C','N','O','F',        'Al','Si','P','S','Cl',
+                    'Ga','Ge','As','Se','Br',   'In','Sn','Sb','Te','I', 'Tl','Pb'],
+              'd': ['Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
+                    'Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd',
+                    'Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg']}
+    new_dos = []
+    for el in els:
+        el_dos = []
+        for orb in ['s','p','d']:
+            orb_els = alldos[orb]
+            if el in orb_els:
+                el_dos += doskeys[orb]
+        dosstr = ' '.join(el_dos)
+        new_dos.append(dosstr)
+    new_dos.append('Total')
+    dos_cmds = {'pdos': new_dos}
+    newcmds = add_dos(cmds, dos_cmds)
+    return newcmds
+
+def clean_cmds(cmds):
+    new_cmds = []
+    for cmd in cmds:
+        if cmd not in new_cmds:
+            new_cmds.append(cmd)
+    return new_cmds
+
 # main function for calculations
-def run_calc(command_file, jdftx_exe):
+def run_calc(command_file, jdftx_exe, autodoscmd):
 
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
@@ -471,9 +505,26 @@ def run_calc(command_file, jdftx_exe):
                 restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
             else:
                 restart = True
-                
-            # set atoms object and calculator
+            
+            max_steps = int(script_cmds['max_steps']) if 'max_steps' in script_cmds else (
+                        int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
+            
+            # single point calculation consistent notation
+            if max_steps == 0 and comp in ['Summit']:
+                max_steps = 1
+            elif max_steps == 1 and comp in ['Eagle']:
+                max_steps = 0
+            
+            # set atoms object
             atoms = read_atoms(restart)
+            
+            # auto add all pdos for single points and clean cmds
+            if max_steps in [0, 1] and autodoscmd:
+                cmds = autodos_sp(cmds, atoms)
+            # clean repeat dos cmds
+            cmds = clean_cmds(cmds)
+            
+            # set calculator
             calculator = set_calc(cmds, script_cmds)
             atoms.set_calculator(calculator)
     
@@ -526,14 +577,17 @@ def run_calc(command_file, jdftx_exe):
             if safe_mode: 
                 dyn.attach(force_checker,interval=1)
             
-            max_steps = int(script_cmds['max_steps']) if 'max_steps' in script_cmds else (
-                        int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
-            
-            # single point calculation consistent notation
-            if max_steps == 0 and comp in ['Summit']:
-                max_steps = 1
-            elif max_steps == 1 and comp in ['Eagle']:
-                max_steps = 0
+#            max_steps = int(script_cmds['max_steps']) if 'max_steps' in script_cmds else (
+#                        int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
+#            
+#            # single point calculation consistent notation
+#            if max_steps == 0 and comp in ['Summit']:
+#                max_steps = 1
+#            elif max_steps == 1 and comp in ['Eagle']:
+#                max_steps = 0
+#            
+#            if max_steps in [0, 1]:
+#                autodos()
                 
 #            fmax = float(script_cmds['fmax'])
             fmax = float(script_cmds['fmax']) if 'fmax' in script_cmds else 0.01 # default 0.01
@@ -583,6 +637,9 @@ def run_calc(command_file, jdftx_exe):
                 cmds, script_cmds = update_cmds(conv, ii+1, cmds, script_cmds)
                 conv_logger('updated cmds and script cmds with convergence file')
                 conv_logger('Running Convergence Step: '+str(ii+1), 'neb.log')
+            
+            # clean repeat dos cmds
+            cmds = clean_cmds(cmds)
             
             if ii == 0:
                 restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
@@ -662,6 +719,8 @@ if __name__ == '__main__':
                         type=str, default='./')
     parser.add_argument('-g', '--gpu', help='If True, runs GPU install of JDFTx.',
                         type=str, default='False')
+    parser.add_argument('-ad', '--autodos', help='If True (Default)), adds dos tags to SP calcs.',
+                        type=str, default='True')
 
 
     args = parser.parse_args()
@@ -676,5 +735,6 @@ if __name__ == '__main__':
     command_file = 'inputs'
     
     conv_logger('\n\n----- Entering run function -----')
-    run_calc(command_file, jdftx_exe)
+    autodoscmd = True if args.autodos == 'True' else False
+    run_calc(command_file, jdftx_exe, autodoscmd)
 
