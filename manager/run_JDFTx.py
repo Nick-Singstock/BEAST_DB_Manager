@@ -176,11 +176,19 @@ def autodos_sp(cmds, atoms):
     newcmds = add_dos(cmds, dos_cmds)
     return newcmds
 
-def clean_cmds(cmds):
+def clean_doscmds(cmds):
     new_cmds = []
     for cmd in cmds:
+        # remove repeat pdos cmds 
+        if cmd[0] == 'density-of-states':
+            dosline = cmd[1]
+            pdos = dosline.split(' \\\n')
+            pdos = list(set(pdos))
+            cmd[1] = ' \\\n' + ' \\\n'.join(pdos)
+        
         if cmd not in new_cmds:
             new_cmds.append(cmd)
+    conv_logger('Clean cmds: '+str(new_cmds))
     return new_cmds
 
 # main function for calculations
@@ -524,7 +532,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
             if max_steps in [0, 1] and autodoscmd:
                 cmds = autodos_sp(cmds, atoms)
             # clean repeat dos cmds
-            cmds = clean_cmds(cmds)
+            cmds = clean_doscmds(cmds)
             
             # set calculator
             calculator = set_calc(cmds, script_cmds)
@@ -641,7 +649,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
                 conv_logger('Running Convergence Step: '+str(ii+1), 'neb.log')
             
             # clean repeat dos cmds
-            cmds = clean_cmds(cmds)
+            cmds = clean_doscmds(cmds)
             
             if ii == 0:
                 restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
