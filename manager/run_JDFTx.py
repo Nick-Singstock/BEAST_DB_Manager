@@ -183,12 +183,16 @@ def clean_doscmds(cmds):
         if cmd[0] == 'density-of-states':
             dosline = cmd[1]
             pdos = dosline.split(' \\\n')
-            pdos = list(set(pdos))
-            cmd = (cmd[0], ' \\\n' + ' \\\n'.join(pdos))
+            new_pdos = []
+            for p in pdos:
+                if p not in new_pdos:
+                    new_pdos.append(p)
+            conv_logger('clean pdos: ' + str(new_pdos))
+            cmd = (cmd[0], ' \\\n'.join(new_pdos))
         
         if cmd not in new_cmds:
             new_cmds.append(cmd)
-    conv_logger('Clean cmds: '+str(new_cmds))
+    conv_logger('clean cmds: '+str(new_cmds))
     return new_cmds
 
 # main function for calculations
