@@ -188,6 +188,8 @@ class jdft_manager():
                             'of processes (default True)',type=str, default='True')
         parser.add_argument('-fix', '--calc_fixer', help='Whether to use the smart error fixer for '+
                             'failed calcs (default False)',type=str, default='False')
+        parser.add_argument('-fr', '--full_rerun', help='Rerun ALL calculations. Be careful '+
+                            'with this. Calcs start at current state. (default False)',type=str, default='False')
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -234,12 +236,19 @@ class jdft_manager():
             if verbose: 
                 print('\nFolder found at:', root)
             ncalcs += 1
-            if root in all_data['converged']:
-                if verbose: print('Previously Converged.')
-                continue
             full_root = os.path.join(self.cwd, root)
             if full_root in running_dirs:
                 if verbose: print('Currently Running.')
+                continue
+            
+            # full rerun for all calcs 
+            if self.args.full_rerun == 'True':
+                print('Added to rerun (full rerun).')
+                rerun.append(root)
+                continue
+            
+            if root in all_data['converged']:
+                if verbose: print('Previously Converged.')
                 continue
             
             # get type of calculation
@@ -1530,6 +1539,7 @@ class jdft_manager():
         
         # scan through all subfolders to check for converged structures 
         add_inputs = []
+        ncalcs = None
         if self.args.check_calcs == 'True':
             # scan through folders
             running_jobs_dirs = self.get_running_jobs_dirs()
@@ -1603,7 +1613,8 @@ class jdft_manager():
             self.backup_calcs()
             
         print('----- Done -----')
-        print('Number of Calcs Under Management: '+str(ncalcs)+'\n\n')
+        if ncalcs is not None:
+            print('Number of Calcs Under Management: '+str(ncalcs)+'\n\n')
 
 
 
