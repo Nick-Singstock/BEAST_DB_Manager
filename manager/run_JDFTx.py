@@ -184,7 +184,7 @@ def clean_doscmds(cmds):
             dosline = cmd[1]
             pdos = dosline.split(' \\\n')
             pdos = list(set(pdos))
-            cmd[1] = ' \\\n' + ' \\\n'.join(pdos)
+            cmd = (cmd[0], ' \\\n' + ' \\\n'.join(pdos))
         
         if cmd not in new_cmds:
             new_cmds.append(cmd)
