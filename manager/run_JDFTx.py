@@ -150,11 +150,10 @@ def add_dos(cmds, script_cmds):
 def autodos_sp(cmds, atoms):
     els = list(set(atoms.get_chemical_symbols()))
     doskeys = {'s': ['s'], 'p': ['p','px','py','pz'], 'd': ['d','dxy','dxz','dyz','dz2','dx2-y2']}
-    alldos = {'s': ['H',  
-                    'Li','Be',              'B','C','N','O','F',
-                    'Na','Mg',  'Cu','Zn',  'Al','Si','P','S','Cl',
-                    'K','Ca',   'Ag','Cd',  'Ga','Ge','As','Se','Br',
-                    'Rb','Sr',  'Au','Hg',  'In','Sn','Sb','Te','I'],
+    alldos = {'s': ['H',  'Li','Be',   'B','C','N','O','F',
+                    'Na','Mg',  'Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',  'Al','Si','P','S','Cl',
+                    'K','Ca',   'Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd',  'Ga','Ge','As','Se','Br',
+                    'Rb','Sr',  'Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg'        'In','Sn','Sb','Te','I'],
               'p': ['B','C','N','O','F',        'Al','Si','P','S','Cl',
                     'Ga','Ge','As','Se','Br',   'In','Sn','Sb','Te','I', 'Tl','Pb'],
               'd': ['Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',

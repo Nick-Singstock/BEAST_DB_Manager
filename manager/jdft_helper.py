@@ -871,6 +871,8 @@ class helper():
                 eig = f.read()
             eigs = {'units': 'H'}
             for line in eig.split('\n'):
+                if line in ['',' ']:
+                    continue
                 key = line.split(': ')[0]
                 val = float(line.split(': ')[1].split(' ')[0])
                 eigs[key] = val
