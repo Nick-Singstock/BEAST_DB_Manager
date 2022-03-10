@@ -162,11 +162,13 @@ def autodos_sp(cmds, atoms):
                     'Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg']}
     new_dos = []
     for el in els:
-        el_dos = []
+        el_dos = [el]
         for orb in ['s','p','d']:
             orb_els = alldos[orb]
             if el in orb_els:
                 el_dos += doskeys[orb]
+        if len(el_dos) < 2:
+            continue # no dos orbitals for this atom
         dosstr = ' '.join(el_dos)
         new_dos.append(dosstr)
     new_dos.append('Total')
