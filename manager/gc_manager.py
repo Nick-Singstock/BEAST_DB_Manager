@@ -243,8 +243,8 @@ class jdft_manager():
                 continue
             
             # full rerun for all calcs 
-            if self.args.full_rerun == 'True':
-                print('Added to rerun (full rerun).')
+            if self.args.full_rerun == 'True' and 'inputs' in files and 'CONTCAR' in files:
+                print('Added to rerun (full rerun)')
                 rerun.append(root)
                 continue
             
