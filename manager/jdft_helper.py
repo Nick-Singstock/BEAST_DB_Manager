@@ -322,10 +322,8 @@ class helper():
         # reads out file for oxidation states and magentic moments
         inputs = self.read_inputs(folder)
         opt_steps = self.read_optlog(folder)
-        ecomp = self.read_Ecomponents(folder)
-        eigStats = self.read_eigStats(folder)
-        atom_forces = self.read_forces(folder)
-        if opt_steps == False or ecomp == False:
+        
+        if opt_steps == False:
             return {'opt': 'None', 'inputs': inputs, 'converged': False,
                     'final_energy': 'None', 'contcar': 'None', 'current_force': 'None'}
         # check if calc has high forces
@@ -334,15 +332,29 @@ class helper():
         current_energy = opt_steps[current_step][-1]['energy'] if len(opt_steps[current_step]) > 0 else 'None'
         if current_force != 'None' and current_force > 10:
             print('**** WARNING: High forces (> 10) in current step! May be divergent. ****')
+        
         # check for convergence
         conv = self.check_convergence(folder, inputs, opt_steps)
+        contcar = 'None'
+        if 'CONTCAR' in os.listdir(folder):
+            contcar = self.read_contcar(folder)
+        if not conv:
+            return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
+                'inputs': inputs, 'current_energy': current_energy,
+                'converged': conv, 'contcar': contcar, 
+                'final_energy': 'None', 'energy_units': 'eV',}
+        
+        ecomp = self.read_Ecomponents(folder)
+        eigStats = self.read_eigStats(folder)
+        atom_forces = self.read_forces(folder)
+        
+        self.make_tinyout(folder)
+        
         if ope(opj(folder, 'convergence')):
             convergence = self.read_convergence(folder)
         else:
             convergence = {}
-        contcar = 'None'
-        if 'CONTCAR' in os.listdir(folder):
-            contcar = self.read_contcar(folder)
+        
         out_sites = self.read_outfile(folder, contcar)
         if out_sites == False:
             sites = {}
@@ -455,6 +467,20 @@ class helper():
             inputs = self.read_inputs(root)
             inputs['restart'] = 'False'
             self.write_inputs(inputs, root)
+    
+    def make_tinyout(self, root):
+        # only run for newly converged calcs
+        # creates 'tinyout' which only has last 'out' calculation section
+        with open(opj(root, 'out'), 'r') as f:
+            out = f.read()
+        tinyout = ''
+        for line in out.split('\n'):
+            if 'Start date and time' in line:
+                tinyout = line + '\n'
+            else:
+                tinyout += line + '\n'
+        with open(opj(root, 'tinyout'), 'w') as f:
+            f.write(tinyout)
 
     def analyze_data(self, all_data):
         '''
