@@ -226,235 +226,240 @@ class jdft_manager():
         if 'converged' not in all_data:
             all_data['converged'] = []
         if verbose: print('\n----- Scanning Through Calculations -----')
-        for root, folders, files in os.walk(calc_folder):
-            if 'POSCAR' not in files and 'inputs' not in files:
-                continue
-            if 'neb' in root and len(root.split(os.sep)) >= 7:
-                # ignore neb subdirs
-                continue
-            if '__' in root:
-                continue
-            if verbose: 
-                print('\nFolder found at:', root)
-            ncalcs += 1
-            full_root = os.path.join(self.cwd, root)
-            if full_root in running_dirs:
-                if verbose: print('Currently Running.')
-                continue
+        
+        for subf in self.calc_subfolders:
+            calc_subfolder = opj(calc_folder, subf)
+            print('Scanning: '+ calc_subfolder)
             
-            # full rerun for all calcs 
-            if self.args.full_rerun == 'True' and 'inputs' in files and 'CONTCAR' in files:
-                print('Added to rerun (full rerun)')
-                rerun.append(root)
-                continue
-            
-            if root in all_data['converged']:
-                if verbose: print('Previously Converged.')
-                continue
-            
-            # get type of calculation
-            calc_type = None
-            for subf in self.calc_subfolders:
-                tag = os.path.join(calc_folder, subf)
-                if tag in root:
-                    calc_type = subf
+            for root, folders, files in os.walk(calc_subfolder):
+                if 'POSCAR' not in files and 'inputs' not in files:
                     continue
-            if calc_type is None:
-                print('Error: No calc_type found for root: '+root+' Skipping.')
-                continue
-#            sub_dirs = root.split(tag)[-1].split(os.sep)
-            sub_dirs = root.split(os.sep)
-            
-            if len(sub_dirs) < 4 and calc_type != 'bulks':
-                if verbose: print('Not a calculation directory.')
-                continue
-            if calc_type == 'neb' and len(sub_dirs) > 5:
-                print('Skipping NEB sub-directory.')
-                continue
-            if 'inputs' not in files:
-                add_inputs.append(root)
-                if verbose: print('Adding inputs.')
-                continue
-            if 'CONTCAR' not in files and calc_type not in ['neb']:
-                run_new.append(root)
-                if verbose and self.args.run_new == 'True': print('Running unstarted job.')
-                continue
-            
-            # read calc data at root
-            if calc_type not in ['neb']:
-                data = h.read_data(root)
-                cf = '%.3f'%data['current_force'] if data['current_force'] != 'None' else 'None'
-                skip_high_forces = (False if (data['current_force'] == 'None' or 
-                                              data['current_force'] < force_limit) else True)
-                if data['converged'] and self.args.save_dos == 'True':
-                    dos_data = h.get_jdos(root)
-                    data['dos'] = dos_data
-            
-            # save molecule data
-            if calc_type == 'molecules':
-                if verbose: 
-                    if self.args.current_force == 'True': 
-                        print('Molecule calc read (force='+cf+')')
-                    else:
-                        print('Molecule calc read.')
-                mol_name = sub_dirs[2]
-                bias_str = sub_dirs[3]
-                bias = h.get_bias(bias_str)
-                if mol_name not in all_data:
-                    all_data[mol_name] = {}
-                data['bias'] = bias
-                all_data[mol_name][bias_str] = data
-                if data['converged']:
-                    all_data['converged'].append(root)
-                    if verbose: print('Molecule calc converged.')
-                else:
-                    if not skip_high_forces: 
-                        rerun.append(root)
-                        if verbose: print('Molecule calc not converged. Adding to rerun.')
-                    else:
-                        failed_calcs.append(root)
-                continue
-            
-            # save bulk data
-            elif calc_type == 'bulks':
-                if verbose: 
-                    if self.args.current_force == 'True': 
-                        print('Bulk calc read (force='+cf+')')
-                    else:
-                        print('Bulk calc read.')
-                bulk_name = sub_dirs[2]
-                if bulk_name not in all_data:
-                    all_data[bulk_name] = {}
-                if 'bulk' not in all_data[bulk_name]:
-                    all_data[bulk_name]['bulk'] = {}
-                all_data[bulk_name]['bulk'] = data
-                if data['converged']:
-                    all_data['converged'].append(root)
-                    if verbose: print('Bulk calc converged.')
-                else:
-                    if not skip_high_forces: 
-                        rerun.append(root)
-                        if verbose: print('Bulk calc not converged. Adding to rerun.')
-                    else:
-                        failed_calcs.append(root)
-                continue
-            
-            # save surface data
-            elif calc_type == 'surfs':
-                if verbose: 
-                    if self.args.current_force == 'True': 
-                        print('Surface calc read (force='+cf+')')
-                    else:
-                        print('Surface calc read.')
-                surf_name = sub_dirs[2]
-                bias_str = sub_dirs[3]
-                bias = h.get_bias(bias_str)
-                if surf_name not in all_data:
-                    all_data[surf_name] = {}
-                if 'surf' not in all_data[surf_name]:
-                    all_data[surf_name]['surf'] = {}
-                data['bias'] = bias
-                all_data[surf_name]['surf'][bias_str] = data
-                if data['converged']:
-                    all_data['converged'].append(root)
-                    if verbose: print('Surface calc converged.')
-                else:
-                    if not skip_high_forces: 
-                        rerun.append(root)
-                        if verbose: print('Surface calc not converged. Adding to rerun.')
-                    else:
-                        failed_calcs.append(root)
-                continue
-            
-            # save adsorbate and desorbed state calcs
-            elif calc_type in ['adsorbed', 'desorbed']:
-                # dic = surf: calc_type(s): mol: biases: configs: data. no configs for desorbed
-                if verbose: 
-                    if self.args.current_force == 'True': 
-                        print('Adsorbed/Desorbed calc read (force='+cf+')')
-                    else:
-                        print('Adsorbed/Desorbed calc read.')
-                surf_name = sub_dirs[2]
-                mol_name = sub_dirs[3]
-                bias_str = sub_dirs[4]
-                mol_config = None
-                if calc_type == 'adsorbed': 
-                    mol_config = sub_dirs[5]
-                bias = h.get_bias(bias_str)
-                if surf_name not in all_data or 'surf' not in all_data[surf_name]:
-#                    print('Surface: '+surf_name+' must be created before adsorbed/desorbed calcs can be read!')
+                if 'neb' in root and len(root.split(os.sep)) >= 7:
+                    # ignore neb subdirs
                     continue
-#                print(surf_name)
-#                if surf_name not in all_data:
-#                    all_data[surf_name] = {}
-                if calc_type not in all_data[surf_name]:
-                    all_data[surf_name][calc_type] = {}
-                if mol_name not in all_data[surf_name][calc_type]:
-                    all_data[surf_name][calc_type][mol_name] = {}
-                if bias_str not in all_data[surf_name][calc_type][mol_name]:
-                    all_data[surf_name][calc_type][mol_name][bias_str] = {}
-                    
-                if bias_str in all_data[surf_name]['surf'] and all_data[surf_name]['surf'][bias_str]['converged']:
+                if '__' in root:
+                    continue
+                if verbose: 
+                    print('\nFolder found at:', root)
+                ncalcs += 1
+                full_root = os.path.join(self.cwd, root)
+                if full_root in running_dirs:
+                    if verbose: print('Currently Running.')
+                    continue
+                
+                # full rerun for all calcs 
+                if self.args.full_rerun == 'True' and 'inputs' in files and 'CONTCAR' in files:
+                    print('Added to rerun (full rerun)')
+                    rerun.append(root)
+                    continue
+                
+                if root in all_data['converged']:
+                    if verbose: print('Previously Converged.')
+                    continue
+                
+                # get type of calculation
+                calc_type = None
+                for subf in self.calc_subfolders:
+                    tag = os.path.join(calc_folder, subf)
+                    if tag in root:
+                        calc_type = subf
+                        continue
+                if calc_type is None:
+                    print('Error: No calc_type found for root: '+root+' Skipping.')
+                    continue
+    #            sub_dirs = root.split(tag)[-1].split(os.sep)
+                sub_dirs = root.split(os.sep)
+                
+                if len(sub_dirs) < 4 and calc_type != 'bulks':
+                    if verbose: print('Not a calculation directory.')
+                    continue
+                if calc_type == 'neb' and len(sub_dirs) > 5:
+                    print('Skipping NEB sub-directory.')
+                    continue
+                if 'inputs' not in files:
+                    add_inputs.append(root)
+                    if verbose: print('Adding inputs.')
+                    continue
+                if 'CONTCAR' not in files and calc_type not in ['neb']:
+                    run_new.append(root)
+                    if verbose and self.args.run_new == 'True': print('Running unstarted job.')
+                    continue
+                
+                # read calc data at root
+                if calc_type not in ['neb']:
+                    data = h.read_data(root)
+                    cf = '%.3f'%data['current_force'] if data['current_force'] != 'None' else 'None'
+                    skip_high_forces = (False if (data['current_force'] == 'None' or 
+                                                  data['current_force'] < force_limit) else True)
+                    if data['converged'] and self.args.save_dos == 'True':
+                        dos_data = h.get_jdos(root)
+                        data['dos'] = dos_data
+                
+                # save molecule data
+                if calc_type == 'molecules':
+                    if verbose: 
+                        if self.args.current_force == 'True': 
+                            print('Molecule calc read (force='+cf+')')
+                        else:
+                            print('Molecule calc read.')
+                    mol_name = sub_dirs[2]
+                    bias_str = sub_dirs[3]
+                    bias = h.get_bias(bias_str)
+                    if mol_name not in all_data:
+                        all_data[mol_name] = {}
                     data['bias'] = bias
-                    if calc_type == 'adsorbed':
-                        all_data[surf_name][calc_type][mol_name][bias_str][mol_config] = data
-                    elif calc_type == 'desorbed':
-                        all_data[surf_name][calc_type][mol_name][bias_str] = data
+                    all_data[mol_name][bias_str] = data
                     if data['converged']:
                         all_data['converged'].append(root)
-                        if verbose: print('Adsorbed/Desorbed calc converged.')
+                        if verbose: print('Molecule calc converged.')
                     else:
                         if not skip_high_forces: 
                             rerun.append(root)
-                            if verbose: print('Adsorbed/Desorbed calc not converged. Adding to rerun.')
+                            if verbose: print('Molecule calc not converged. Adding to rerun.')
                         else:
                             failed_calcs.append(root)
-                else:
-                    print('Surface: '+surf_name+' at bias '+bias_str+
-                          ' must be converged before adsorbed/desorbed can be saved.')
-                    if not data['converged']:
-                        if not skip_high_forces: 
-                            rerun.append(root)
-                            if verbose: print('Adsorbed/Desorbed calc not converged. Adding to rerun.')
-                        else:
-                            failed_calcs.append(root)
-                continue
-                    
-            elif calc_type == 'neb':
-                # calc/neb/surf/path_name(Path_#-start-finish)/bias/data
-                if verbose: print('NEB calc read.')
-#                continue
-                # dic = surf: 'neb': mol: bias: path:
-                surf_name = sub_dirs[2]
-                path_name = sub_dirs[3]
-                bias_str = sub_dirs[4]
-                bias = h.get_bias(bias_str)
-                if surf_name not in all_data or 'surf' not in all_data[surf_name]:
-                    print('WARNING: Surface does not exist with same name, nowhere to save neb calc.')
                     continue
-                if calc_type not in all_data[surf_name]:
-                    all_data[surf_name][calc_type] = {}
-                if path_name not in all_data[surf_name][calc_type]:
-                    all_data[surf_name][calc_type][path_name] = {}
-                if bias_str not in all_data[surf_name][calc_type][path_name]:
-                    all_data[surf_name][calc_type][path_name][bias_str] = {}
-                neb_data = h.get_neb_data(root, bias)
-                all_data[surf_name][calc_type][path_name][bias_str] = neb_data
-                if neb_data['converged']:
-                    print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' converged.')
-                else:
-#                    print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
-#                          +' Added to rerun.')
-                    continue # remove after testing
-                    if neb_data['opt'] != 'None' and neb_data['opt'][-1]['force'] < force_limit:
-                        print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
-                              +' Added to rerun.')
-                        rerun.append(root)
+                
+                # save bulk data
+                elif calc_type == 'bulks':
+                    if verbose: 
+                        if self.args.current_force == 'True': 
+                            print('Bulk calc read (force='+cf+')')
+                        else:
+                            print('Bulk calc read.')
+                    bulk_name = sub_dirs[2]
+                    if bulk_name not in all_data:
+                        all_data[bulk_name] = {}
+                    if 'bulk' not in all_data[bulk_name]:
+                        all_data[bulk_name]['bulk'] = {}
+                    all_data[bulk_name]['bulk'] = data
+                    if data['converged']:
+                        all_data['converged'].append(root)
+                        if verbose: print('Bulk calc converged.')
                     else:
-                        neb_force = '%.3f'%(neb_data['opt'][-1]['force']) if neb_data['opt'] != 'None' else 'None'
-                        print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
-                              +' Skipping due to high forces ('+neb_force+')')
-                continue
+                        if not skip_high_forces: 
+                            rerun.append(root)
+                            if verbose: print('Bulk calc not converged. Adding to rerun.')
+                        else:
+                            failed_calcs.append(root)
+                    continue
+                
+                # save surface data
+                elif calc_type == 'surfs':
+                    if verbose: 
+                        if self.args.current_force == 'True': 
+                            print('Surface calc read (force='+cf+')')
+                        else:
+                            print('Surface calc read.')
+                    surf_name = sub_dirs[2]
+                    bias_str = sub_dirs[3]
+                    bias = h.get_bias(bias_str)
+                    if surf_name not in all_data:
+                        all_data[surf_name] = {}
+                    if 'surf' not in all_data[surf_name]:
+                        all_data[surf_name]['surf'] = {}
+                    data['bias'] = bias
+                    all_data[surf_name]['surf'][bias_str] = data
+                    if data['converged']:
+                        all_data['converged'].append(root)
+                        if verbose: print('Surface calc converged.')
+                    else:
+                        if not skip_high_forces: 
+                            rerun.append(root)
+                            if verbose: print('Surface calc not converged. Adding to rerun.')
+                        else:
+                            failed_calcs.append(root)
+                    continue
+                
+                # save adsorbate and desorbed state calcs
+                elif calc_type in ['adsorbed', 'desorbed']:
+                    # dic = surf: calc_type(s): mol: biases: configs: data. no configs for desorbed
+                    if verbose: 
+                        if self.args.current_force == 'True': 
+                            print('Adsorbed/Desorbed calc read (force='+cf+')')
+                        else:
+                            print('Adsorbed/Desorbed calc read.')
+                    surf_name = sub_dirs[2]
+                    mol_name = sub_dirs[3]
+                    bias_str = sub_dirs[4]
+                    mol_config = None
+                    if calc_type == 'adsorbed': 
+                        mol_config = sub_dirs[5]
+                    bias = h.get_bias(bias_str)
+                    if surf_name not in all_data or 'surf' not in all_data[surf_name]:
+    #                    print('Surface: '+surf_name+' must be created before adsorbed/desorbed calcs can be read!')
+                        continue
+    #                print(surf_name)
+    #                if surf_name not in all_data:
+    #                    all_data[surf_name] = {}
+                    if calc_type not in all_data[surf_name]:
+                        all_data[surf_name][calc_type] = {}
+                    if mol_name not in all_data[surf_name][calc_type]:
+                        all_data[surf_name][calc_type][mol_name] = {}
+                    if bias_str not in all_data[surf_name][calc_type][mol_name]:
+                        all_data[surf_name][calc_type][mol_name][bias_str] = {}
+                        
+                    if bias_str in all_data[surf_name]['surf'] and all_data[surf_name]['surf'][bias_str]['converged']:
+                        data['bias'] = bias
+                        if calc_type == 'adsorbed':
+                            all_data[surf_name][calc_type][mol_name][bias_str][mol_config] = data
+                        elif calc_type == 'desorbed':
+                            all_data[surf_name][calc_type][mol_name][bias_str] = data
+                        if data['converged']:
+                            all_data['converged'].append(root)
+                            if verbose: print('Adsorbed/Desorbed calc converged.')
+                        else:
+                            if not skip_high_forces: 
+                                rerun.append(root)
+                                if verbose: print('Adsorbed/Desorbed calc not converged. Adding to rerun.')
+                            else:
+                                failed_calcs.append(root)
+                    else:
+                        print('Surface: '+surf_name+' at bias '+bias_str+
+                              ' must be converged before adsorbed/desorbed can be saved.')
+                        if not data['converged']:
+                            if not skip_high_forces: 
+                                rerun.append(root)
+                                if verbose: print('Adsorbed/Desorbed calc not converged. Adding to rerun.')
+                            else:
+                                failed_calcs.append(root)
+                    continue
+                        
+                elif calc_type == 'neb':
+                    # calc/neb/surf/path_name(Path_#-start-finish)/bias/data
+                    if verbose: print('NEB calc read.')
+    #                continue
+                    # dic = surf: 'neb': mol: bias: path:
+                    surf_name = sub_dirs[2]
+                    path_name = sub_dirs[3]
+                    bias_str = sub_dirs[4]
+                    bias = h.get_bias(bias_str)
+                    if surf_name not in all_data or 'surf' not in all_data[surf_name]:
+                        print('WARNING: Surface does not exist with same name, nowhere to save neb calc.')
+                        continue
+                    if calc_type not in all_data[surf_name]:
+                        all_data[surf_name][calc_type] = {}
+                    if path_name not in all_data[surf_name][calc_type]:
+                        all_data[surf_name][calc_type][path_name] = {}
+                    if bias_str not in all_data[surf_name][calc_type][path_name]:
+                        all_data[surf_name][calc_type][path_name][bias_str] = {}
+                    neb_data = h.get_neb_data(root, bias)
+                    all_data[surf_name][calc_type][path_name][bias_str] = neb_data
+                    if neb_data['converged']:
+                        print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' converged.')
+                    else:
+    #                    print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
+    #                          +' Added to rerun.')
+                        continue # remove after testing
+                        if neb_data['opt'] != 'None' and neb_data['opt'][-1]['force'] < force_limit:
+                            print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
+                                  +' Added to rerun.')
+                            rerun.append(root)
+                        else:
+                            neb_force = '%.3f'%(neb_data['opt'][-1]['force']) if neb_data['opt'] != 'None' else 'None'
+                            print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
+                                  +' Skipping due to high forces ('+neb_force+')')
+                    continue
         return all_data, add_inputs, rerun, run_new, failed_calcs, ncalcs
 
     def rerun_calcs(self, rerun):
