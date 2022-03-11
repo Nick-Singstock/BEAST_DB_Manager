@@ -1651,8 +1651,8 @@ defaults_folder = os.path.join(manager_home, 'defaults')
 run_command = 'python '+ os.path.join(manager_home, 'sub_JDFTx.py')
 
 # all files to include in backup
-files_to_backup = ['CONTCAR','POSCAR','inputs','opt.log','Ecomponents','neb.log','convergence',
-                   'out', # this could be removed to reduce data? 
+files_to_backup = ['CONTCAR','POSCAR','inputs','convergence','opt.log','neb.log','Ecomponents',
+                   'tinyout', # this could be removed to reduce data? 
                    ]    
     
 if __name__ == '__main__' and run_script:
