@@ -223,6 +223,12 @@ class jdft_manager():
         rerun = []
         failed_calcs = []
         running_parallel = self.get_parallel_running() # TODO: setup function and rules
+        if self.args.save_dos == 'True' and ope(opj(results_folder, 'all_dos.json')):
+            with open('all_dos.json','r') as f:
+                all_dos = json.load(f)
+        else:
+            all_dos = {}
+            
         if 'converged' not in all_data:
             all_data['converged'] = []
         if verbose: print('\n----- Scanning Through Calculations -----')
@@ -292,8 +298,9 @@ class jdft_manager():
                     skip_high_forces = (False if (data['current_force'] == 'None' or 
                                                   data['current_force'] < force_limit) else True)
                     if data['converged'] and self.args.save_dos == 'True':
-                        dos_data = h.get_jdos(root)
-                        data['dos'] = dos_data
+                        if root not in all_dos:
+                            dos_data = h.get_jdos(root)
+                            all_dos[root] = dos_data
                 
                 # save molecule data
                 if calc_type == 'molecules':
@@ -460,6 +467,11 @@ class jdft_manager():
                             print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
                                   +' Skipping due to high forces ('+neb_force+')')
                     continue
+        
+        if self.args.save_dos == 'True':
+            with open('all_dos.json','w') as f:
+                json.dump(all_dos, f)
+        
         return all_data, add_inputs, rerun, run_new, failed_calcs, ncalcs
 
     def rerun_calcs(self, rerun):

@@ -928,6 +928,12 @@ class helper():
     def get_jdos(self, folder, plot = False):
         cwd = os.getcwd()
         os.chdir(folder)
+        
+        if os.path.exists('jpdos.json'):
+            with open('jpdos.json','r') as f:
+                jdos = json.load(f)
+            os.chdir(cwd)
+            return jdos
         try:
             subprocess.call('get_jdos.py', shell=True)
             with open('jpdos.json','r') as f:
@@ -935,11 +941,9 @@ class helper():
         except:
             print('ERROR: Cannot read DOS info for:', folder)
             jdos = {}
-        
         if plot:
             print('METAERROR: jdos plotting not yet added! Contact Nick.')
             #self.plot_jdos(jdos)
-        
         os.chdir(cwd)
         return jdos
         
