@@ -800,6 +800,8 @@ class helper():
                 'OCH': {'refs': ['CHO'], 'coeffs': [1]},
                 'OCH2': {'refs': ['CO','H'], 'coeffs': [1,2]},
                 'OCH3': {'refs': ['CO','H'], 'coeffs': [1,3]},
+                'CHOH': {'refs': ['CO','H'], 'coeffs': [1,2]},
+                'CH3OH': {'refs': ['CO','H'], 'coeffs': [1,2]},
                 
                 'N': {'refs': ['N2'], 'coeffs': [0.5]},
                 'N2': {'refs': ['N2'], 'coeffs': [1]},
