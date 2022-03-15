@@ -324,7 +324,7 @@ class helper():
         opt_steps = self.read_optlog(folder)
         
         if opt_steps == False:
-            return {'opt': 'None', 'inputs': inputs, 'converged': False,
+            return {'opt': 'None', 'inputs': inputs, 'converged': False, 'root': folder,
                     'final_energy': 'None', 'contcar': 'None', 'current_force': 'None'}
         # check if calc has high forces
         current_step = list(opt_steps.keys())[-1]
@@ -342,7 +342,7 @@ class helper():
             return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
                 'inputs': inputs, 'current_energy': current_energy,
                 'converged': conv, 'contcar': contcar, 
-                'final_energy': 'None', 'energy_units': 'eV',}
+                'final_energy': 'None', 'energy_units': 'eV', 'root': folder}
         
         ecomp = self.read_Ecomponents(folder)
         eigStats = self.read_eigStats(folder)
@@ -373,7 +373,7 @@ class helper():
                 'final_energy': 'None' if not conv else current_energy,
                 'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag,
                 'convergence_file': convergence, 'eigStats': eigStats, 'energy_units': 'eV',
-                'atom_forces': atom_forces}
+                'atom_forces': atom_forces, 'root': folder}
         
     def get_neb_data(self, folder, bias):
         # reads neb folder and returns data as a dictionary
