@@ -226,6 +226,7 @@ class jdft_manager():
         if self.args.save_dos == 'True' and ope(opj(results_folder, 'all_dos.json')):
             with open(opj(results_folder, 'all_dos.json'),'r') as f:
                 all_dos = json.load(f)
+            print('DOS file read.')
         else:
             all_dos = {}
             
