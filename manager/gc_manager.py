@@ -224,7 +224,7 @@ class jdft_manager():
         failed_calcs = []
         running_parallel = self.get_parallel_running() # TODO: setup function and rules
         if self.args.save_dos == 'True' and ope(opj(results_folder, 'all_dos.json')):
-            with open('all_dos.json','r') as f:
+            with open(opj(results_folder, 'all_dos.json'),'r') as f:
                 all_dos = json.load(f)
         else:
             all_dos = {}
@@ -469,7 +469,7 @@ class jdft_manager():
                     continue
         
         if self.args.save_dos == 'True':
-            with open('all_dos.json','w') as f:
+            with open(opj(results_folder, 'all_dos.json'),'w') as f:
                 json.dump(all_dos, f)
         
         return all_data, add_inputs, rerun, run_new, failed_calcs, ncalcs
