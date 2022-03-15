@@ -218,6 +218,7 @@ class jdft_manager():
         '''
         # look through all calc folders for converged calcs, unconverged calcs, and calcs to setup
         ncalcs = 0
+        ndos = 0
         add_inputs = []
         run_new = []
         rerun = []
@@ -302,6 +303,10 @@ class jdft_manager():
                         if root not in all_dos:
                             dos_data = h.get_jdos(root)
                             all_dos[root] = dos_data
+                            ndos += 1
+                            if ndos % 25 == 0: # added intermittent saving of all_dos file 
+                                with open(opj(results_folder, 'all_dos.json'),'w') as f:
+                                    json.dump(all_dos, f)
                 
                 # save molecule data
                 if calc_type == 'molecules':
