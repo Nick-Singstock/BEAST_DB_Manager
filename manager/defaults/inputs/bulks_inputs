@@ -50,7 +50,7 @@ restart False
 max_steps 100 
 # only econv for bulk, no fmax 
 fmax 0.00
-econv 1e-3
+econv 1e-4
 safe-mode True
 optimizer FIRE
 opt-alpha 120
