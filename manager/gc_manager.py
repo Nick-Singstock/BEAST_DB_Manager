@@ -219,18 +219,43 @@ class jdft_manager():
         # look through all calc folders for converged calcs, unconverged calcs, and calcs to setup
         ncalcs = 0
         ndos = 0
+        dos_per_file = 50
         add_inputs = []
         run_new = []
         rerun = []
         failed_calcs = []
         running_parallel = self.get_parallel_running() # TODO: setup function and rules
-        if self.args.save_dos == 'True' and ope(opj(results_folder, 'all_dos.json')):
-            with open(opj(results_folder, 'all_dos.json'),'r') as f:
-                all_dos = json.load(f)
-            print('DOS file read.')
-        else:
-            all_dos = {}
-            
+        
+        # add multi-file dos writing and dos file tracker
+        if self.args.save_dos == 'True':
+            print('\n*** Reading DOS files ***\n')
+            if ope(opj(results_folder, 'dos_tracker.json')):
+                with open(opj(results_folder, 'dos_tracker.json'),'r') as f:
+                    dos_tracker = json.load(f)
+            else:
+                dos_tracker = {}
+            # set dos file
+            if not ope(opj(results_folder, 'dos')):
+                os.mkdir(opj(results_folder, 'dos'))
+            if len(dos_tracker) == 0:
+                dos_file_count = 1
+                all_dos = {}
+            else:
+                # some dos are already saved 
+                dos_file_list = [v['n'] for k,v in dos_tracker.items()]
+                dos_file_count = int(np.max(dos_file_list))
+                nmax_dos = len([n for n in dos_file_list if n == dos_file_count])
+                if nmax_dos == dos_per_file:
+                    # already fully saved to this file
+                    dos_file_count += 1
+                    all_dos = {}
+                else:
+                    with open(opj(results_folder, 'dos', 
+                                  'all_dos_'+str(dos_file_count)+'.json'),'w') as f:
+                        all_dos = json.load(f) 
+                print('dos file counter initiated at:', dos_file_count,
+                      'with',len(all_dos),'current dos.')
+           
         if 'converged' not in all_data:
             all_data['converged'] = []
         if verbose: print('\n----- Scanning Through Calculations -----')
@@ -299,15 +324,25 @@ class jdft_manager():
                     cf = '%.3f'%data['current_force'] if data['current_force'] != 'None' else 'None'
                     skip_high_forces = (False if (data['current_force'] == 'None' or 
                                                   data['current_force'] < force_limit) else True)
+                    
+                    # add dos files 
                     if data['converged'] and self.args.save_dos == 'True':
-                        if root not in all_dos:
+                        if root not in dos_tracker:
                             dos_data = h.get_jdos(root)
                             all_dos[root] = dos_data
+                            dos_tracker[root] = {'n': dos_file_count, 
+                                                 'file': 'all_dos_'+str(dos_file_count)+'.json'}
                             ndos += 1
-                            if ndos % 25 == 0: # added intermittent saving of all_dos file 
-                                with open(opj(results_folder, 'all_dos.json'),'w') as f:
+                            if ndos % dos_per_file == 0: # added intermittent saving of all_dos file 
+                                with open(opj(results_folder, 'dos', 
+                                              'all_dos_'+str(dos_file_count)+'.json'),'w') as f:
                                     json.dump(all_dos, f)
-                                print('META: Int. DOS save at', ndos)
+                                with open(opj(results_folder, 'dos_tracker.json'),'w') as f:
+                                    json.dump(dos_tracker, f)
+                                print('Int. DOS save at', ndos, 
+                                      '- all_dos reset - dos counter =', dos_file_count)
+                                dos_file_count += 1
+                                all_dos = {}
                 
                 # save molecule data
                 if calc_type == 'molecules':
@@ -475,9 +510,12 @@ class jdft_manager():
                                   +' Skipping due to high forces ('+neb_force+')')
                     continue
         
+        # save remaining dos 
         if self.args.save_dos == 'True':
-            with open(opj(results_folder, 'all_dos.json'),'w') as f:
+            with open(opj(results_folder, 'dos', 'all_dos_'+str(dos_file_count)+'.json'),'w') as f:
                 json.dump(all_dos, f)
+            with open(opj(results_folder, 'dos_tracker.json'),'w') as f:
+                json.dump(dos_tracker, f)
             print('\n***** Saved All DOS *****\n')
         
         return all_data, add_inputs, rerun, run_new, failed_calcs, ncalcs
