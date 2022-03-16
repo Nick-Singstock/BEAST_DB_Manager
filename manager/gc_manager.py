@@ -307,6 +307,7 @@ class jdft_manager():
                             if ndos % 25 == 0: # added intermittent saving of all_dos file 
                                 with open(opj(results_folder, 'all_dos.json'),'w') as f:
                                     json.dump(all_dos, f)
+                                print('META: Int. DOS save at', ndos)
                 
                 # save molecule data
                 if calc_type == 'molecules':
