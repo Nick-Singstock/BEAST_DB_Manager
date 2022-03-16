@@ -274,7 +274,13 @@ class jdft_manager():
                     continue
                 if verbose: 
                     print('\nFolder found at:', root)
+                
                 ncalcs += 1
+                if ncalcs % 100 == 0:
+                    print('*** Temp convergence save ***')
+                    with open(self.data_file, 'w') as f:
+                        json.dump(all_data, f)
+                
                 full_root = os.path.join(self.cwd, root)
                 if full_root in running_dirs:
                     if verbose: print('Currently Running.')
