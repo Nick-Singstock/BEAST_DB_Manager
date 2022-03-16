@@ -219,7 +219,7 @@ class jdft_manager():
         # look through all calc folders for converged calcs, unconverged calcs, and calcs to setup
         ncalcs = 0
         ndos = 0
-        dos_per_file = 5
+        dos_per_file = 40
         add_inputs = []
         run_new = []
         rerun = []
