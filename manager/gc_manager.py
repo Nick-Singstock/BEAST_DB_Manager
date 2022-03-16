@@ -477,6 +477,7 @@ class jdft_manager():
         if self.args.save_dos == 'True':
             with open(opj(results_folder, 'all_dos.json'),'w') as f:
                 json.dump(all_dos, f)
+            print('\n***** Saved All DOS *****\n')
         
         return all_data, add_inputs, rerun, run_new, failed_calcs, ncalcs
 
