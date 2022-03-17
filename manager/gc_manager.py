@@ -218,6 +218,7 @@ class jdft_manager():
         '''
         # look through all calc folders for converged calcs, unconverged calcs, and calcs to setup
         ncalcs = 0
+        nnewcalcs = 0
         ndos = 0
         dos_per_file = 40
         add_inputs = []
@@ -276,11 +277,6 @@ class jdft_manager():
                     print('\nFolder found at:', root)
                 
                 ncalcs += 1
-                if ncalcs % 100 == 0:
-                    print('*** Temp convergence save ***')
-                    with open(self.data_file, 'w') as f:
-                        json.dump(all_data, f)
-                
                 full_root = os.path.join(self.cwd, root)
                 if full_root in running_dirs:
                     if verbose: print('Currently Running.')
@@ -295,6 +291,12 @@ class jdft_manager():
                 if root in all_data['converged']:
                     if verbose: print('Previously Converged.')
                     continue
+                
+                nnewcalcs += 1
+                if nnewcalcs % 100 == 0:
+                    print('*** Temp convergence save ***')
+                    with open(self.data_file, 'w') as f:
+                        json.dump(all_data, f)
                 
                 # get type of calculation
                 calc_type = None
