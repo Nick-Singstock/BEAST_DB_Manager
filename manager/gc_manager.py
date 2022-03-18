@@ -288,7 +288,10 @@ class jdft_manager():
                     rerun.append(root)
                     continue
                 
-                if root in all_data['converged']:
+                if (self.args.save_dos == 'True' and root in all_data['converged'] 
+                    and root not in dos_tracker):
+                    print('Previously Converged. Adding DOS.')
+                elif root in all_data['converged']:
                     if verbose: print('Previously Converged.')
                     continue
                 
