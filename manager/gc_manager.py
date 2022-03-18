@@ -251,6 +251,8 @@ class jdft_manager():
                     dos_file_count += 1
                     all_dos = {}
                 else:
+                    print('Reading DOS file: '+ opj('dos', 
+                                  'all_dos_'+str(dos_file_count)+'.json'))
                     with open(opj(results_folder, 'dos', 
                                   'all_dos_'+str(dos_file_count)+'.json'),'w') as f:
                         all_dos = json.load(f) 
