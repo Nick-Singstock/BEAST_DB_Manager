@@ -246,6 +246,7 @@ class jdft_manager():
                 dos_file_list = [v['n'] for k,v in dos_tracker.items()]
                 dos_file_count = int(np.max(dos_file_list))
                 nmax_dos = len([n for n in dos_file_list if n == dos_file_count])
+                print('Stats:', dos_file_count, nmax_dos, dos_per_file)
                 if nmax_dos == dos_per_file:
                     # already fully saved to this file
                     dos_file_count += 1
