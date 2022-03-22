@@ -652,7 +652,10 @@ class helper():
                     
                     all_site_data[nsite] = {'binding_energy': binding_energy, 'site': binding_site,
                                             #'site_data': binding_site_data, 
-                                            'nelec_diff': nelec_diff}
+                                            'nelec_diff': nelec_diff, 
+                                            'dist': binding_site_data['dist'],
+                                            'nbonds': binding_site_data['nbonds'],
+                                            'ads_atom': binding_site_data['ads']}
                     if min_energy is None or binding_energy < min_energy:
                         min_energy = binding_energy
                         min_site = (binding_site, nsite)
