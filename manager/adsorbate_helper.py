@@ -125,12 +125,12 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
     # triangluation of 2 or 3 atom numbers
     elif type(loc) == str and '{' in loc and '}' in loc:
         site_numbers = [int(s) for s in loc.replace('{','').replace('}','').split(',')]
-        if len(site_numbers) not in [2, 3]:
-            print('ERROR: triangulation only allowed between 2 or 3 atoms.')
+        if len(site_numbers) not in [2, 3, 4]:
+            print('ERROR: triangulation only allowed between 2, 3 or 4 atoms.')
             return []
         temp_list = []
         ads_shift = np.array([0,0,0])
-        ads_shift[_z_dir] = 1.2 #TODO: test, previosuly ads_distance
+        ads_shift[_z_dir] = 1.4 # 1.4 seems safe, previosuly ads_distance
         for st in ads_sts:
             asf = AdsorbateSiteFinder(st)
             

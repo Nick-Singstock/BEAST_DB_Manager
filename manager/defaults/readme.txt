@@ -61,7 +61,7 @@ Biases: [None, 0, -0.1, -0.5]
 # MOL_01 must be in 'molecules/' folder
 # list defines adsorbtion sites, options are: 
    [atom #, 'ontop', 'hollow', 'bridge', 'all', el symbol, (x,y,z) position, 
-    '{site_1,site_2,site_2}' triangulation (with apostrophes)]
+    {site_1,site_2,site_2} centroid (2, 3 or 4 site centroid point for bridge and hollow sites)]
 -MOL_01: [10, 11] # places MOL_01 on atoms 10 and 11
 
 # Note: Molecules are also run in 'calcs/molecules/MOL/BIASES'
