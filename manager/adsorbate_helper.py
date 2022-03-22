@@ -99,13 +99,14 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
               ads_distance = 2.0, min_dist = 0.5, freeze_depth = 1.8, _z_dir = 2):
     # place adsorbate on all sites within height
     if loc in ['All', 'Hollow', 'Ontop', 'Bridge', 'all', 'hollow', 'ontop', 'bridge']:
+        print('Placing adsorbate with Pymatgen, may cause issues: '+loc)
         temp_list = []
         if loc in ['All','all']: sites_to_make = sites_allowed
         elif loc in ['Hollow','hollow']: sites_to_make = ['hollow']
         elif loc in ['Bridge','bridge']: sites_to_make = ['bridge']
         elif loc in ['Ontop','ontop']: sites_to_make = ['ontop']
-        print('WARNING: location '+loc+' has not been checked extensively for errors,'+
-              ' please check structures.')
+#        print('WARNING: location '+loc+' has not been checked extensively for errors,'+
+#              ' please check structures.')
         for st in ads_sts:
             height = 4
             asf = AdsorbateSiteFinder(st, height = height)
@@ -120,6 +121,34 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
                     continue
                 temp_list.append(assign_selective_dynamics(new_st, freeze_depth))
         return temp_list
+    
+    # triangluation of 2 or 3 atom numbers
+    elif type(loc) == str and '{' in loc and '}' in loc:
+        site_numbers = [int(s) for s in loc.replace('{','').replace('}','').split(',')]
+        if len(site_numbers) not in [2, 3]:
+            print('ERROR: triangulation only allowed between 2 or 3 atoms.')
+            return []
+        temp_list = []
+        ads_shift = np.array([0,0,0])
+        ads_shift[_z_dir] = 1.2 #TODO: test, previosuly ads_distance
+        for st in ads_sts:
+            asf = AdsorbateSiteFinder(st)
+            
+            # get centroid between 2 or 3 points for hollow or bridge sites 
+            all_sites = []
+            for nsite in site_numbers:
+                all_sites.append(surface_st.cart_coords[nsite-1] + ads_shift) 
+            all_sites = np.array(all_sites)
+            centroid_point = np.mean(all_sites, axis=0)
+                
+            new_st = asf.add_adsorbate(mol.copy(), centroid_point, reorient = True)
+            if any([any([ np.sqrt(np.sum([(x1.coords[i] - x2.coords[i])**2 for i in range(3)]))
+                             < min_dist for x2 in new_st.sites if x2 != x1]) for x1 in new_st.sites]):
+                    print('Distance Error in Adsorbate Adding')
+                    continue
+            temp_list.append(assign_selective_dynamics(new_st, freeze_depth))
+        return temp_list
+        
     # place adsorbate on highest atom of type "loc"
     elif type(loc) == str and loc != 'center':
         el = loc
@@ -145,6 +174,7 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
                     continue
             temp_list.append(assign_selective_dynamics(new_st, freeze_depth))
         return temp_list
+    
     # place adsorbate on specific site
     elif type(loc) == int:
         temp_list = []
@@ -160,6 +190,7 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
                     continue
             temp_list.append(assign_selective_dynamics(new_st, freeze_depth))
         return temp_list
+    
     # place adsorbate at center of lattice
     elif loc == 'center':
         max_site = surface_st.sites[0]
