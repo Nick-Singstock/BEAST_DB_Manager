@@ -1603,7 +1603,7 @@ class jdft_manager():
                     self.run('cp '+os.path.join(root, file)+' '+os.path.join(backup_f, file))
         print('\nCalculation files backed up successfully.')
     
-    def remove_wfns(self, converged: list[str]) -> None:
+    def remove_wfns(self, converged):
         sleep(5)
         cwd = os.getcwd()
         for root in converged:
