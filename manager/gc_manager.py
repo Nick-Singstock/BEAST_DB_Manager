@@ -191,6 +191,8 @@ class jdft_manager():
                             'failed calcs (default False)',type=str, default='False')
         parser.add_argument('-fr', '--full_rerun', help='Rerun ALL calculations. Be careful '+
                             'with this. Calcs start at current state. (default False)',type=str, default='False')
+        parser.add_argument('--clean_wfns', help='Delete converged wfns  to reduce mem. Be careful '+
+                            'with this. (default False)',type=str, default='False')
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -1600,6 +1602,17 @@ class jdft_manager():
                     if convert_contcar and file == 'POSCAR': continue
                     self.run('cp '+os.path.join(root, file)+' '+os.path.join(backup_f, file))
         print('\nCalculation files backed up successfully.')
+    
+    def remove_wfns(self, converged: list[str]) -> None:
+        sleep(5)
+        cwd = os.getcwd()
+        for root in converged:
+            os.chdir(root)
+            files = os.listdir()
+            if 'wfns' in files:
+                print('Removing wfns: '+root)
+                self.run('rm wfns')
+            os.chdir(cwd)
 
     def manager(self):
         '''
@@ -1696,6 +1709,10 @@ class jdft_manager():
         if self.args.backup == 'True':
             print('\n\nBacking up main files (this may take awhile)')
             self.backup_calcs()
+        
+        if self.args.clean_wfns == 'True':
+            print('\nRemoving wfns from converged directories (5s pause to cancel)')
+            self.remove_wfns(all_data['converged'])
             
         print('----- Done -----')
         if ncalcs is not None:
@@ -1725,7 +1742,7 @@ run_command = 'python '+ os.path.join(manager_home, 'sub_JDFTx.py')
 
 # all files to include in backup
 files_to_backup = ['CONTCAR','POSCAR','inputs','convergence','opt.log','neb.log','Ecomponents',
-                   'tinyout', # this could be removed to reduce data? 
+                   'tinyout', 
                    ]    
     
 if __name__ == '__main__' and run_script:
