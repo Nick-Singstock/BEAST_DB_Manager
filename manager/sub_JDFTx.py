@@ -45,7 +45,9 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     writelines+='#SBATCH -e '+out+'-%j.err'+'\n'
     
     if comp == 'Eagle' and gpu != 'True':
-        writelines+='#SBATCH -N 1 -n 2 -c 18 --hint=nomultithread'+'\n'
+        #writelines+='#SBATCH -N 1 -n 2 -c 18 --hint=nomultithread'+'\n'
+        writelines+='#SBATCH -N '+str(nodes)+' -n '+str(2*nodes)+' -c '+str(18*nodes)
+        writelines+=' --hint=nomultithread'+'\n'
         
     elif comp == 'Perlmutter': 
         writelines+='#SBATCH -q regular\n'
