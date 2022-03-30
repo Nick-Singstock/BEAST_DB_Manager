@@ -124,7 +124,10 @@ class helper():
 #            if 'nElectrons' in line and initial_electrons is None:
 #                initial_electrons = float(line.split()[1])
             if 'FillingsUpdate' in line:
-                final_electrons = float(line.split()[4])
+                try:
+                    final_electrons = float(line.split()[4])
+                except:
+                    pass
             
             if 'Ionic positions in cartesian coordinates' in line:
                 record_ions = True
