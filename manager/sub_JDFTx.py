@@ -44,13 +44,10 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     writelines+='#SBATCH -o '+out+'-%j.out'+'\n'
     writelines+='#SBATCH -e '+out+'-%j.err'+'\n'
     
-    if comp == 'Eagle':
+    if comp == 'Eagle' and gpu != 'True':
         #writelines+='#SBATCH -N 1 -n 2 -c 18 --hint=nomultithread'+'\n'
         writelines+='#SBATCH -N '+str(nodes)+' -n '+str(2*nodes)+' -c '+str(18*nodes)
         writelines+=' --hint=nomultithread'+'\n'
-    
-        if gpu == 'True':
-            writelines+='#SBATCH --partition=gpu' + '\n'
         
     elif comp == 'Perlmutter': 
         writelines+='#SBATCH -q regular\n'
@@ -66,6 +63,10 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+='#SBATCH --tasks '+str(np)+'\n'
         writelines+='#SBATCH --nodes '+str(nodes)+'\n'
         writelines+='#SBATCH --ntasks-per-node '+str(cores)+'\n'
+        
+        if comp == 'Eagle' and gpu == 'True':
+            writelines+='#SBATCH --partition=gpu' + '\n'
+
     
     if alloc=='environ':
         if comp == 'Perlmutter' and gpu == 'True':
