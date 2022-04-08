@@ -533,19 +533,22 @@ class helper():
             # run system analysis function to get metrics 
             analysis[entry]['analyzed'] = self.system_analysis(analysis[entry]['data'])
         
-        # make analysis.csv
-        self.csv_analysis(analysis)
-        
         # save data
         file = 'results/analyzed.json'
         with open(file,'w') as f:
             json.dump(analysis, f)
+        
+        # make analysis.csv
+        self.csv_analysis(analysis)
+        
         return None
     
     def order_bias(self, bias_list):
-        bias_floats = [float(b.replace('V','')) for b in bias_list]
+        bias_floats = [float(b.replace('V','')) for b in bias_list if b not in ['No_bias']]
         bias_floats.sort()
         bias_sort = [b for bf in bias_floats for b in bias_list if float(b.replace('V','')) == bf]
+        if 'No_bias' in bias_list:
+            bias_sort.append('No_bias')
         assert len(bias_sort) == len(bias_list), 'METAERROR: Sorted bias list is incorrect length.'
         return bias_sort
     

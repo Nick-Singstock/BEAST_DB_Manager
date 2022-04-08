@@ -255,6 +255,7 @@ if __name__ == '__main__':
                       +'\pdos: JDFTx tag with simplified options (e.g.: pdos C s p px py pz) \n'
                       +'\lattice-type: specifies periodic boundaries: bulk/periodic (xyz), slab/surf (xy), mol (none) \n'
                       +'\Step: Used in convergence file to indicate steps of a multi-step job \n'
+                      +'\autodos: If True, run all pdos tags for the system\n'
                       )
         print(all_inputs)
         end = True

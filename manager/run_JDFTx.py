@@ -199,7 +199,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
 
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
-                  'ion','climbing','pH','ph',
+                  'ion','climbing','pH','ph',  'autodos',
                   'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
                   'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type']
@@ -531,8 +531,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
             # set atoms object
             atoms = read_atoms(restart)
             
+            autodos_tag = True if ('autodos' in script_cmds and script_cmds['autodos'] == 'True') else False
             # auto add all pdos for single points and clean cmds
-            if max_steps in [0, 1] and autodoscmd:
+            if (max_steps in [0, 1] and autodoscmd) or autodos_tag:
                 cmds = autodos_sp(cmds, atoms)
             # clean repeat dos cmds
             cmds = clean_doscmds(cmds)
