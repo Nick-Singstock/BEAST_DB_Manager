@@ -546,11 +546,14 @@ class helper():
     def order_bias(self, bias_list):
         bias_floats = [float(b.replace('V','')) for b in bias_list if b not in ['No_bias']]
         bias_floats.sort()
-        bias_sort = [b for bf in bias_floats for b in bias_list if float(b.replace('V','')) == bf]
+        bias_sort = [b for bf in bias_floats for b in bias_list if 
+                     b != 'No_bias' and float(b.replace('V','')) == bf]
         if 'No_bias' in bias_list:
             bias_sort.append('No_bias')
         assert len(bias_sort) == len(bias_list), 'METAERROR: Sorted bias list is incorrect length.'
         return bias_sort
+    
+        
     
     def csv_analysis(self, analysis):
         string = 'Ref. Type/Surf,Atom/Mol/Ads,Site_Number,Site_Atom,Ref./Ads. Energies at Biases (eV)\n'
