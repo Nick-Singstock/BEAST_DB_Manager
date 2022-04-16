@@ -58,6 +58,12 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         if gpu == 'True':
             writelines+='#SBATCH -C gpu\n'
             writelines+='#SBATCH --gpus-per-task=1\n'
+    
+    elif comp in ['Cori']:
+        writelines+='#SBATCH -q regular\n'
+        writelines+='#SBATCH --tasks '+str(np)+'\n'
+        writelines+='#SBATCH --nodes '+str(nodes)+'\n'
+        writelines+='#SBATCH --ntasks-per-node '+str(cores)+'\n'
         
     else:
         writelines+='#SBATCH --tasks '+str(np)+'\n'
@@ -71,7 +77,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     if alloc=='environ':
         if comp == 'Perlmutter' and gpu == 'True':
             writelines+='#SBATCH -A '+os.environ['JDFTx_allocation']+'_g\n'
-        elif comp == 'Perlmutter' and gpu != 'True':
+        elif comp in ['Perlmutter','Cori'] and gpu != 'True':
             writelines+='#SBATCH -A '+os.environ['JDFTx_allocation']+'\n'
         else:
             writelines+='#SBATCH --account='+os.environ['JDFTx_allocation']+'\n'
@@ -94,8 +100,10 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
 #    if comp == 'Eagle' and gpu != 'True':
 #        writelines+='#SBATCH --hint=nomultithread'
     
-    if comp == 'Perlmutter':
+    if comp in ['Perlmutter']:
         writelines+='\nexport JDFTx_NUM_PROCS=1\n' 
+    if comp in ['Cori']:
+        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
     if comp == 'Summit':
         writelines+='SLURM_EXPORT_ENV=ALL\n'
         writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
@@ -110,7 +118,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+='export JDFTX_MEMPOOL_SIZE=36000'+'\n'        #(prev. 8192)    256 GB / ntasks (4)
         writelines+='export MPICH_GPU_SUPPORT_ENABLED=1'+'\n\n'
     
-    if modules != '' and comp not in ['Perlmutter']:
+    if modules != '' and comp not in ['Perlmutter','Cori']:
         writelines+='\nmodule load '+modules+'\n\n'
 
     if short_recursive == 'True': # removed time constraint
