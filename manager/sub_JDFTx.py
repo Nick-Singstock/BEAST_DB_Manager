@@ -278,13 +278,14 @@ if __name__ == '__main__':
 
     # Multiple write options depending on computer
     if not end:
-        if comp == 'Eagle' or comp == 'Summit' or comp == 'Perlmutter':
+        if comp in ['Eagle','Summit','Perlmutter','Cori']:
             write(args.nodes,args.cores,args.time,args.outfile,args.allocation,args.qos,		
                   script, args.recursive, args.processes, args.gpu, args.test_queue)
         elif comp == 'Bridges2':
             write_bridges(args.nodes,args.cores,args.time,outfile,args.partition,args.qos,
                           script, args.recursive, args.processes)
-        
+        else:
+            assert False, 'Computer not recognized!'
         #os.system('sbatch submit.sh')
         subprocess.call('sbatch submit.sh', shell=True)
     
