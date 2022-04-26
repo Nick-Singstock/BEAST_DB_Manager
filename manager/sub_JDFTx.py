@@ -35,7 +35,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     writelines = '#!/bin/bash'+'\n'
     writelines+='#SBATCH -J '+out+'\n'
     if testing:
-        if comp == 'Summit':
+        if comp in ['Summit','Cori']:
             writelines+='#SBATCH --time=0:30:00'+'\n'
         elif comp == 'Eagle':
             writelines+='#SBATCH --time=1:00:00'+'\n'
@@ -60,10 +60,14 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH --gpus-per-task=1\n'
     
     elif comp in ['Cori']:
-        writelines+='#SBATCH -q regular\n'
-        writelines+='#SBATCH --tasks '+str(np)+'\n'
-        writelines+='#SBATCH --nodes '+str(nodes)+'\n'
-        writelines+='#SBATCH --ntasks-per-node '+str(cores)+'\n'
+        if testing:
+            writelines+='#SBATCH -q debug\n'
+        else:
+            writelines+='#SBATCH -q regular\n'
+        writelines+='#SBATCH -N '+str(nodes)+'\n'
+        writelines+='#SBATCH -n '+str(nodes*2)+'\n'
+        writelines+='#SBATCH -c '+str(nodes*32)+'\n'
+        writelines+='#SBATCH -C haswell\n'
         
     else:
         writelines+='#SBATCH --tasks '+str(np)+'\n'
@@ -102,8 +106,8 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     
     if comp in ['Perlmutter']:
         writelines+='\nexport JDFTx_NUM_PROCS=1\n' 
-    if comp in ['Cori']:
-        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
+#    if comp in ['Cori']:
+#        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
     if comp == 'Summit':
         writelines+='SLURM_EXPORT_ENV=ALL\n'
         writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n' # previously np
@@ -118,7 +122,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+='export JDFTX_MEMPOOL_SIZE=36000'+'\n'        #(prev. 8192)    256 GB / ntasks (4)
         writelines+='export MPICH_GPU_SUPPORT_ENABLED=1'+'\n\n'
     
-    if modules != '' and comp not in ['Perlmutter','Cori']:
+    if modules != '' and comp not in ['Perlmutter',]:
         writelines+='\nmodule load '+modules+'\n\n'
 
     if short_recursive == 'True': # removed time constraint
