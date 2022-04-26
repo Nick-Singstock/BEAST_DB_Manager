@@ -296,6 +296,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
         exe_cmd = 'mpirun --bind-to none '+jdftx_exe
     elif comp == 'Cori':
         exe_cmd = 'srun --cpu-bind=cores -c 16 '+jdftx_exe
+        conv_logger('Running on Cori.')
     else:
         jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
         exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
