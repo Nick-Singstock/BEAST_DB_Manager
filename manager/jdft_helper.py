@@ -483,8 +483,12 @@ class helper():
         if ope(opj(root, 'tinyout')):
             print('tinyout already exists. Skipping.')
             return 
-        with open(opj(root, 'out'), 'r') as f:
-            out = f.read()
+        try:
+            with open(opj(root, 'out'), 'r') as f:
+                out = f.read()
+        except:
+            print('ERROR: tinyout/out file not found for converged calc.')
+            return 
         tinyout = ''
         for line in out.split('\n'):
             if 'Start date and time' in line:
