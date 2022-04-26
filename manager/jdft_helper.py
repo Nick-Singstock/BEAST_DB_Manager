@@ -103,10 +103,16 @@ class helper():
     
     def read_outfile(self, folder, contcar = 'None'):
         try:
-            with open(os.path.join(folder, 'out'), 'r', errors='ignore') as f:
-                out_text = f.read()
+            if ope(opj(folder, 'out')):
+                with open(opj(folder, 'out'), 'r', errors='ignore') as f:
+                    out_text = f.read()
+            elif ope(opj(folder, 'tinyout')):
+                with open(opj(folder, 'tinyout'), 'r', errors='ignore') as f:
+                    out_text = f.read()
+            else:
+                assert False
         except:
-            print('Error reading out file.')
+            print('Error reading out/tinyout file.')
             return False
         site_data = {}
         record_forces, record_ions = False, False
@@ -474,6 +480,9 @@ class helper():
     def make_tinyout(self, root):
         # only run for newly converged calcs
         # creates 'tinyout' which only has last 'out' calculation section
+        if ope(opj(root, 'tinyout')):
+            print('tinyout already exists. Skipping.')
+            return 
         with open(opj(root, 'out'), 'r') as f:
             out = f.read()
         tinyout = ''
