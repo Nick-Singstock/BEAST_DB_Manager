@@ -345,7 +345,7 @@ class helper():
             return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
                 'inputs': inputs, 'current_energy': current_energy,
                 'converged': conv, 'contcar': contcar, 
-                'final_energy': 'None', 'energy_units': 'eV', 'root': folder}
+                'final_energy': 'None', 'energy_units': 'H', 'root': folder}
         
         ecomp = self.read_Ecomponents(folder)
         eigStats = self.read_eigStats(folder)
@@ -375,7 +375,7 @@ class helper():
                 'converged': conv, 'contcar': contcar, 'nfinal': nfinal,
                 'final_energy': 'None' if not conv else current_energy,
                 'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag,
-                'convergence_file': convergence, 'eigStats': eigStats, 'energy_units': 'eV',
+                'convergence_file': convergence, 'eigStats': eigStats, 'energy_units': 'H',
                 'atom_forces': atom_forces, 'root': folder}
         
     def get_neb_data(self, folder, bias):
