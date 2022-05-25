@@ -821,6 +821,7 @@ class helper():
                 'OC': {'refs': ['CO'], 'coeffs': [1,]},
                 'OCO': {'refs': ['CO2'], 'coeffs': [1]},
                 'OCHO': {'refs': ['CO2','H'], 'coeffs': [1,1]},
+                'HCOO': {'refs': ['CO2','H'], 'coeffs': [1,1]},
                 'OCHOH': {'refs': ['CO2','H'], 'coeffs': [1,2]},
                 'OCH': {'refs': ['CHO'], 'coeffs': [1]},
                 'OCH2': {'refs': ['CO','H'], 'coeffs': [1,2]},
