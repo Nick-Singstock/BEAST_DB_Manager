@@ -15,9 +15,14 @@ from pymatgen.core.structure import Molecule
 import os
 import json
 from itertools import permutations
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-mpl.rcdefaults()
+
+try:
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    mpl.rcdefaults()
+except:
+    print('mpl not imported correctly.')
+    pass
 
 hartree_to_ev = 27.2114
 #hartree_to_ev = 1
