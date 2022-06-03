@@ -35,7 +35,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     writelines = '#!/bin/bash'+'\n'
     writelines+='#SBATCH -J '+out+'\n'
     if testing:
-        if comp in ['Summit','Cori']:
+        if comp in ['Summit','Cori','Alpine']:
             writelines+='#SBATCH --time=0:30:00'+'\n'
         elif comp == 'Eagle':
             writelines+='#SBATCH --time=1:00:00'+'\n'
@@ -100,6 +100,11 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH --partition shas-testing\n'
         else:
             writelines+='#SBATCH --partition shas\n'    
+    
+    if comp == 'Alpine':
+        writelines+='#SBATCH --partition amilan-ucb\n'
+        writelines+='#SBATCH --qos=normal\n'
+        writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n'
     
 #    if comp == 'Eagle' and gpu != 'True':
 #        writelines+='#SBATCH --hint=nomultithread'
@@ -283,7 +288,7 @@ if __name__ == '__main__':
 
     # Multiple write options depending on computer
     if not end:
-        if comp in ['Eagle','Summit','Perlmutter','Cori']:
+        if comp in ['Eagle','Summit','Perlmutter','Cori','Alpine']:
             write(args.nodes,args.cores,args.time,args.outfile,args.allocation,args.qos,		
                   script, args.recursive, args.processes, args.gpu, args.test_queue)
         elif comp == 'Bridges2':
