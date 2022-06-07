@@ -113,7 +113,7 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
 #        print('WARNING: location '+loc+' has not been checked extensively for errors,'+
 #              ' please check structures.')
         for st in ads_sts:
-            height = 4
+            height = 2 #4
             asf = AdsorbateSiteFinder(st, height = height)
             sites = asf.find_adsorption_sites(distance = ads_distance, 
                                               symm_reduce=0.05, near_reduce=0.05,
