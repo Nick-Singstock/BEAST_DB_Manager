@@ -24,10 +24,12 @@ except:
 def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testing, get_header = False):
     try:
         modules=' '.join(os.environ['JDFTx_mods'].split('_'))
-        comp=os.environ['JDFTx_Computer']
     except:
         modules='' 
-        comp='Eagle'
+    try:
+        comp=os.environ['JDFTx_Computer']
+    except:
+        assert False, 'ERROR: No JDFTx_Computer set!'
     
 #    if short_recursive == 'True':
 #        if time != 4: 
