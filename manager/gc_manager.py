@@ -193,6 +193,8 @@ class jdft_manager():
                             'with this. Calcs start at current state. (default False)',type=str, default='False')
         parser.add_argument('--clean_wfns', help='Delete converged wfns  to reduce mem. Be careful '+
                             'with this. (default False)',type=str, default='False')
+        parser.add_argument('-bundle', '--bundle_jobs', help='Bundle all jobs together. Useful for Cori / Perl.'+
+                            ' (default False)',type=str, default='False')
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -1543,7 +1545,7 @@ class jdft_manager():
         if 'running.txt' not in os.listdir(shell_folder):
             return []
 
-    def run_all_parallel(self, roots):
+    def run_all_parallel(self, roots, bundle = False):
         '''
         This function handles submitting clusters of calculations together on single nodes
         '''
@@ -1557,6 +1559,11 @@ class jdft_manager():
         total_nodes = int(np.ceil(total_calcs / max_per_node))
         cores_per_calc = int(np.floor(cores_per_node / max_per_node))
         
+        if bundle:
+            total_nodes = total_calcs
+            max_per_node = total_calcs
+            cores_per_calc = cores_per_node
+        
         shells = []
         shell_folder = 'tmp_parallel'
         if os.path.exists(shell_folder):
@@ -1566,14 +1573,21 @@ class jdft_manager():
         else:
             os.mkdir(shell_folder)
         
-        # write calcs for each node to tmp_parallel folder
-        for i in range(total_nodes):
-            # TODO: set cores per calc to update based on number of calcs in sub_roots
-            sub_roots = roots[i*max_per_node:(i+1)*max_per_node]
-            out_file = 'submit_'+str(i)
-            write_parallel(sub_roots, self.cwd, cores_per_node, cores_per_calc, self.args.run_time, out_file, 
-                           shell_folder, self.args.qos)
+        if bundle:
+            out_file = 'submit_bundle'
+            write_parallel(roots, self.cwd, cores_per_node, cores_per_calc, self.args.run_time, out_file, 
+                           shell_folder, self.args.qos, nodes = total_nodes)
             shells.append(out_file + '.sh')
+        
+        else:
+            # write calcs for each node to tmp_parallel folder
+            for i in range(total_nodes):
+                # TODO: set cores per calc to update based on number of calcs in sub_roots
+                sub_roots = roots[i*max_per_node:(i+1)*max_per_node]
+                out_file = 'submit_'+str(i)
+                write_parallel(sub_roots, self.cwd, cores_per_node, cores_per_calc, self.args.run_time, out_file, 
+                               shell_folder, self.args.qos)
+                shells.append(out_file + '.sh')
         
         # submit shell scripts
         os.chdir(shell_folder)
@@ -1634,6 +1648,7 @@ class jdft_manager():
                 
         # get parallel tag
         parallel = self.args.parallel
+        bundle = True if self.args.bundle_jobs == 'True' else False
         
         # scan through all subfolders to check for converged structures 
         add_inputs = []
@@ -1666,7 +1681,7 @@ class jdft_manager():
             if self.args.rerun_unconverged == 'True' and len(rerun) > 0: #self.args.check_calcs == 'True' and 
 #                print('\nRerunning unconverged calculations')
                 self.update_rerun(rerun)
-                if parallel == 1:
+                if parallel == 1 and not bundle:
                     self.rerun_calcs(rerun)
                     print('\n',len(rerun),'calcs rerun.')
         
@@ -1692,7 +1707,7 @@ class jdft_manager():
         if self.args.run_new == 'True' and len(new_folders + inputs_added + run_new) > 0:
             if len(run_new) > 0:
                 h.update_run_new(run_new)
-            if parallel == 1:
+            if parallel == 1 and not bundle:
                 self.run_new_calcs(new_folders + inputs_added + run_new)
                 print('\n',len(new_folders + inputs_added + run_new),'new calcs run.')
         
@@ -1702,8 +1717,8 @@ class jdft_manager():
             all_roots += new_folders + inputs_added + run_new
         if self.args.rerun_unconverged == 'True':
             all_roots += rerun
-        if parallel > 1:
-            self.run_all_parallel(all_roots)
+        if parallel > 1 or bundle:
+            self.run_all_parallel(all_roots, bundle = bundle)
         
         # backup calcs if requested
         if self.args.backup == 'True':
