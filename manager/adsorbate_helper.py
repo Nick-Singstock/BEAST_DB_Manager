@@ -574,17 +574,14 @@ def write_parallel(roots, cwd, total_cores, cores_per_job, time, out, shell_fold
     with open(os.path.join(shell_folder, out+'.sh'),'w') as f:
         f.write(writelines)
         
-def write_parallel_bundle(roots, cwd, cores_per_node, time, out, alloc, shell_folder,
-                          qos, nodes, gpu = 'False', procs = 2, testing = 'False',
-                          short_recursive = 'False'):   
+def write_parallel_bundle(roots, cwd, nodes, cores_per_node, time, out, 
+                          shell_folder, qos, gpu = 'False', 
+                          procs = 2, testing = 'False', short_recursive = 'False'):   
     # get all necessary inputs
     script = os.path.join(os.environ['JDFTx_manager_home'], 'run_JDFTx.py')
     if gpu:
         script += ' -g True'
-    try:
-        alloc = os.environ['JDFTx_allocation']
-    except:
-        assert False, 'ERROR: No JDFTx_allocation set.'
+    alloc = 'environ'
     
     writelines = sub_write(nodes, cores_per_node, time, out, alloc, qos, script, short_recursive, 
                            procs, gpu, testing, get_header = True)
