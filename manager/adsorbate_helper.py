@@ -578,7 +578,7 @@ def write_parallel_bundle(roots, cwd, cores_per_node, time, out, alloc, shell_fo
                           qos, nodes, gpu = 'False', procs = 2, testing = 'False',
                           short_recursive = 'False'):   
     # get all necessary inputs
-    script = os.path.join(os.environ['JDFTx_Tools_dir'], 'run_JDFTx.py')
+    script = os.path.join(os.environ['JDFTx_manager_home'], 'run_JDFTx.py')
     if gpu:
         script += ' -g True'
     try:
