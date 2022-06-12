@@ -15,6 +15,7 @@ from pymatgen.core.structure import Molecule
 import os
 import json
 from itertools import permutations
+from sub_JDFTx import write as sub_write
 
 try:
     import matplotlib.pyplot as plt
@@ -568,6 +569,33 @@ def write_parallel(roots, cwd, total_cores, cores_per_job, time, out, shell_fold
         writelines+=('python ' + script +' -d '+ os.path.join(cwd, root) + ' > '
                      + os.path.join(cwd, root, 'out_file') + add + '\n')
         
+    writelines+='exit 0'+'\n'
+
+    with open(os.path.join(shell_folder, out+'.sh'),'w') as f:
+        f.write(writelines)
+        
+def write_parallel_bundle(roots, cwd, cores_per_node, time, out, alloc, shell_folder,
+                          qos, nodes, gpu = 'False', procs = 2, testing = 'False',
+                          short_recursive = 'False'):   
+    # get all necessary inputs
+    script = os.path.join(os.environ['JDFTx_Tools_dir'], 'run_JDFTx.py')
+    if gpu:
+        script += ' -g True'
+    try:
+        alloc = os.environ['JDFTx_allocation']
+    except:
+        assert False, 'ERROR: No JDFTx_allocation set.'
+    
+    writelines = sub_write(nodes, cores_per_node, time, out, alloc, qos, script, short_recursive, 
+                           procs, gpu, testing, get_header = True)
+    
+    for i, root in enumerate(roots):
+        if i+1 < len(roots):
+            add = ' &'
+        else:
+            add = ' && fg'
+        writelines+=('python ' + script +' -d '+ os.path.join(cwd, root) + ' > '
+                     + os.path.join(cwd, root, 'out_file') + add + '\n')
     writelines+='exit 0'+'\n'
 
     with open(os.path.join(shell_folder, out+'.sh'),'w') as f:

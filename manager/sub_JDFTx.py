@@ -21,7 +21,14 @@ try:
 except:
     comp='Eagle'
 
-def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testing):
+def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testing, get_header = False):
+    try:
+        modules=' '.join(os.environ['JDFTx_mods'].split('_'))
+        comp=os.environ['JDFTx_Computer']
+    except:
+        modules='' 
+        comp='Eagle'
+    
 #    if short_recursive == 'True':
 #        if time != 4: 
 #            print('Time limit set to 04:00:00 from short_recursive')
@@ -130,6 +137,9 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
     
     if modules != '' and comp not in ['Perlmutter',]:
         writelines+='\nmodule load '+modules+'\n\n'
+
+    if get_header:
+        return writelines
 
     if short_recursive == 'True': # removed time constraint
         # short_recursive command runs timer script before and after JDFT to check if walltime is hit

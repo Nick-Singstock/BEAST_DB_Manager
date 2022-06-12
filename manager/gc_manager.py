@@ -18,7 +18,8 @@ from pymatgen.core.structure import Structure
 from pymatgen.io.vasp.inputs import Kpoints
 import numpy as np
 from adsorbate_helper import (save_structures, add_adsorbates, write_parallel, 
-                              minimum_movement_strs, assign_selective_dynamics)
+                              minimum_movement_strs, assign_selective_dynamics,
+                              write_parallel_bundle)
 from jdft_helper import helper 
 h = helper()
 opj = os.path.join
@@ -1575,8 +1576,9 @@ class jdft_manager():
         
         if bundle:
             out_file = 'submit_bundle'
-            write_parallel(roots, self.cwd, cores_per_node, cores_per_calc, self.args.run_time, out_file, 
-                           shell_folder, self.args.qos, nodes = total_nodes)
+            write_parallel_bundle(roots, self.cwd, cores_per_node, cores_per_calc, self.args.run_time, out_file, 
+                           shell_folder, qos = 'standard', nodes = total_nodes, 
+                           gpu = self.args.gpu, procs = 2)
             shells.append(out_file + '.sh')
         
         else:
