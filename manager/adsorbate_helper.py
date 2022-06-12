@@ -574,8 +574,9 @@ def write_parallel(roots, cwd, total_cores, cores_per_job, time, out, shell_fold
     with open(os.path.join(shell_folder, out+'.sh'),'w') as f:
         f.write(writelines)
         
-def write_parallel_bundle(roots, cwd, nodes, cores_per_node, time, out, 
-                          shell_folder, qos, gpu = 'False', 
+def write_parallel_bundle(roots, cwd, nodes, cores_per_node, 
+                          time, out, shell_folder, 
+                          qos = 'standard', gpu = 'False', 
                           procs = 2, testing = 'False', short_recursive = 'False'):   
     # get all necessary inputs
     script = os.path.join(os.environ['JDFTx_manager_home'], 'run_JDFTx.py')

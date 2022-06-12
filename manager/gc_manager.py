@@ -1576,8 +1576,9 @@ class jdft_manager():
         
         if bundle:
             out_file = 'submit_bundle'
-            write_parallel_bundle(roots, self.cwd, nodes = total_nodes, cores_per_node, self.args.run_time, out_file, 
-                           shell_folder, qos = 'standard', gpu = self.args.gpu, procs = 2)
+            write_parallel_bundle(roots, self.cwd, total_nodes, cores_per_node, 
+                                  self.args.run_time, out_file, shell_folder, 
+                                  qos = 'standard', gpu = self.args.gpu)
             shells.append(out_file + '.sh')
         
         else:
