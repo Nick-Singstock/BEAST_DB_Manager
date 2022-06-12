@@ -48,6 +48,8 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH --time=0:30:00'+'\n'
         elif comp == 'Eagle':
             writelines+='#SBATCH --time=1:00:00'+'\n'
+        elif comp in ['Perlmutter']:
+            writelines+='#SBATCH --time=0:30:00'+'\n'
     else:
         writelines+='#SBATCH --time='+str(time)+':00:00'+'\n'
     writelines+='#SBATCH -o '+out+'-%j.out'+'\n'
@@ -68,7 +70,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH -C gpu\n'
             writelines+='#SBATCH --gpus-per-task=1\n'
     
-    elif comp in ['Cori']:
+    elif comp in ['Cori', 'Perlmutter']:
         if testing:
             writelines+='#SBATCH -q debug\n'
         else:
