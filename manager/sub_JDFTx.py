@@ -61,7 +61,10 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+=' --hint=nomultithread'+'\n'
         
     elif comp == 'Perlmutter': 
-        writelines+='#SBATCH -q regular\n'
+        if testing:
+            writelines+='#SBATCH -q debug\n'
+        else:
+            writelines+='#SBATCH -q regular\n'
         writelines+='#SBATCH -N '+str(nodes)+'\n'
         writelines+='#SBATCH -n '+str(2*nodes)+'\n'
         writelines+='#SBATCH -c '+str(16*nodes)+'\n'                   #TODO: pick better numbers
@@ -70,7 +73,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH -C gpu\n'
             writelines+='#SBATCH --gpus-per-task=1\n'
     
-    elif comp in ['Cori', 'Perlmutter']:
+    elif comp in ['Cori',]:
         if testing:
             writelines+='#SBATCH -q debug\n'
         else:
