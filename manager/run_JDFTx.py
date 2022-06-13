@@ -294,9 +294,12 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
     
     if comp == 'Eagle':
         exe_cmd = 'mpirun --bind-to none '+jdftx_exe
-    elif comp == 'Cori':
+    elif comp in ['Cori',]:
         exe_cmd = 'srun --cpu-bind=cores -c 16 '+jdftx_exe
-        conv_logger('Running on Cori.')
+        conv_logger('Running on Cori with srun.')
+    elif comp in ['Perlmutter']:
+        exe_cmd = 'srun '+jdftx_exe
+        conv_logger('Running on Perl with srun.')
     else:
         jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
         exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
