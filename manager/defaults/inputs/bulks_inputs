@@ -16,7 +16,7 @@ converge-empty-states yes
 ### Lattice / Unit Cell ###
 latt-move-scale 1 1 1 
 lattice-minimize nIterations 100
-symmetries none 
+symmetries automatic 
 #coulomb-interaction Periodic
 #coords-type Lattice
 
