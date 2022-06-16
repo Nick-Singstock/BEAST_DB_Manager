@@ -48,7 +48,7 @@ logfile ase_out
 pseudos GBRV_v1.5
 restart False 
 max_steps 100 
-fmax 0.02
+fmax 0.04
 econv 1e-4
 safe-mode True
 optimizer FIRE

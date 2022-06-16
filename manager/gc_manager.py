@@ -181,7 +181,9 @@ class jdft_manager():
         parser.add_argument('-conv', '--use_convergence', help='If True (default), copy convergence '+
                            'file to new calc folders and update.',
                             type=str, default='True')
-        parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 1000)',
+        parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 350)',
+                            type=int, default=350)
+        parser.add_argument('-kptdb', '--kpoint_density_bulk', help='Bulk Kpoint grid density (default 1000)',
                             type=int, default=1000)
         parser.add_argument('-elec', '--copy_electronic', help='If True, copy electronic state files '+
                            ' to new bias folders based on converged biases (default False).',
@@ -1423,8 +1425,9 @@ class jdft_manager():
             properly_setup.append(root)
         return properly_setup
     
-    def set_input_system_params(self, root, calc_type, kpoint_density = 1000):
+    def set_input_system_params(self, root, calc_type): # kpoint_density = 1000):
         kpoint_density = self.args.kpoint_density
+        kpoint_density_bulk = self.args.kpoint_density_bulk
         # called when setting up new calcs from scratch or setting up calcs from manager_control
         st = Structure.from_file(opj(root, 'POSCAR'))
         tags = h.read_inputs(root)
@@ -1432,7 +1435,7 @@ class jdft_manager():
         if tags['kpoint-folding'] == '*':
             # set kpoint-folding for bulk systems
             if calc_type in ['bulks',]: #'molecules'
-                kpts = Kpoints.automatic_density(st, kpoint_density).as_dict()
+                kpts = Kpoints.automatic_density(st, kpoint_density_bulk).as_dict()
                 tags['kpoint-folding'] = ' '.join([str(k) for k in kpts['kpoints'][0]])
                 
                 if calc_type=='bulks' and self.args.use_convergence == 'True' and ope(opj(root,'convergence')):
