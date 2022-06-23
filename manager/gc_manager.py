@@ -198,6 +198,10 @@ class jdft_manager():
                             'with this. (default False)',type=str, default='False')
         parser.add_argument('-bundle', '--bundle_jobs', help='Bundle all jobs together. Useful for Cori / Perl.'+
                             ' (default False)',type=str, default='False')
+        parser.add_argument('-use_nb', '--use_no_bias_structure', help='Whether surface and ads calcs should'+
+                            ' be upgraded from no_bias or 0V converged calcs (default False).'+
+                            ' False = calcs are independently setup and run. Should be used with -elec tag.',
+                            type=str, default='False')
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -638,6 +642,7 @@ class jdft_manager():
         Sets up all new calculations based on inputs from manager_control.txt
         '''
         sd = True if self.args.selective_dynamics == 'True' else False
+        use_no_bias = True if self.args.use_no_bias_structure == 'True' else False
         
         # Done: remove dependence upon No_bias calculation
         
@@ -723,10 +728,9 @@ class jdft_manager():
                         # upgrade from no_bias (which exists)
                         self.upgrade_calc(root, nomu_root, bias, v['tags'] if 'tags' in v else [])
                         new_roots.append(root)
-                    elif 'No_bias' not in v['biases']:
+                    elif 'No_bias' not in v['biases'] and not use_no_bias:
                         # No bias not requested, run directly 
-                        good_setup = self.make_calc(calc_folder, surf, root, v, bias, 
-                                                    sd = sd)
+                        good_setup = self.make_calc(calc_folder, surf, root, v, bias, sd = sd)
                         if good_setup:
                             new_roots.append(root)
                         continue
@@ -734,8 +738,7 @@ class jdft_manager():
                         # waiting for No_bias to converge
                         continue
                 elif bias == 'No_bias':
-                    good_setup = self.make_calc(calc_folder, surf, root, v, bias,
-                                                sd = sd)
+                    good_setup = self.make_calc(calc_folder, surf, root, v, bias, sd = sd)
                     if good_setup:
                         new_roots.append(root)
                     continue
@@ -764,7 +767,44 @@ class jdft_manager():
                         os.mkdir(os.path.join(calc_folder, 'adsorbed', surf))
                     if not os.path.exists(os.path.join(calc_folder, 'adsorbed', surf, mol)):
                         os.mkdir(os.path.join(calc_folder, 'adsorbed', surf, mol))
+                        
+                    if 'conv-tags' in v or 'conv-tags' in mv:
+                        convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
+                        if 'conv-tags' in v: # add all tags from surface
+                            for step, vals in v['conv-tags'].items():
+                                if step in convtags:
+                                    convtags[step] += vals
+                                else:
+                                    convtags[step] = vals
+                        
                     for bias in mv['biases']:
+                        # new option to upgrade ads calcs from no_bias or 0V case (not default)
+                        if use_no_bias and bias not in ['0.00V', 'No_bias']: 
+                            nomu_headroot = os.path.join(calc_folder, 'adsorbed', surf, mol, 'No_bias') 
+                            zero_headroot = os.path.join(calc_folder, 'adsorbed', surf, mol, '0.00V')
+                            # scan through subdirs (sites) of headroot dirs
+                            for headroot in [zero_headroot, nomu_headroot]:
+                                site_dirs = [opj(headroot, f) for f in os.listdir(headroot)
+                                             if os.path.isdir(opj(headroot, f))]
+                                for sitedir in site_dirs:
+                                    # look through site directories at current bias case (0V or nomu)
+                                    if '__' in sitedir:
+                                        continue
+                                    if sitedir in converged:
+                                        site = sitedir.split(os.sep)
+                                        newroot = opj(calc_folder, 'adsorbed', surf, mol, bias, site)
+                                        if os.path.exists(newroot):
+                                            # skip existing dirs, including those just made at other headroot
+                                            continue
+                                        os.mkdir(newroot) # make new calc dir at bias from conv. nomu or 0V
+                                        # upgrade calc copies conv CONTCAR and makes inputs/convergence files
+                                        if self.args.copy_electronic != 'True':
+                                            print('WARNING: -use_no_bias should be used with -elec to reduce'
+                                                  +' calc initialization runtime!')
+                                        self.upgrade_calc(newroot, sitedir, bias, convtags) 
+                                        new_roots.append(newroot)
+                            continue # do not proceed to make more calcs for biases w/o conv str. if use_no_bias
+                        
                         surf_root = os.path.join(calc_folder, 'surfs', surf, h.get_bias_str(bias))
                         if surf_root not in converged:
                             continue
@@ -799,14 +839,15 @@ class jdft_manager():
                                 else:
                                     print('WARNING: "convergence" file not found in '+inputs_folder)
                                 
-                                if 'conv-tags' in v or 'conv-tags' in mv:
-                                    convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
-                                    if 'conv-tags' in v: # add all tags from surface
-                                        for step, vals in v['conv-tags'].items():
-                                            if step in convtags:
-                                                convtags[step] += vals
-                                            else:
-                                                convtags[step] = vals
+#                                if 'conv-tags' in v or 'conv-tags' in mv:
+#                                    convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
+#                                    if 'conv-tags' in v: # add all tags from surface
+#                                        for step, vals in v['conv-tags'].items():
+#                                            if step in convtags:
+#                                                convtags[step] += vals
+#                                            else:
+#                                                convtags[step] = vals
+                                    
                                     # update convergence file
                                     self.set_conv_tags(sl, convtags)
                             
