@@ -6,6 +6,7 @@ Author: Nick
 """
 
 import os
+import subprocess
 from sub_JDFTx import write as sub_write
 opj = os.path.join
 
@@ -17,8 +18,15 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     parallel_folder = './tmp_parallel'
     if not os.path.exists(parallel_folder):
         os.mkdir(parallel_folder)
-    if not os.path.exists(os.path.join(parallel_folder, 'locks')):
-        os.mkdir(os.path.join(parallel_folder, 'locks'))
+        
+    # delete existing locks
+    lock_folder = opj(parallel_folder, 'locks')
+    if not os.path.exists(lock_folder):
+        os.mkdir(lock_folder)
+    locks = [opj(lock_folder, f) for f in os.listdir(lock_folder) if os.path.isfile(opj(lock_folder, f))]
+    for lock_file in locks:
+        subprocess.call('rm '+lock_file, shell=True) # TODO: make a better way to remove unused lock files 
+    
     out = 'parallel'
     gpu = True # only available for Perl currently 
     
@@ -60,7 +68,8 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
         f.write(singlejob)
         
     executable = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\n' + 
-                  
+                  'echo "  Running ${task_name} on $(hostname) with ${SLURM_CPUS_PER_TASK}'+
+                  ' threads and cuda devs: ${CUDA_VISIBLE_DEVICES}"' + '\n' + 
                   'python ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
                   + '../${task_name}/out_file \n')
     with open(os.path.join(parallel_folder, 'executable.sh'),'w') as f:
