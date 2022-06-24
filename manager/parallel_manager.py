@@ -7,12 +7,13 @@ Author: Nick
 
 import os
 from sub_JDFTx import write as sub_write
-
+opj = os.path.join
 
 def sub_parallel(roots, cwd, nodes, cores_per_node, 
                 time, procs = 2, testing = 'False'):
-
-    script = os.path.join(os.environ['JDFTx_manager_home'], 'run_JDFTx.py')
+    
+    manager_home = os.environ['JDFTx_manager_home']
+    script = opj(manager_home, 'run_JDFTx.py')
     parallel_folder = './tmp_parallel'
     if not os.path.exists(parallel_folder):
         os.mkdir(parallel_folder)
@@ -36,7 +37,7 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     # add logic to launch parallel versions of para_managers (one per node)
     writelines += 'n_managers=${SLURM_JOB_NUM_NODES} \n'  # to run one task/node
     writelines += 'for i_manager in $(seq 1 ${n_managers}); do \n'
-    writelines += '    python parallel_manager.py & \n'
+    writelines += '    python ' + opj(manager_home,'parallel_manager.py') + ' & \n'
     writelines += 'done \n'
     writelines += 'wait \n'
     
