@@ -20,6 +20,7 @@ import numpy as np
 from adsorbate_helper import (save_structures, add_adsorbates, write_parallel, 
                               minimum_movement_strs, assign_selective_dynamics,
                               write_parallel_bundle)
+from parallel_manager import sub_parallel
 from jdft_helper import helper 
 h = helper()
 opj = os.path.join
@@ -165,7 +166,7 @@ class jdft_manager():
                             ' "make_neb". Default True.',type=str, default='True')
         parser.add_argument('-cf', '--current_force', help='If True, displays calc forces. Default True.',
                             type=str, default='True')
-        parser.add_argument('-n', '--nodes', help='Nodes per job. Default 1.',
+        parser.add_argument('-n', '--nodes', help='Nodes per job (total nodes for parallel). Default 1.',
                             type=int, default=1)
         parser.add_argument('-c', '--cores', help='Cores per node.',
                             type=int, default=core_architecture)
@@ -1619,11 +1620,15 @@ class jdft_manager():
             os.mkdir(shell_folder)
         
         if bundle:
-            out_file = 'submit_bundle'
-            write_parallel_bundle(roots, self.cwd, total_nodes, cores_per_node, 
-                                  self.args.run_time, out_file, shell_folder, 
-                                  qos = 'standard', gpu = self.args.gpu)
-            shells.append(out_file + '.sh')
+#            out_file = 'submit_bundle'
+#            write_parallel_bundle(roots, self.cwd, total_nodes, cores_per_node, 
+#                                  self.args.run_time, out_file, shell_folder, 
+#                                  qos = 'standard', gpu = self.args.gpu)
+#            shells.append(out_file + '.sh')
+            
+            sub_parallel(roots, self.cwd, self.args.nodes, os.environ['CORES_PER_NODE'],
+                         self.args.run_time)
+            return
         
         else:
             # write calcs for each node to tmp_parallel folder

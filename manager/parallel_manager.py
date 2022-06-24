@@ -60,7 +60,7 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
         
     executable = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\n' + 
                   
-                  'python ' + script +' -d ../${task_name} > ' # TODO: this needs to be hardcode
+                  'python ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
                   + '../${task_name}/out_file \n')
     with open(os.path.join(parallel_folder, 'executable.sh'),'w') as f:
         f.write(executable)
