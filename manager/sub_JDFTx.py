@@ -66,9 +66,9 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         else:
             writelines+='#SBATCH -q regular\n'
         writelines+='#SBATCH -N '+str(nodes)+'\n'
-        writelines+='#SBATCH -n '+str(2*nodes)+'\n'
-        writelines+='#SBATCH -c '+str(16*nodes)+'\n'                   #TODO: pick better numbers
-        writelines+='#SBATCH --ntasks-per-node=2\n'
+#        writelines+='#SBATCH -n '+str(2*nodes)+'\n'
+        writelines+='#SBATCH -c '+str(32)+'\n'  #TODO: pick better numbers, prev 16*nodes
+        writelines+='#SBATCH --ntasks-per-node=4\n'
         if gpu == 'True':
             writelines+='#SBATCH -C gpu\n'
             writelines+='#SBATCH --gpus-per-task=1\n'

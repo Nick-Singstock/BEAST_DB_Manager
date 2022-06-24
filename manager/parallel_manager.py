@@ -50,31 +50,33 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     writelines += 'wait \n'
     
     # writelines is now completed to be written as parallel.sh
-    with open(os.path.join(parallel_folder, out+'.sh'),'w') as f:
+    with open(opj(parallel_folder, out+'.sh'),'w') as f:
         f.write(writelines)
         
     # make roots_list.txt with roots needing to be run (from gc_manager)
     roottxt = ''
     for root in roots:
         roottxt += root + '\n'
-    with open(os.path.join(parallel_folder, 'root_list.txt'),'w') as f:
+    with open(opj(parallel_folder, 'root_list.txt'),'w') as f:
         f.write(roottxt)
+    subprocess.call('chmod 755 '+opj(parallel_folder, 'root_list.txt'), shell=True)
         
     # make single job shell script
     singlejob = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\necho "Starting $task_name"'+
                 '\n\nsrun -N 1 -n 4 ./executable.sh ${task_name} ${task_num}'+
                 '\n\necho "Completed $task_name"')
-    with open(os.path.join(parallel_folder, 'singlejob.sh'),'w') as f:
+    with open(opj(parallel_folder, 'singlejob.sh'),'w') as f:
         f.write(singlejob)
+    subprocess.call('chmod 755 '+opj(parallel_folder, 'singlejob.sh'), shell=True)
         
     executable = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\n' + 
                   'echo "  Running ${task_name} on $(hostname) with ${SLURM_CPUS_PER_TASK}'+
                   ' threads and cuda devs: ${CUDA_VISIBLE_DEVICES}"' + '\n' + 
                   'python ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
                   + '../${task_name}/out_file \n')
-    with open(os.path.join(parallel_folder, 'executable.sh'),'w') as f:
+    with open(opj(parallel_folder, 'executable.sh'),'w') as f:
         f.write(executable)
-    
+    subprocess.call('chmod 755 '+opj(parallel_folder, 'executable.sh'), shell=True)
     
     os.system('sbatch ' + os.path.join(parallel_folder, out+'.sh'))
 
