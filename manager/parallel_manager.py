@@ -37,7 +37,7 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     # add logic to launch parallel versions of para_managers (one per node)
     writelines += 'n_managers=${SLURM_JOB_NUM_NODES} \n'  # to run one task/node
     writelines += 'for i_manager in $(seq 1 ${n_managers}); do \n'
-    writelines += '    python ' + opj(manager_home,'parallel_manager.py') + ' & \n'
+    writelines += '    python ' + opj(manager_home, 'parallel_manager.py') + ' & \n'
     writelines += 'done \n'
     writelines += 'wait \n'
     
