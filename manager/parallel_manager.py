@@ -29,9 +29,9 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
                            procs, 'True', testing, get_header = True)
     
     # assign vars
-    writelines += '\nexport SLURM_CPU_BIND="cores" \n'
-    writelines += 'export JDFTX_MEMPOOL_SIZE=32768  \n'   #update as appropriate
-    writelines += 'export MPICH_GPU_SUPPORT_ENABLED=1  \n\n'
+#    writelines += '\nexport SLURM_CPU_BIND="cores" \n'
+#    writelines += 'export JDFTX_MEMPOOL_SIZE=32768  \n'   #update as appropriate
+#    writelines += 'export MPICH_GPU_SUPPORT_ENABLED=1  \n\n'
     
     # add logic to launch parallel versions of para_managers (one per node)
     writelines += 'n_managers=${SLURM_JOB_NUM_NODES} \n'  # to run one task/node
