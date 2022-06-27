@@ -43,7 +43,8 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
 #    writelines += 'export MPICH_GPU_SUPPORT_ENABLED=1  \n\n'
     
     # add logic to launch parallel versions of para_managers (one per node)
-    writelines += 'n_managers=${SLURM_JOB_NUM_NODES} \n'  # to run one task/node
+    writelines += 'n_managers=$((4 * ${SLURM_JOB_NUM_NODES})) \n'  # to run one task/node
+    writelines += 'echo "n_managers = $n_managers" \n'
     writelines += 'for i_manager in $(seq 1 ${n_managers}); do \n'
     writelines += '    python ' + opj(manager_home, 'parallel_manager.py') + ' & \n'
     writelines += 'done \n'
@@ -62,9 +63,13 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     subprocess.call('chmod 755 '+opj(parallel_folder, 'root_list.txt'), shell=True)
         
     # make single job shell script
+#    singlejob = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\necho "Starting $task_name"'+
+#                '\n\nsrun -N 1 -n 4 ./executable.sh ${task_name} ${task_num}'+
+#                '\n\necho "Completed $task_name"')
     singlejob = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\necho "Starting $task_name"'+
-                '\n\nsrun -N 1 -n 4 ./executable.sh ${task_name} ${task_num}'+
-                '\n\necho "Completed $task_name"')
+                'python ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
+                 + '../${task_name}/out_file \n'
+                 + '\n\necho "Completed $task_name"')
     with open(opj(parallel_folder, 'singlejob.sh'),'w') as f:
         f.write(singlejob)
     subprocess.call('chmod 755 '+opj(parallel_folder, 'singlejob.sh'), shell=True)
@@ -93,7 +98,7 @@ def parallel_logic():
             continue  # another task got to it already
     
         # Run job:
-        os.system(f"srun -N 1 -n 4 ./singlejob.sh {task_name} {i_task}")
+        os.system(f"bash ./singlejob.sh {task_name} {i_task}")
         
         # Mark job as complete (to help identify incomplete jobs)
         fp.write(f"Completed {task_name}\n")

@@ -741,6 +741,8 @@ if __name__ == '__main__':
                         type=str, default='False')
     parser.add_argument('-ad', '--autodos', help='If True (Default)), adds dos tags to SP calcs.',
                         type=str, default='True')
+#    parser.add_argument('-p', '--parallel', help='If True, runs parallel sub-job with JDFTx.',
+#                        type=str, default='False')
 
 
     args = parser.parse_args()
@@ -751,6 +753,9 @@ if __name__ == '__main__':
             jdftx_exe = os.environ['JDFTx_GPU']
         except:
             print('Environment variable "JDFTx_GPU" not found, running standard JDFTx.')
+    
+#    if args.parallel == 'True':
+#        jdftx_exe = '-N 1 -n 4 '+jdftx_exe
 
     command_file = 'inputs'
     
