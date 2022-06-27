@@ -12,6 +12,7 @@ opj = os.path.join
 
 def sub_parallel(roots, cwd, nodes, cores_per_node, 
                 time, procs = 2, testing = 'False'):
+    print('Running '+str(len(roots))+ ' jobs in parallel on '+str(nodes)+' nodes')
     
     manager_home = os.environ['JDFTx_manager_home']
     script = opj(manager_home, 'run_JDFTx.py')
