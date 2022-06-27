@@ -67,23 +67,26 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
 #                '\n\nsrun -N 1 -n 4 ./executable.sh ${task_name} ${task_num}'+
 #                '\n\necho "Completed $task_name"')
     singlejob = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\necho "Starting $task_name"'+
-                'python ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
-                 + '../${task_name}/out_file \n'
+                '\n\npython ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
+                 + '../${task_name}/out_file'
                  + '\n\necho "Completed $task_name"')
     with open(opj(parallel_folder, 'singlejob.sh'),'w') as f:
         f.write(singlejob)
     subprocess.call('chmod 755 '+opj(parallel_folder, 'singlejob.sh'), shell=True)
         
-    executable = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\n' + 
-                  'echo "  Running ${task_name} on $(hostname) with ${SLURM_CPUS_PER_TASK}'+
-                  ' threads and cuda devs: ${CUDA_VISIBLE_DEVICES}"' + '\n' + 
-                  'python ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
-                  + '../${task_name}/out_file \n')
-    with open(opj(parallel_folder, 'executable.sh'),'w') as f:
-        f.write(executable)
-    subprocess.call('chmod 755 '+opj(parallel_folder, 'executable.sh'), shell=True)
+#    executable = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\n' + 
+#                  'echo "  Running ${task_name} on $(hostname) with ${SLURM_CPUS_PER_TASK}'+
+#                  ' threads and cuda devs: ${CUDA_VISIBLE_DEVICES}"' + '\n' + 
+#                  'python ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
+#                  + '../${task_name}/out_file \n')
+#    with open(opj(parallel_folder, 'executable.sh'),'w') as f:
+#        f.write(executable)
+#    subprocess.call('chmod 755 '+opj(parallel_folder, 'executable.sh'), shell=True)
     
-    os.system('sbatch ' + os.path.join(parallel_folder, out+'.sh'))
+    cwd = os.getcwd()
+    os.chdir(opj(cwd,'tmp_parallel'))
+    os.system('sbatch ' + out+'.sh')
+    os.chdir(cwd)
 
 
 def parallel_logic():
