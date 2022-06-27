@@ -93,7 +93,7 @@ def parallel_logic():
             continue  # another task got to it already
     
         # Run job:
-        os.system(f"bash ./singlejob.sh {task_name} {i_task}")
+        os.system(f"srun -N 1 -n 4 ./singlejob.sh {task_name} {i_task}")
         
         # Mark job as complete (to help identify incomplete jobs)
         fp.write(f"Completed {task_name}\n")
