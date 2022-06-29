@@ -103,8 +103,8 @@ def parallel_logic():
             continue  # another task got to it already
     
         cwd = os.getcwd() # this is the tmp_parallel dir where parallel.sh is called
-        os.chdir(task_name) # need to switch to job folder for I/O functions
-        os.system(f"bash " + opj(cwd, "singlejob.sh") + " {task_name} {i_task}") # run job
+        os.chdir(opj('..', task_name)) # need to switch to job folder for I/O functions
+        os.system("bash " + opj(cwd, "singlejob.sh") + f" {task_name} {i_task}") # run job
         os.chdir(cwd) # go back to main dir before next job starts
         
         # Mark job as complete (to help identify incomplete jobs)
