@@ -12,12 +12,13 @@ opj = os.path.join
 
 def sub_parallel(roots, cwd, nodes, cores_per_node, 
                 time, procs = 2, testing = 'False'):
-    print('Running '+str(len(roots))+ ' jobs in parallel on '+str(nodes)+' nodes')
+    print('Running '+str(len(roots))+ ' jobs in parallel on '+str(nodes)+' nodes (4 jobs/node)')
     
     manager_home = os.environ['JDFTx_manager_home']
     script = opj(manager_home, 'run_JDFTx.py')
     parallel_folder = './tmp_parallel'
     if not os.path.exists(parallel_folder):
+        print('Making tmp_parallel/')
         os.mkdir(parallel_folder)
         
     # delete existing locks
