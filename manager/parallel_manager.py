@@ -68,8 +68,9 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
 #                '\n\nsrun -N 1 -n 4 ./executable.sh ${task_name} ${task_num}'+
 #                '\n\necho "Completed $task_name"')
     singlejob = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\necho "Starting $task_name"'+
-                '\n\npython ' + script +' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
-                 + '../${task_name}/out_file'
+                 # UPDATE: changed to run from within dir so removed -d and {task_name} dependence 
+                '\n\npython ' + script + ' > out_file'#' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
+                 #+ '../${task_name}/out_file'
                  + '\n\necho "Completed $task_name"')
     with open(opj(parallel_folder, 'singlejob.sh'),'w') as f:
         f.write(singlejob)
@@ -101,8 +102,10 @@ def parallel_logic():
         except FileExistsError:
             continue  # another task got to it already
     
-        # Run job:
-        os.system(f"bash ./singlejob.sh {task_name} {i_task}")
+        cwd = os.getcwd() # this is the tmp_parallel dir where parallel.sh is called
+        os.chdir(task_name) # need to switch to job folder for I/O functions
+        os.system(f"bash " + opj(cwd, "singlejob.sh") + " {task_name} {i_task}") # run job
+        os.chdir(cwd) # go back to main dir before next job starts
         
         # Mark job as complete (to help identify incomplete jobs)
         fp.write(f"Completed {task_name}\n")
