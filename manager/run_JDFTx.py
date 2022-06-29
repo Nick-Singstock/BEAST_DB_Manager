@@ -529,7 +529,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
                         int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
             
             # single point calculation consistent notation
-            if max_steps == 0 and comp in ['Summit']:
+            if max_steps == 0 and comp in ['Summit','Alpine']:
                 max_steps = 1
             elif max_steps == 1 and comp in ['Eagle']:
                 max_steps = 0
