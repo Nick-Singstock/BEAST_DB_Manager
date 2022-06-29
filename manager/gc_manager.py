@@ -795,7 +795,7 @@ class jdft_manager():
                                     if '__' in sitedir:
                                         continue
                                     if sitedir in converged:
-                                        site = sitedir.split(os.sep)
+                                        site = sitedir.split(os.sep)[-1]
                                         newroot = opj(calc_folder, 'adsorbed', surf, mol, bias_str, site)
                                         if os.path.exists(newroot):
                                             # skip existing dirs, including those just made at other headroot
