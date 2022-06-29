@@ -780,11 +780,14 @@ class jdft_manager():
                         
                     for bias in mv['biases']:
                         # new option to upgrade ads calcs from no_bias or 0V case (not default)
-                        if use_no_bias and bias not in ['0.00V', 'No_bias']: 
+                        bias_str = h.get_bias_str(bias)
+                        if use_no_bias and bias_str not in ['0.00V', 'No_bias']: 
                             nomu_headroot = os.path.join(calc_folder, 'adsorbed', surf, mol, 'No_bias') 
                             zero_headroot = os.path.join(calc_folder, 'adsorbed', surf, mol, '0.00V')
                             # scan through subdirs (sites) of headroot dirs
                             for headroot in [zero_headroot, nomu_headroot]:
+                                if not os.path.exists(headroot):
+                                    continue # skip dir if it doesn't exist
                                 site_dirs = [opj(headroot, f) for f in os.listdir(headroot)
                                              if os.path.isdir(opj(headroot, f))]
                                 for sitedir in site_dirs:
@@ -793,7 +796,7 @@ class jdft_manager():
                                         continue
                                     if sitedir in converged:
                                         site = sitedir.split(os.sep)
-                                        newroot = opj(calc_folder, 'adsorbed', surf, mol, bias, site)
+                                        newroot = opj(calc_folder, 'adsorbed', surf, mol, bias_str, site)
                                         if os.path.exists(newroot):
                                             # skip existing dirs, including those just made at other headroot
                                             continue
