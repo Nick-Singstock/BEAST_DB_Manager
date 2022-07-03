@@ -768,7 +768,8 @@ class jdft_manager():
                         os.mkdir(os.path.join(calc_folder, 'adsorbed', surf))
                     if not os.path.exists(os.path.join(calc_folder, 'adsorbed', surf, mol)):
                         os.mkdir(os.path.join(calc_folder, 'adsorbed', surf, mol))
-                        
+                    
+                    convtags = {}
                     if 'conv-tags' in v or 'conv-tags' in mv:
                         convtags = mv['conv-tags'] if 'conv-tags' in mv else {}
                         if 'conv-tags' in v: # add all tags from surface
