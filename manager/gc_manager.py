@@ -804,7 +804,7 @@ class jdft_manager():
                                         subroot = os.sep.join(newroot.split(os.sep)[:-1])
                                         if not os.path.exists(subroot):
                                             os.mkdir(subroot)
-                                        os.mkdir(newroot) # make new calc dir at bias from conv. nomu or 0V
+                                        #os.mkdir(newroot) # make new calc dir at bias from conv. nomu or 0V
                                         # upgrade calc copies conv CONTCAR and makes inputs/convergence files
                                         if self.args.copy_electronic != 'True':
                                             print('WARNING: -use_no_bias should be used with -elec to reduce'
