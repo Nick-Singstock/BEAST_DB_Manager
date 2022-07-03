@@ -200,9 +200,9 @@ class jdft_manager():
         parser.add_argument('-bundle', '--bundle_jobs', help='Bundle all jobs together. Useful for Cori / Perl.'+
                             ' (default False)',type=str, default='False')
         parser.add_argument('-use_nb', '--use_no_bias_structure', help='Whether surface and ads calcs should'+
-                            ' be upgraded from no_bias or 0V converged calcs (default False).'+
-                            ' False = calcs are independently setup and run. Should be used with -elec tag.',
-                            type=str, default='False')
+                            ' be upgraded from no_bias or 0V converged calcs (default True).'+
+                            ' False = calcs are independently setup and run. Can be used with -elec tag.',
+                            type=str, default='True')
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -806,9 +806,9 @@ class jdft_manager():
                                             os.mkdir(subroot)
                                         #os.mkdir(newroot) # make new calc dir at bias from conv. nomu or 0V
                                         # upgrade calc copies conv CONTCAR and makes inputs/convergence files
-                                        if self.args.copy_electronic != 'True':
-                                            print('WARNING: -use_no_bias should be used with -elec to reduce'
-                                                  +' calc initialization runtime!')
+#                                        if self.args.copy_electronic != 'True':
+#                                            print('WARNING: -use_no_bias should be used with -elec to reduce'
+#                                                  +' calc initialization runtime!')
                                         self.upgrade_calc(newroot, sitedir, bias, convtags) 
                                         new_roots.append(newroot)
                             continue # do not proceed to make more calcs for biases w/o conv str. if use_no_bias
