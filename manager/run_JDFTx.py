@@ -291,18 +291,24 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
 #    safe_mode = False if ('safe-mode' in script_cmds and script_cmds['safe-mode'] == 'False') else True
 #    use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
     
-    
-    if comp == 'Eagle':
-        exe_cmd = 'mpirun --bind-to none '+jdftx_exe
-    elif comp in ['Cori',]:
-        exe_cmd = 'srun --cpu-bind=cores -c 16 '+jdftx_exe
-        conv_logger('Running on Cori with srun.')
-    elif comp in ['Perlmutter']:
-        exe_cmd = 'srun '+jdftx_exe
-        conv_logger('Running on Perl with srun.')
-    else:
-        jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
-        exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
+    def get_exe_cmd(nprocs = False):
+        if comp == 'Eagle':
+            exe_cmd = 'mpirun --bind-to none '+jdftx_exe
+        elif comp in ['Cori',]:
+            exe_cmd = 'srun --cpu-bind=cores -c 16 '+jdftx_exe
+            conv_logger('Running on Cori with srun.')
+        elif comp in ['Perlmutter']:
+            exe_cmd = 'srun '+jdftx_exe
+            conv_logger('Running on Perl with srun.')
+        else:
+            if type(nprocs) == int: # read np from n-kpts
+                jdftx_num_procs = nprocs
+            else:
+                jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
+            
+            exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
+            conv_logger('exe_cmd: ' + exe_cmd)
+        return exe_cmd
 
         
     def read_atoms(restart):
@@ -354,11 +360,19 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
             else:
                 dyn = opt_dict[opt](imag_atoms,logfile=logfile)
         return dyn
-        
+    
+    def get_np(cmds):
+        for cmd in cmds:
+            if cmd[0] == 'kpoint-folding':
+                kpts = [int(kpt) for kpt in cmd[1].split()]
+                return np.product(kpts) * 2
+        return False # no kpts tag found
+    
     def set_calc(cmds, script_cmds, outfile = os.getcwd()):
         psuedos = script_cmds['pseudos']
+        nprocs = get_np(cmds)
         return JDFTx(
-            executable = exe_cmd,
+            executable = get_exe_cmd(nprocs),
             pseudoSet=psuedos,
             commands=cmds,
             outfile = outfile)
@@ -529,7 +543,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
                         int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
             
             # single point calculation consistent notation
-            if max_steps == 0 and comp in ['Summit','Alpine']:
+            if max_steps == 0 and comp in ['Summit','Alpine','Perlmutter']:
                 max_steps = 1
             elif max_steps == 1 and comp in ['Eagle']:
                 max_steps = 0
