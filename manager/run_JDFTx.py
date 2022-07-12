@@ -301,7 +301,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
             exe_cmd = 'srun '+jdftx_exe
             conv_logger('Running on Perl with srun.')
         else:
-            if type(nprocs) == int: # read np from n-kpts
+            if nprocs != False: # read np from n-kpts
                 jdftx_num_procs = nprocs
             else:
                 jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
@@ -361,7 +361,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
                 dyn = opt_dict[opt](imag_atoms,logfile=logfile)
         return dyn
     
-    def get_np(cmds):
+    def get_nprocs(cmds):
         for cmd in cmds:
             if cmd[0] == 'kpoint-folding':
                 kpts = [int(kpt) for kpt in cmd[1].split()]
@@ -370,7 +370,8 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
     
     def set_calc(cmds, script_cmds, outfile = os.getcwd()):
         psuedos = script_cmds['pseudos']
-        nprocs = get_np(cmds)
+        nprocs = get_nprocs(cmds)
+        conv_logger('nprocs: '+str(nprocs))
         return JDFTx(
             executable = get_exe_cmd(nprocs),
             pseudoSet=psuedos,
