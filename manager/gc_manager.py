@@ -729,7 +729,7 @@ class jdft_manager():
                         # upgrade from no_bias (which exists)
                         self.upgrade_calc(root, nomu_root, bias, v['tags'] if 'tags' in v else [])
                         new_roots.append(root)
-                    elif 'No_bias' not in v['biases'] and not use_no_bias:
+                    elif bias == '0.00V' or ('No_bias' not in v['biases'] and not use_no_bias):
                         # No bias not requested, run directly 
                         good_setup = self.make_calc(calc_folder, surf, root, v, bias, sd = sd)
                         if good_setup:
