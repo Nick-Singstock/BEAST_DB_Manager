@@ -202,7 +202,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
                   'ion','climbing','pH','ph',  'autodos',
                   'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
-                  'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type']
+                  'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type', 'np']
 
     # setup default functions needed for running calcs
     def open_inputs(inputs_file):
@@ -291,7 +291,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
 #    safe_mode = False if ('safe-mode' in script_cmds and script_cmds['safe-mode'] == 'False') else True
 #    use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
     
-    def get_exe_cmd(nprocs = False):
+    def get_exe_cmd(script_cmds, nprocs = False):
         if comp == 'Eagle':
             exe_cmd = 'mpirun --bind-to none '+jdftx_exe
         elif comp in ['Cori',]:
@@ -305,6 +305,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
                 jdftx_num_procs = nprocs
             else:
                 jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
+            
+            if 'np' in script_cmds:
+                jdftx_num_procs = script_cmds['np']
             
             exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
             conv_logger('exe_cmd: ' + exe_cmd)
@@ -373,7 +376,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
         nprocs = get_nprocs(cmds)
         conv_logger('nprocs: '+str(nprocs))
         return JDFTx(
-            executable = get_exe_cmd(nprocs),
+            executable = get_exe_cmd(script_cmds, nprocs),
             pseudoSet=psuedos,
             commands=cmds,
             outfile = outfile)
