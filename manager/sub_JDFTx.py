@@ -119,6 +119,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+='#SBATCH --partition amilan-ucb\n'
         writelines+='#SBATCH --qos=normal\n'
         writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n'
+        writelines+='export I_MPI_FABRICS=shm\n'
     
 #    if comp == 'Eagle' and gpu != 'True':
 #        writelines+='#SBATCH --hint=nomultithread'
