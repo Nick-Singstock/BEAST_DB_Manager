@@ -844,6 +844,8 @@ class jdft_manager():
                                 if os.path.exists(os.path.join(inputs_folder, 'convergence')):
                                     self.run('cp '+os.path.join(inputs_folder, 'convergence')+
                                          ' '+os.path.join(sl, 'convergence'))
+                                    self.set_conv_tags(sl, convtags) #set convergence
+                                    #tags according to manager_control file
                                 else:
                                     print('WARNING: "convergence" file not found in '+inputs_folder)
                                 
@@ -1692,6 +1694,10 @@ class jdft_manager():
         based on user inputs from command line. Main sub-functions also have descriptions.
         
         '''
+        #remove old output_log file to save new run log 
+        if ope('./output_log'):
+            os.remove('output_log')
+        
         # ensure subfolders are correctly setup
         if self.args.setup == 'True':
             return
