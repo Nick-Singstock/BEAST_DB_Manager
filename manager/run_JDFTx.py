@@ -295,7 +295,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
         if comp == 'Eagle':
             exe_cmd = 'mpirun --bind-to none '+jdftx_exe
         elif comp in ['Cori',]:
-            exe_cmd = 'srun --cpu-bind=cores -c 16 '+jdftx_exe
+            exe_cmd = 'srun --cpu-bind=cores -c 8 '+jdftx_exe
             conv_logger('Running on Cori with srun.')
         elif comp in ['Perlmutter']:
             exe_cmd = 'srun '+jdftx_exe
