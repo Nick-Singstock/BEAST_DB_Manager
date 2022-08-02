@@ -79,8 +79,8 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         else:
             writelines+='#SBATCH -q regular\n'
         writelines+='#SBATCH -N '+str(nodes)+'\n'
-        writelines+='#SBATCH -n '+str(nodes*2)+'\n'
-        writelines+='#SBATCH -c '+str(nodes*32)+'\n'
+        writelines+='#SBATCH -n '+str(nodes*8)+'\n'
+        writelines+='#SBATCH -c '+str(nodes*8)+'\n'
         writelines+='#SBATCH -C haswell\n'
         
     else:
