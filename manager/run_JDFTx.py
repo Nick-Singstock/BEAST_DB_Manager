@@ -338,11 +338,11 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
             BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, GPMin, MDMin and FIRE.
         """
         use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
-        opt_alpha = 70 if 'opt-alpha' not in script_cmds else int(script_cmds['opt-alpha'])
+        opt_alpha = 150 if 'opt-alpha' not in script_cmds else int(script_cmds['opt-alpha'])
         if 'optimizer' in script_cmds:
             opt = script_cmds['optimizer']
         else:
-            opt='BFGS'
+            opt='FIRE'
         
         opt_dict = {'BFGS':BFGS, 'BFGSLineSearch':BFGSLineSearch,
                     'LBFGS':LBFGS, 'LBFGSLineSearch':LBFGSLineSearch,
