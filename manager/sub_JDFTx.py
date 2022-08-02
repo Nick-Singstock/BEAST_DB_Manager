@@ -247,7 +247,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--time', help='Time limit',
                         type=int, default=int(os.environ['JDFTx_Default_Time']))
     parser.add_argument('-o', '--outfile', help='Outfile name',
-                        type=str, required=True)
+                        type=str, default='jdftx', required=False)
     parser.add_argument('-g', '--gpu', help='If True, runs GPU install of JDFTx',
                         type=str, default='False')
     parser.add_argument('-i', '--inputs', help='If True, print all non-JDFTx paramters for inputs.',
