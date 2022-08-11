@@ -116,7 +116,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH --partition shas\n'    
     
     if comp == 'Alpine':
-        writelines+='#SBATCH --partition amilan-ucb\n'
+        writelines+='#SBATCH --partition amilan\n'
         writelines+='#SBATCH --qos=normal\n'
         writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n'
         writelines+='export I_MPI_FABRICS=shm\n'
