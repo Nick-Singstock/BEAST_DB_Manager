@@ -200,7 +200,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
                   'ion','climbing','pH','ph',  'autodos',
-                  'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer',
+                  'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer','opt',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
                   'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type', 'np']
 
@@ -270,7 +270,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
 #        conv_logger('calc_type debug: '+str(cmds))
         if 'nimages' in script_cmds.keys():
             calc = 'neb'
-        elif script_cmds['optimizer'] in ['MD','md']:
+        elif 'optimizer' in script_cmds and script_cmds['optimizer'] in ['MD','md']:
+            calc = 'md'
+        elif 'opt' in script_cmds and script_cmds['opt'] in ['MD','md']:
             calc = 'md'
         elif any([('lattice-minimize' == c[0] and 'nIterations' in c[1] and 
                    int(c[1].split()[1]) > 0 ) for c in cmds]):
@@ -341,6 +343,8 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
         opt_alpha = 150 if 'opt-alpha' not in script_cmds else int(script_cmds['opt-alpha'])
         if 'optimizer' in script_cmds:
             opt = script_cmds['optimizer']
+        elif 'opt' in script_cmds:
+            opt = script_cmds['opt']
         else:
             opt='FIRE'
         

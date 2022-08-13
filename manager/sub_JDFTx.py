@@ -329,5 +329,6 @@ if __name__ == '__main__':
         if args.interactive == 'True':
             subprocess.call('bash submit.sh', shell=True)
         else:
-            subprocess.call('sbatch submit.sh', shell=True)
+            subprocess.call('python '+script+' > '+outfile+'\n')
+            #subprocess.call('sbatch submit.sh', shell=True)
     
