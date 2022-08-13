@@ -316,7 +316,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive):
         
         if interactive:
             print('Running JDFTx on an interactive node via sub_JDFTx.py')
-            exe_cmd = 'srun -n 2 -c 16 --hint=nomultithread '+jdftx_exe+' -i in -o out'
+            exe_cmd = 'srun -n 2 -c 16 --hint=nomultithread '+jdftx_exe #+' -i in -o out'
             
         return exe_cmd
 
