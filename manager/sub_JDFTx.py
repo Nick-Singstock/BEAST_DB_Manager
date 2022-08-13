@@ -21,6 +21,11 @@ try:
 except:
     comp='Eagle'
 
+try:
+    res=os.environ['JDFTx_Reservation']
+except:
+    res=None
+
 def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testing, get_header = False):
     try:
         modules=' '.join(os.environ['JDFTx_mods'].split('_'))
@@ -83,6 +88,9 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+='#SBATCH -c '+str(nodes*8)+'\n'
         writelines+='#SBATCH -C haswell\n'
         
+        if res is not None:
+            writelines+='#SBATCH --reservation '+res+'\n'
+        
     else:
         writelines+='#SBATCH --tasks '+str(np)+'\n'
         writelines+='#SBATCH --nodes '+str(nodes)+'\n'
@@ -116,7 +124,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH --partition shas\n'    
     
     if comp == 'Alpine':
-        writelines+='#SBATCH --partition amilan-ucb\n'
+        writelines+='#SBATCH --partition amilan\n'
         writelines+='#SBATCH --qos=normal\n'
         writelines+='\nexport JDFTx_NUM_PROCS='+str(procs)+'\n'
         writelines+='export I_MPI_FABRICS=shm\n'
@@ -266,7 +274,8 @@ if __name__ == '__main__':
                         type=str,default='RM-shared')
     parser.add_argument('-m', '--processes', help='Number of JDFT processes, should be <= nstates (see irr. kpoints). '+
                         'Total cores / processes = threads per process (int for high eff.)', type=int, default=2)
-    
+    parser.add_argument('-int', '--interactive', help='If True, runs job on interactive node',
+                        type=str, default='False')
     parser.add_argument('-test', '--test_queue', help='If True, runs job on test queue',
                         type=str, default='False')
 
@@ -316,5 +325,9 @@ if __name__ == '__main__':
         else:
             assert False, 'Computer not recognized!'
         #os.system('sbatch submit.sh')
-        subprocess.call('sbatch submit.sh', shell=True)
+        
+        if args.interactive == 'True':
+            subprocess.call('bash submit.sh', shell=True)
+        else:
+            subprocess.call('sbatch submit.sh', shell=True)
     
