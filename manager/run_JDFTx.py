@@ -195,7 +195,7 @@ def clean_doscmds(cmds):
     return new_cmds
 
 # main function for calculations
-def run_calc(command_file, jdftx_exe, autodoscmd):
+def run_calc(command_file, jdftx_exe, autodoscmd, interactive):
 
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
@@ -313,6 +313,11 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
             
             exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
             conv_logger('exe_cmd: ' + exe_cmd)
+        
+        if interactive:
+            print('Running JDFTx on an interactive node via sub_JDFTx.py')
+            exe_cmd = 'srun -n 2 -c 16 --hint=nomultithread jdftx -i in | tee out'
+            
         return exe_cmd
 
         
@@ -515,6 +520,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
     if ctype in ['opt','lattice']:
 #        conv_logger('ctype: '+ctype)
         
+        if interactive:
+            print('Starting JDFTx calculation.')
+        
         if os.path.exists('convergence'):
             # check if convergence file exists and setup convergence dictionary of inputs to update
             conv, steps = read_convergence()
@@ -654,7 +662,6 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
                 clean_folder(conv, i+1)
 
     if ctype == 'neb':
-
         if os.path.exists('convergence'):
             # check if convergence file exists and setup convergence dictionary of inputs to update
             conv, steps = read_convergence()
@@ -665,6 +672,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd):
         
         nimages = int(script_cmds['nimages'])
         image_dirs = [str(i).zfill(2) for i in range(0,nimages+2)]
+        
+        if interactive:
+            print('Starting GCNEB calculation with', nimages, 'images.')
         
         conv_logger('starting neb calc with '+str(steps)+' steps.')
         # setup steps
@@ -761,8 +771,10 @@ if __name__ == '__main__':
                         type=str, default='./')
     parser.add_argument('-g', '--gpu', help='If True, runs GPU install of JDFTx.',
                         type=str, default='False')
-    parser.add_argument('-ad', '--autodos', help='If True (Default)), adds dos tags to SP calcs.',
+    parser.add_argument('-ad', '--autodos', help='If True (Default), adds dos tags to SP calcs.',
                         type=str, default='True')
+    parser.add_argument('-int', '--interactive', help='If True, run on interactive queue',
+                        type=str, default='False')
 #    parser.add_argument('-p', '--parallel', help='If True, runs parallel sub-job with JDFTx.',
 #                        type=str, default='False')
 
@@ -783,5 +795,6 @@ if __name__ == '__main__':
     
     conv_logger('\n\n----- Entering run function -----')
     autodoscmd = True if args.autodos == 'True' else False
-    run_calc(command_file, jdftx_exe, autodoscmd)
+    run_calc(command_file, jdftx_exe, autodoscmd, 
+             True if args.interactive == 'True' else False)
 
