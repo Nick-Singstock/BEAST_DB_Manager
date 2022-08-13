@@ -315,8 +315,8 @@ if __name__ == '__main__':
         outfile = 'python_out'
     
     if args.interactive == 'True':
-            #subprocess.call('bash submit.sh', shell=True)
-            subprocess.call('python '+script+' -int True > '+outfile+'\n')
+        #subprocess.call('bash submit.sh', shell=True)
+        subprocess.call('python '+script+' -int True > '+outfile+'\n', shell=True)
 
     # Multiple write options depending on computer
     else:
