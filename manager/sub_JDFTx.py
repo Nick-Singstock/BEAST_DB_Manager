@@ -67,7 +67,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         
     elif comp == 'Perlmutter': 
         if testing:
-            writelines+='#SBATCH -q debug\n'
+            writelines+='#SBATCH -q regular_ss11\n'
         else:
             writelines+='#SBATCH -q regular_ss11\n'
         writelines+='#SBATCH -N '+str(nodes)+'\n'
@@ -78,8 +78,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH -C gpu\n'
             writelines+='#SBATCH --gpus-per-task=1\n'
             writelines+='#SBATCH --gpu-bind=none \n'
-        writelines+='\nmodule load PrgEnv-gnu \n'
-        writelines+='module load cmake cray-fftw cudatoolkit gsl \n'
+    
     
     elif comp in ['Cori',]:
         if testing:
@@ -125,6 +124,10 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH --partition shas-testing\n'
         else:
             writelines+='#SBATCH --partition shas\n'    
+    
+    if comp == 'Perlmutter':
+        writelines+='\nmodule load PrgEnv-gnu \n'
+        writelines+='module load cmake cray-fftw cudatoolkit gsl \n'
     
     if comp == 'Alpine':
         writelines+='#SBATCH --partition amilan\n'
