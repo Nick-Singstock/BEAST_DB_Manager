@@ -54,7 +54,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         elif comp == 'Eagle':
             writelines+='#SBATCH --time=1:00:00'+'\n'
         elif comp in ['Perlmutter']:
-            writelines+='#SBATCH --time=0:30:00'+'\n'
+            writelines+='#SBATCH --time=0:05:00'+'\n'
     else:
         writelines+='#SBATCH --time='+str(time)+':00:00'+'\n'
     writelines+='#SBATCH -o '+out+'-%j.out'+'\n'
@@ -69,7 +69,7 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         if testing:
             writelines+='#SBATCH -q debug\n'
         else:
-            writelines+='#SBATCH -q regular\n'
+            writelines+='#SBATCH -q regular_ss11\n'
         writelines+='#SBATCH -N '+str(nodes)+'\n'
 #        writelines+='#SBATCH -n '+str(2*nodes)+'\n'
         writelines+='#SBATCH -c '+str(32)+'\n'  #TODO: pick better numbers, prev 16*nodes
@@ -77,6 +77,9 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         if gpu == 'True':
             writelines+='#SBATCH -C gpu\n'
             writelines+='#SBATCH --gpus-per-task=1\n'
+            writelines+='#SBATCH --gpu-bind=none \n'
+        writelines+='\nmodule load PrgEnv-gnu \n'
+        writelines+='module load cmake cray-fftw cudatoolkit gsl \n'
     
     elif comp in ['Cori',]:
         if testing:
