@@ -7,7 +7,10 @@ Author: Nick
 
 import os
 import subprocess
+import numpy as np
+from time import sleep
 from sub_JDFTx import write as sub_write
+
 opj = os.path.join
 
 def sub_parallel(roots, cwd, nodes, cores_per_node, 
@@ -98,6 +101,10 @@ def parallel_logic():
     
     # Loop over available tasks:
     for i_task, task_name in enumerate(task_list):
+        
+        # add random delay to prevent separate gpus from reading at the same time
+        sleep(np.random.rand() * 5)
+        
         try:
             fp = open(f"locks/lock.{i_task}", "x")
         except FileExistsError:
