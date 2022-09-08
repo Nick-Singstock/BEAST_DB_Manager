@@ -126,8 +126,10 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
             writelines+='#SBATCH --partition shas\n'    
     
     if comp == 'Perlmutter':
-        writelines+='\nmodule load PrgEnv-gnu \n'
-        writelines+='module load cmake cray-fftw cudatoolkit gsl \n'
+        # writelines+='\nmodule load PrgEnv-gnu \n'
+        # writelines+='module load cmake cray-fftw cudatoolkit gsl \n'
+        writelines+='\nmodule use --append /global/cfs/cdirs/m4025/Software/Perlmutter/modules \n'
+        writelines+='module load jdftx/gpu  \n'
     
     if comp == 'Alpine':
         writelines+='#SBATCH --partition amilan\n'
