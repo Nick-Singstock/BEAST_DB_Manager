@@ -195,7 +195,7 @@ def clean_doscmds(cmds):
     return new_cmds
 
 # main function for calculations
-def run_calc(command_file, jdftx_exe, autodoscmd, interactive):
+def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
 
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
@@ -660,7 +660,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive):
             
             if i+1 < steps:
                 clean_folder(conv, i+1)
-
+            
     if ctype == 'neb':
         if os.path.exists('convergence'):
             # check if convergence file exists and setup convergence dictionary of inputs to update
@@ -759,6 +759,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive):
                     if folder in ['00', str(nimages+1).zfill(2)]:
                         continue
                     clean_folder(conv, ii+1, folder+'/')
+    
+    if killcmd:
+        assert False, "\n\n### Calculation completed: Kill command called to stop job ###\n\n"
 
 
 if __name__ == '__main__':
@@ -774,6 +777,8 @@ if __name__ == '__main__':
     parser.add_argument('-ad', '--autodos', help='If True (Default), adds dos tags to SP calcs.',
                         type=str, default='True')
     parser.add_argument('-int', '--interactive', help='If True, run on interactive queue',
+                        type=str, default='False')
+    parser.add_argument('-k', '--kill', help='If True, kill calculation on completion to prevent I/O issues.',
                         type=str, default='False')
 #    parser.add_argument('-p', '--parallel', help='If True, runs parallel sub-job with JDFTx.',
 #                        type=str, default='False')
@@ -795,6 +800,8 @@ if __name__ == '__main__':
     
     conv_logger('\n\n----- Entering run function -----')
     autodoscmd = True if args.autodos == 'True' else False
+    killcmd = True if args.kill == 'True' else False
     run_calc(command_file, jdftx_exe, autodoscmd, 
-             True if args.interactive == 'True' else False)
+             True if args.interactive == 'True' else False,
+             killcmd)
 
