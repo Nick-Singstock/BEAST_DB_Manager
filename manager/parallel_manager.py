@@ -37,6 +37,10 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     
     if gpu:
         script += ' -g True'
+    
+    # tag to include regen attempt 
+    script += ' -r True'
+    
     alloc = 'environ'
     # create parallel.sh header
     writelines = sub_write(nodes, cores_per_node, time, out, alloc, 'standard', script, 'False', 

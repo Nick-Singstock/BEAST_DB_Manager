@@ -202,7 +202,8 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                   'ion','climbing','pH','ph',  'autodos',
                   'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer','opt',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
-                  'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type', 'np']
+                  'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type', 'np',
+                  'use_jdftx_ionic', 'jdftx_steps']
 
     # setup default functions needed for running calcs
     def open_inputs(inputs_file):
@@ -380,15 +381,23 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 return np.product(kpts) * 2
         return False # no kpts tag found
     
-    def set_calc(cmds, script_cmds, outfile = os.getcwd()):
+    def set_calc(cmds, script_cmds, outfile = os.getcwd(), jdftx_ionic = False):
         psuedos = script_cmds['pseudos']
         nprocs = get_nprocs(cmds)
         conv_logger('nprocs: '+str(nprocs))
+        
+        ionic_data = [ # steps, econv, 
+            int(script_cmds['jdftx_steps']) if 'jdftx_steps' in script_cmds else 5,
+            (float(script_cmds['econv']) if 'econv' in script_cmds else 1E-4) / hartree_to_ev,
+            ]
+        
         return JDFTx(
             executable = get_exe_cmd(script_cmds, nprocs),
             pseudoSet=psuedos,
             commands=cmds,
-            outfile = outfile)
+            outfile = outfile,
+            ionic_steps = False if jdftx_ionic is False else ionic_data  
+            )
         
     def read_convergence():
         '''
@@ -574,8 +583,11 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             # clean repeat dos cmds
             cmds = clean_doscmds(cmds)
             
+            # bundle ionic steps within jdftx to increase speed, if requested
+            jdftx_ionic = True if ('use_jdftx_ionic' in script_cmds and script_cmds['use_jdftx_ionic'] == 'True') else False
+            
             # set calculator
-            calculator = set_calc(cmds, script_cmds)
+            calculator = set_calc(cmds, script_cmds, jdftx_ionic = jdftx_ionic)
             atoms.set_calculator(calculator)
     
             #Structure optimization                
@@ -613,8 +625,13 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
 #            object must be attached so JDFTx does not error out trying to get stress
             traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
             dyn.attach(traj.write, interval=1)
-
-            if ctype == 'opt':
+            
+            
+            if ctype == 'opt' and jdftx_ionic:
+                conv_logger('Using jdftx as ionic minimizer')
+                dyn.attach(contcar_from_out,interval=1)
+            
+            if ctype == 'opt' and not jdftx_ionic:
                 conv_logger('Added write_contcar')
                 dyn.attach(write_contcar,interval=1)
             if ctype == 'lattice':
@@ -780,6 +797,8 @@ if __name__ == '__main__':
                         type=str, default='False')
     parser.add_argument('-k', '--kill', help='If True, kill calculation on completion to prevent I/O issues.',
                         type=str, default='False')
+    parser.add_argument('-r', '--regen', help='If True, check calc convergence and rerun if needed.',
+                        type=str, default='False')
 #    parser.add_argument('-p', '--parallel', help='If True, runs parallel sub-job with JDFTx.',
 #                        type=str, default='False')
 
@@ -804,4 +823,15 @@ if __name__ == '__main__':
     run_calc(command_file, jdftx_exe, autodoscmd, 
              True if args.interactive == 'True' else False,
              killcmd)
-
+    
+    # if calc did not converge, try to restart up to 3 times
+    regen = True if args.regen == 'True' else False
+    if regen:
+        for attempt in range(3):
+            data = h.read_data(os.getcwd())
+            if not data['converged']:
+                run_calc(command_file, jdftx_exe, autodoscmd, 
+                         True if args.interactive == 'True' else False,
+                         killcmd)
+            else:
+                break

@@ -214,6 +214,32 @@ class helper():
                             return False
         return site_data, net_oxidation, net_mag, final_electrons, initial_electrons
     
+    def read_out_steps(self, folder):
+        # go through out file and collect str info at each ionic step
+        try:
+            with open(opj(folder, 'out'), 'r', errors='ignore') as f:
+                out_text = f.read()
+        except:
+            return 'None'
+        
+        st_counter = 0
+        st_dic = {}
+        track_ions = False
+        st = {}
+        for il, line in enumerate(out_text.split('\n')):
+            if 'Ionic positions in cartesian coordinates' in line:
+                st_counter += 1
+                track_ions = True
+                st = {'ion': [], 'force': []}
+            if track_ions and 'ion ' in line:
+                st['ion'].append(line)
+            if track_ions and 'force ' in line:
+                st['force'].append(line)
+            if track_ions and 'Energy components' in line:
+                track_ions = False
+                st_dic[str(st_counter)] = st
+        return st_dic
+    
     def read_out_struct(self, folder, site_data = False):
         try:
             with open(opj(folder, 'out'), 'r', errors='ignore') as f:
@@ -375,6 +401,9 @@ class helper():
             net_oxi = out_sites[1]
             net_mag = out_sites[2]
             nfinal = out_sites[3]
+        
+        out_steps = self.read_out_steps(folder)
+        
         return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
                 'inputs': inputs, 'Ecomponents': ecomp, 'current_energy': current_energy,
                 'Ecomp_energy': ecomp['F'] if 'F' in ecomp else (ecomp['G'] if 'G' in ecomp else 'None'),
@@ -382,7 +411,7 @@ class helper():
                 'final_energy': 'None' if not conv else current_energy,
                 'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag,
                 'convergence_file': convergence, 'eigStats': eigStats, 'energy_units': 'H',
-                'atom_forces': atom_forces, 'root': folder}
+                'atom_forces': atom_forces, 'root': folder, 'out_steps': out_steps}
         
     def get_neb_data(self, folder, bias):
         # reads neb folder and returns data as a dictionary

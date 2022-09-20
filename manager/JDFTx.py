@@ -23,7 +23,8 @@ def replaceVariable(var, varName):
 
 class JDFTx(Calculator):
 
-        def __init__(self, executable=None, pseudoDir=None, pseudoSet='GBRV', commands=None, outfile=None):
+        def __init__(self, executable=None, pseudoDir=None, pseudoSet='GBRV', commands=None, outfile=None,
+                     ionic_steps = False):
                 #Valid pseudopotential sets (mapping to path and suffix):
                 pseudoSetMap = {
                         'SG15' : 'SG15/$ID_ONCV_PBE.upf',
@@ -74,6 +75,13 @@ class JDFTx(Calculator):
                         commands = []
                 for cmd, v in commands:
                         self.addCommand(cmd, v)
+
+                # Nick edits
+                if ionic_steps != False and type(ionic_steps) == list:
+                        self.addCommand('ionic-minimize', 'nIterations '+str(ionic_steps[0]) + 
+                                        ' energyDiffThreshold '+ str(ionic_steps[1]))
+                        # assert False, ('Command not yet tested! '+
+                        # 'May cause errors with ASE ionic minimizer due to changing atom positions.')
 
                 # Nick edits
                 if len(self.InitialStateVars) > 0:
@@ -305,6 +313,8 @@ class JDFTx(Calculator):
                 """ Checks whether the input string is a valid jdftx command \nby comparing to the input template (jdft -t)"""
                 if(type(command) != str):
                         raise IOError('Please enter a string as the name of the command!\n')
+                if command == 'ionic-minimize':
+                    return True
                 return command in self.acceptableCommands
 
         def help(self, command=None):
