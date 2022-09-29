@@ -588,7 +588,7 @@ class jdft_manager():
         try:
             with open('out', 'r', errors='ignore') as f:
                 outf = f.read()
-            end_lines = outf.split('\n')[-10:]
+            end_lines = outf.split('\n')[-50:]
             if 'Failed.' not in end_lines:
                 return True
             for line in end_lines:
@@ -596,6 +596,7 @@ class jdft_manager():
                 if "Length of '" in line:
                     if not auto_delete:
                         print('"State" files are incorrect size, job may fail: '+folder)
+                        sleep(1.0)
                     else:
                         print('"State" files are incorrect size, files removed.')
                         cwd = os.getcwd()
