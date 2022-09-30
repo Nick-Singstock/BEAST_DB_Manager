@@ -12,9 +12,11 @@ from time import sleep
 from sub_JDFTx import write as sub_write
 
 opj = os.path.join
+jdftx_python_dir = os.environ['JDFTx_manager_home']
 
 def sub_parallel(roots, cwd, nodes, cores_per_node, 
-                time, procs = 2, testing = 'False'):
+                time, procs = 2, testing = 'False',
+                recursive = False):
     print('Running '+str(len(roots))+ ' jobs in parallel on '+str(nodes)+' nodes (4 jobs/node)')
     
     manager_home = os.environ['JDFTx_manager_home']
@@ -51,6 +53,10 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
 #    writelines += 'export JDFTX_MEMPOOL_SIZE=32768  \n'   #update as appropriate
 #    writelines += 'export MPICH_GPU_SUPPORT_ENABLED=1  \n\n'
     
+    # add recursive logic if needed
+    if recursive:
+        writelines+='timeout 10 python '+os.path.join(jdftx_python_dir,'timer.py')+' > timer'+'\n\n'
+
     # add logic to launch parallel versions of para_managers (one per node)
     writelines += 'n_managers=$((4 * ${SLURM_JOB_NUM_NODES})) \n'  # to run one task/node
     writelines += 'echo "n_managers = $n_managers" \n'
@@ -58,6 +64,9 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     writelines += '    python ' + opj(manager_home, 'parallel_manager.py') + ' & \n'
     writelines += 'done \n'
     writelines += 'wait \n'
+    
+    if recursive:
+        writelines+='timeout 10 python '+os.path.join(jdftx_python_dir,'timer.py')+' > timer'+'\n\n'
     
     # writelines is now completed to be written as parallel.sh
     with open(opj(parallel_folder, out+'.sh'),'w') as f:

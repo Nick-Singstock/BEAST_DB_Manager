@@ -596,14 +596,19 @@ class jdft_manager():
                 if "Length of '" in line:
                     if not auto_delete:
                         print('"State" files are incorrect size, job may fail: '+folder)
-                        sleep(1.0)
+                        sleep(1.5)
                     else:
-                        print('"State" files are incorrect size, files removed.')
+                        print('"State" files are incorrect size, files removed:', folder)
                         cwd = os.getcwd()
-                        os.chdir(folder)
+                        os.chdir(opj(cwd, folder))
+                        print('Debug: folder =', opj(cwd, folder))
+                        sleep(1.0)
                         for file in ['fillings','wfns','eigenvals','eigenStats','fluidState','nbound']:
+                            if not ope(file):
+                                continue
                             self.run('rm '+file)
                         os.chdir(cwd)
+                        sleep(1.5)
                         break
         except:
             pass
@@ -1637,7 +1642,8 @@ class jdft_manager():
 #            shells.append(out_file + '.sh')
             
             sub_parallel(roots, self.cwd, self.args.nodes, os.environ['CORES_PER_NODE'],
-                         self.args.run_time)
+                         self.args.run_time, 
+                         recursive = True if self.args.short_recursive=='True' else False)
             return
         
         else:
