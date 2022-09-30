@@ -600,13 +600,15 @@ class jdft_manager():
                     else:
                         print('"State" files are incorrect size, files removed:', folder)
                         sleep(2.0)
-                        #cwd = os.getcwd()
+                        cwd = os.getcwd()
+                        print(cwd)
                         #os.chdir(opj(cwd, folder))
                         #print('Debug: folder =', opj(cwd, folder))
                         #sleep(1.0)
                         for file in ['fillings','wfns','eigenvals','fluidState','nbound']:
                             if not ope(opj(folder, file)):
                                 continue
+                            print('rm '+opj(folder, file))
                             self.run('rm '+opj(folder, file))
                         #os.chdir(cwd)
                         #sleep(1.5)
