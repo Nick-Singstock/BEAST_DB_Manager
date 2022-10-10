@@ -875,6 +875,11 @@ class helper():
                 'S4': {'refs': ['S8'], 'coeffs': [0.5]},
                 'S6': {'refs': ['S8'], 'coeffs': [0.75]},
                 'S8': {'refs': ['S8'], 'coeffs': [1]},
+                
+                'NaS8': {'refs': ['NaS8'], 'coeffs': [1]},
+                'LiS8': {'refs': ['LiS8'], 'coeffs': [1]},
+                'MgS8': {'refs': ['MgS8'], 'coeffs': [1]},
+                'CaS8': {'refs': ['CaS8'], 'coeffs': [1]},
                 }
         
         try:
