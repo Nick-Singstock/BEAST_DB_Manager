@@ -41,7 +41,7 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
         script += ' -g True'
     
     # tag to include regen attempt 
-    script += ' -r True'
+    #script += ' -r True'
     
     alloc = 'environ'
     # create parallel.sh header
@@ -86,7 +86,8 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
 #                '\n\necho "Completed $task_name"')
     singlejob = ('#!/bin/bash \ntask_name="$1" \ntask_num="$2" \n\necho "Starting $task_name"'+
                  # UPDATE: changed to run from within dir so removed -d and {task_name} dependence 
-                '\n\npython ' + script + ' > out_file'#' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
+                '\n\nexport FI_CXI_DEFAULT_VNI=$2'+
+                '\npython ' + script + ' > out_file'#' -d ../${task_name} > ' # run run_JDFTx.py in calc dir
                  #+ '../${task_name}/out_file'
                  + '\n\necho "Completed $task_name"')
     with open(opj(parallel_folder, 'singlejob.sh'),'w') as f:
