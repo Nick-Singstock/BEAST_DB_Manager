@@ -193,6 +193,8 @@ class jdft_manager():
                             'of processes (default True)',type=str, default='True')
         parser.add_argument('-fix', '--calc_fixer', help='Whether to use the smart error fixer for '+
                             'failed calcs (default False)',type=str, default='False')
+        parser.add_argument('-skipfix', '--skip_fixer', help='Whether to skip the smart error fixer for '+
+                            'failed calcs (default False)',type=str, default='False')
         parser.add_argument('-fr', '--full_rerun', help='Rerun ALL calculations. Be careful '+
                             'with this. Calcs start at current state. (default False)',type=str, default='False')
         parser.add_argument('--clean_wfns', help='Delete converged wfns  to reduce mem. Be careful '+
@@ -571,7 +573,8 @@ class jdft_manager():
     def update_rerun(self, rerun):
         for root in rerun:
             os.chdir(root)
-            self.failed_rerun_fixer(root, 
+            if self.args.skip_fixer != 'True':
+                self.failed_rerun_fixer(root, 
                         auto_delete = True if self.args.calc_fixer == 'True' else False)
             inputs = h.read_inputs('./')
             inputs['restart'] = 'True'
@@ -585,6 +588,7 @@ class jdft_manager():
             1) Length of state files (e.g., wfns) is incorrect
                 Fix: delete state files 
         '''
+        print('Rerun fixer: '+ folder)
         try:
             with open('out', 'r', errors='ignore') as f:
                 outf = f.read()
@@ -1753,7 +1757,7 @@ class jdft_manager():
             with open(os.path.join(results_folder, 'failed.txt'), 'w') as f:
                 f.write('\n'.join(failed_calcs))
             if self.args.rerun_unconverged == 'True' and len(rerun) > 0: #self.args.check_calcs == 'True' and 
-#                print('\nRerunning unconverged calculations')
+                print('\nUpdating unconverged calculations.')
                 self.update_rerun(rerun)
                 if parallel == 1 and not bundle:
                     self.rerun_calcs(rerun)
