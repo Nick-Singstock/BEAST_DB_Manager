@@ -1023,7 +1023,7 @@ class jdft_manager():
                         force_criteria = 3.0
                         for p_root, p_folders, p_files in os.walk(path_folder):
                             if 'neb.log' in p_files:
-                                opt = h.ead_optlog(p_root, 'neb.log', verbose = False)
+                                opt = h.read_optlog(p_root, 'neb.log', verbose = False)
                                 if opt == False:
                                     continue
                                 if opt[-1]['force'] < force_criteria:
