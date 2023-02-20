@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+jobs#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 High-throughput manager class for JDFTx calculations. Created alongside BEAST database. 
@@ -1575,7 +1575,8 @@ class jdft_manager():
         return max([nbands_add, nbands_mult])
 
     def get_running_jobs_dirs(self):
-        p = subprocess.Popen(['squeue' ,'-o', '"%Z %T"'],   #can be user specific, add -u username 
+        username = str(os.environ['USER'])
+        p = subprocess.Popen(['squeue','-u', username ,'-o', '"%Z %T"'],   # added specific user
                          stdout=subprocess.PIPE)
         jobs_running = []
         for i,line in enumerate(p.stdout):
