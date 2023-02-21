@@ -1,4 +1,4 @@
-jobs#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 High-throughput manager class for JDFTx calculations. Created alongside BEAST database. 
@@ -588,8 +588,12 @@ class jdft_manager():
             1) Length of state files (e.g., wfns) is incorrect
                 Fix: delete state files 
         '''
-        print('Rerun fixer: '+ folder)
+        #print('Rerun fixer: '+ folder)
         try:
+            if os.path.getsize('out') > 100000000:
+                print('WARNING: out file size > 100 MB. Cannot read/fix.')
+                return True
+            
             with open('out', 'r', errors='ignore') as f:
                 outf = f.read()
             end_lines = outf.split('\n')[-50:]
@@ -993,6 +997,7 @@ class jdft_manager():
                         final_bias_path = final_path.replace('BIAS',bias_str)
                         if init_bias_path not in converged or final_bias_path not in converged:
                             # surfaces not yet converged.
+                            print('NEB Error: Initial/Final paths not found/converged.')
                             continue 
                         init_st = Structure.from_file(os.path.join(init_bias_path,'CONTCAR'))
                         final_st = Structure.from_file(os.path.join(final_bias_path,'CONTCAR'))
@@ -1011,7 +1016,7 @@ class jdft_manager():
                         # copy over files
                         for i,folder in enumerate([init_bias_path,final_bias_path]):
                             to_folder = [new_init_folder, new_final_folder][i]
-                            for file in ['inputs','Ecomponents','opt.log','out']:
+                            for file in ['inputs','Ecomponents','opt.log','out', 'tinyout']:
                                 cmd = 'cp '+os.path.join(folder, file)+' '+os.path.join(to_folder, file)
                                 self.run(cmd)
                             st = [initst, finalst][i]
@@ -1065,8 +1070,8 @@ class jdft_manager():
                             # 2) setup idpp folders from scratch and add inputs for neb
                             cwd = os.getcwd()
                             os.chdir(neb_dir)
-                            cmd = ('idpp_nebmake.py 00/CONTCAR '+str(images+1).zfill(2)+
-                                   '/CONTCAR '+str(images)+' -idpp')
+                            cmd = ('gcneb_setup.py 00/CONTCAR '+str(images+1).zfill(2)+
+                                   '/CONTCAR '+str(images))
                             self.run(cmd)
                             self.run('cp 00/inputs ./inputs')
                             os.chdir(cwd)
@@ -1562,7 +1567,7 @@ class jdft_manager():
         # get electrons from psd files
         nelec = 0
         for el, count in el_dic.items():
-            file = ps_key.replace('$ID', el if ps_type in ['dojo'] else el.lower())
+            file = ps_key.replace('$ID', el if ps_type in ['dojo','SG15'] else el.lower())
             with open(file, 'r') as f:
                 ps_txt = f.read()
             zval = [line for line in ps_txt.split('\n') if 'Z valence' in line # GBRV
@@ -1575,6 +1580,7 @@ class jdft_manager():
         return max([nbands_add, nbands_mult])
 
     def get_running_jobs_dirs(self):
+        # p = subprocess.Popen(['squeue' ,'-o', '"%Z %T"'],   #can be user specific, add -u username 
         username = str(os.environ['USER'])
         p = subprocess.Popen(['squeue','-u', username ,'-o', '"%Z %T"'],   # added specific user
                          stdout=subprocess.PIPE)
@@ -1836,7 +1842,7 @@ run_command = 'python '+ os.path.join(manager_home, 'sub_JDFTx.py')
 
 # all files to include in backup
 files_to_backup = ['CONTCAR','POSCAR','inputs','convergence','opt.log','neb.log','Ecomponents',
-                   'tinyout', 
+                   'tinyout', 'eigStats',
                    ]    
     
 if __name__ == '__main__' and run_script:
