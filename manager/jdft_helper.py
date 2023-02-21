@@ -58,7 +58,7 @@ class helper():
         except:
             print('ERROR: Cannot read opt.log file')
             return False
-        if len(opt_text) == 0:
+        if len(opt_text) == 0 or (len(opt_text) == opt_text.count(' ')):
             # no data yet
             return False #[{'energy': 'None', 'force': 'None', 'step': 0}]
         steps = {'1': []}
