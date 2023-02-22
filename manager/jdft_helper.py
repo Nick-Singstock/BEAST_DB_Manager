@@ -116,11 +116,16 @@ class helper():
             return False
         site_data = {}
         record_forces, record_ions = False, False
+        record_d3 = False
         el_counter = 0
         net_oxidation = 0
         net_mag = 0
         initial_electrons = None
         final_electrons = None
+        d3_coords, c6_coords = {}, {}
+        evdw6, evdw8 = None, None
+        mag_total, mag_abs = None, None
+        fluid_filling = None
         
         if contcar != 'None':
             ct_els = list(set([site['label'] for site in contcar['sites']]))
@@ -132,11 +137,34 @@ class helper():
             if 'FillingsUpdate' in line:
                 try:
                     final_electrons = float(line.split()[4])
+                    mag_total = float(line.split()[10])
+                    mag_abs = float(line.split()[8])
                 except:
                     pass
             
+            if 'Linear fluid (dielectric constant:' in line:
+                fluid_filling = float(line.split()[10])
+            
+            if 'Computing DFT-D3 correction:' in line:
+                record_d3 = True
+                d3_coords = {}
+                c6_coords = {}
+                evdw6, evdw8 = 0, 0
+                continue
+            if record_d3:
+                if '# coordination-number' in line:
+                    d3_coords[line.split()[2]] = [float(nc) for iis,nc in enumerate(line.split()) if iis > 2]
+                
+                if '# diagonal-C6' in line:
+                    c6_coords[line.split()[2]] = [float(nc) for iis,nc in enumerate(line.split()) if iis > 2]
+                if 'EvdW_6' in line:
+                    evdw6 = float(line.split()[2])
+                if 'EvdW_8' in line:
+                    evdw8 = float(line.split()[2])
+            
             if 'Ionic positions in cartesian coordinates' in line:
                 record_ions = True
+                record_d3 = False
                 # reset net oxidation states and magnetization for new group
                 net_oxidation = 0
                 net_mag = 0
@@ -212,7 +240,8 @@ class helper():
                         except:
                             print('Error reading oxidation states')
                             return False
-        return site_data, net_oxidation, net_mag, final_electrons, initial_electrons
+        return (site_data, net_oxidation, net_mag, final_electrons, initial_electrons,
+                mag_abs, mag_total, fluid_filling, d3_coords, c6_coords, evdw6, evdw8)
     
     def read_out_steps(self, folder):
         # go through out file and collect str info at each ionic step
@@ -396,11 +425,20 @@ class helper():
             net_oxi = 'None'
             net_mag = 'None'
             nfinal = 'None'
-        else:
+            mags = 'None'
+            fluid_fill = 'None'
+            vdw_coord = 'None'
+        else:  
+            # (site_data, net_oxidation, net_mag, final_electrons, initial_electrons,
+            # mag_abs, mag_total, fluid_filling, d3_coords, c6_coords, evdw6, evdw8)
             sites = out_sites[0]
             net_oxi = out_sites[1]
             net_mag = out_sites[2]
             nfinal = out_sites[3]
+            mags = {'Total': out_sites[6], 'Abs': out_sites[5]}
+            fluid_fill = out_sites[7]
+            vdw_coord = {'coord-num': out_sites[8], 'diag-C6': out_sites[9],
+                         'EvdW-6': out_sites[10], 'EvdW-8': out_sites[11], }
         
         out_steps = self.read_out_steps(folder)
         
@@ -411,7 +449,8 @@ class helper():
                 'final_energy': 'None' if not conv else current_energy,
                 'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag,
                 'convergence_file': convergence, 'eigStats': eigStats, 'energy_units': 'H',
-                'atom_forces': atom_forces, 'root': folder, 'out_steps': out_steps}
+                'atom_forces': atom_forces, 'root': folder, 'out_steps': out_steps,
+                'fluid_occ': fluid_fill, 'magmoms': mags, 'D3-vdW': vdw_coord}
         
     def get_neb_data(self, folder, bias):
         # reads neb folder and returns data as a dictionary
