@@ -765,33 +765,53 @@ class helper():
             sys_analysis[mol] = mol_data
         return sys_analysis
     
-    def get_ads_sites(self, ads_st, ads, surf_st, nsite, same_threshold = 1.5, max_bond = 3.3):
-        # wrote this function without comments originally, no idea what's going on but it seems to work
-        ads_dic = self.formula_to_dic(ads)
-        site_dic = {}
-        ads_list = [(k, i) for k,v in ads_dic.items() for i in range(v)]
+    def get_ads_sites(self, ads_st, ads, surf_st, nsite, same_threshold = 1.5, max_bond = 3.3, verbose = True):
+        '''
+        return information on bond lengths and nbonds between surface and adsorbate
         
+        ads_st: pmg structure of converged adsorbate + surface 
+        ads_st: string name of adsorbate 
+        surf_st: pmg structure of converged surface (clean, no ads)
+        nsite: string site number (only used to print errors)
+        same_threshold: max distance for atom to be considered the same in surf_st and ads_st
+        max_bond: maximum bond length from surface to adsorbate 
+        '''
+        # create dic of adsorbate atoms from mol string 
+        ads_dic = self.formula_to_dic(ads) # {atom: natom}
+        site_dic = {}
+        ads_list = [(k, i) for k,v in ads_dic.items() for i in range(v)] # [(atom, iatom)]
+        
+        # list of sites not in original surface structure (ads atoms)
         ads_sites = [site for site in ads_st.sites 
                      if not any([site.distance(s2) < same_threshold 
                      and site.species_string == s2.species_string for s2 in surf_st.sites])]
-        
         for atom in ads_list:
             a = atom[0]
             i = atom[1]
             key = a+'_'+str(i)
             try:
+                # get site associated with iatom
                 site = [s for s in ads_sites if s.species_string == a][i]
             except:
                 print('Structure of adsorbate calc may be incorrect. Skipping.')
                 return None
+            # initialize site dic with key as atom_iatom
+            # 'dists' is a dic of distances to any other site in the structure
             site_dic[key] = {'site': site, 'dists': {str(ii).zfill(2): {'dist': site.distance(s2), 'site': s2}
                              for ii, s2 in enumerate(ads_st.sites) if s2 != site}, 'atom': a}
-            site_dic[key]['bonds'] = {v['site'].species_string: v for k,v in site_dic[key]['dists'].items() 
+            # 'bonds' is a dic of all bonds to the surface < the max bond length
+            site_dic[key]['bonds'] = {k: v for k,v in site_dic[key]['dists'].items() 
                                       if v['dist'] < max_bond and v['site'] not in ads_sites}
             site_dic[key]['nbonds'] = len(site_dic[key]['bonds'])
             site_dic[key]['min_bond'] = {k: v for k,v in site_dic[key]['bonds'].items() if v['dist'] == min([
                                          b['dist'] for b in site_dic[key]['bonds'].values()])}
+            
+            site_dic[key]['mol_bonds'] = {k: v for k,v in site_dic[key]['dists'].items() # no self in bonds
+                                          if v['dist'] < max_bond and v['site'] in ads_sites} 
+            site_dic[key]['mol_dists'] = {k: v for k,v in site_dic[key]['dists'].items() 
+                                          if v['site'] in ads_sites} 
         
+        # find the shortest bond length from any ads atom to the surface
         min_bond = max_bond
         min_atom = ''
         for k1,v1 in site_dic.items():
@@ -799,16 +819,20 @@ class helper():
                 if v2['dist'] < min_bond:
                     min_bond = v2['dist']
                     min_atom = v1['atom']
-                    min_site = k2
+                    min_site = v2['site'].species_string
                     min_sites = {k3: v3['dist'] for k3,v3 in v1['bonds'].items()}
                     min_nbonds = v1['nbonds']
+                    mol_dists = v1['mol_dists']
+                    ads_site_index = k2
+                    ads_id = [str(ii).zfill(2) for ii, s2 in enumerate(ads_st.sites) if s2 == site][0]
         
         if min_atom == '':
-            print('WARNING: No binding sites found: '+ads+' ('+nsite+')')
+            if verbose: print('WARNING: No binding sites found: '+ads+' ('+nsite+')')
             return {'full_bond_dic': site_dic, 'ads': min_atom, 'ads_site': '', 'dist': 10, 'nbonds': 0}
         
         return {'full_bond_dic': site_dic, 'ads': min_atom, 'ads_site': min_site, 'all_sites': min_sites,
-               'dist': min_bond, 'nbonds': min_nbonds}
+               'dist': min_bond, 'nbonds': min_nbonds, 'ads_atom_index': ads_id,
+               'ads_site_index': ads_site_index, 'mol_dists': mol_dists}
     
     def ref_atoms(self):
         file = 'results/ref_atoms.json'
