@@ -147,7 +147,6 @@ class helper():
                     fluid_filling = float(line.split()[10])
                 except:
                     print('ERROR: Cannot read fluid filling |', line)
-                    fluid_filling = 'None'
             
             if 'Computing DFT-D3 correction:' in line:
                 record_d3 = True
@@ -156,15 +155,18 @@ class helper():
                 evdw6, evdw8 = 0, 0
                 continue
             if record_d3:
-                if '# coordination-number' in line:
-                    d3_coords[line.split()[2]] = [float(nc) for iis,nc in enumerate(line.split()) if iis > 2]
-                
-                if '# diagonal-C6' in line:
-                    c6_coords[line.split()[2]] = [float(nc) for iis,nc in enumerate(line.split()) if iis > 2]
-                if 'EvdW_6' in line:
-                    evdw6 = float(line.split()[2])
-                if 'EvdW_8' in line:
-                    evdw8 = float(line.split()[2])
+                try:
+                    if '# coordination-number' in line:
+                        d3_coords[line.split()[2]] = [float(nc) for iis,nc in enumerate(line.split()) if iis > 2]
+                    
+                    if '# diagonal-C6' in line:
+                        c6_coords[line.split()[2]] = [float(nc) for iis,nc in enumerate(line.split()) if iis > 2]
+                    if 'EvdW_6' in line:
+                        evdw6 = float(line.split()[2])
+                    if 'EvdW_8' in line:
+                        evdw8 = float(line.split()[2])
+                except:
+                    pass
             
             if 'Ionic positions in cartesian coordinates' in line:
                 record_ions = True
