@@ -143,7 +143,11 @@ class helper():
                     pass
             
             if 'Linear fluid (dielectric constant:' in line:
-                fluid_filling = float(line.split()[10])
+                try:
+                    fluid_filling = float(line.split()[10])
+                except:
+                    print('ERROR: Cannot read fluid filling |', line)
+                    fluid_filling = 'None'
             
             if 'Computing DFT-D3 correction:' in line:
                 record_d3 = True
