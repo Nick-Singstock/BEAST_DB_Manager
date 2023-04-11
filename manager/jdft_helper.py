@@ -1132,4 +1132,27 @@ class helper():
                     line += f'{message} '
                 f.write(f'\n {line} \n')
     
+    def set_pretty_mpl(self):
+        import matplotlib as mpl
+        """
+        Args:
+            
+        Returns:
+            dictionary of settings for mpl.rcParams
+        """
+        params = {'axes.linewidth' : 1.5,'axes.unicode_minus' : False,
+                  'figure.dpi' : 500, # if save else 100,
+                  'font.size' : 16,'font.family': 'sans-serif','font.sans-serif': 'Verdana',
+                  'legend.frameon' : False,'legend.handletextpad' : 0.2,
+                  'legend.handlelength' : 0.6,'legend.fontsize' : 16,
+                  'legend.columnspacing': 0.8,
+                  'mathtext.default' : 'regular','savefig.bbox' : 'tight',
+                  'xtick.labelsize' : 16,'ytick.labelsize' : 16,
+                  'xtick.major.size' : 6,'ytick.major.size' : 6,
+                  'xtick.major.width' : 1.5,'ytick.major.width' : 1.5,
+                  'xtick.top' : False,'xtick.bottom' : True,'ytick.right' : True,'ytick.left' : True,
+                  'xtick.direction': 'out','ytick.direction': 'out','axes.edgecolor' : 'black'}
+        for p in params:
+            mpl.rcParams[p] = params[p]
+        return params
     
