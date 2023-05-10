@@ -37,6 +37,15 @@ except:
     comp='Eagle'
 
 def conv_logger(txt, out_file = 'calc.log'):
+    """ Append text to convergence log file in active directory.
+    Args:
+        txt: text to append to convergence log file
+        out_file: fname pattern for convergence log file
+    Returns:
+        None
+    Used in:
+        run_JDFTx.py/run_calc()
+    """
     if os.path.exists(out_file):
         with open(out_file,'r') as f:
             old = f.read()
@@ -47,6 +56,13 @@ def conv_logger(txt, out_file = 'calc.log'):
 
 # ensure forces don't get too large or stop job
 def force_checker(max_force = 500):
+    """ Looks at active directory for an opt/neb log file. If one is found and
+    if it contains a force above max_force, script is terminated.
+    Args:
+        max_force: Maximum force before calculation is cancelled.
+    Returns:
+        None
+    """
     if 'opt.log' in os.listdir():
         try:
             with open('opt.log', 'r') as f:
@@ -91,7 +107,19 @@ def insert_el(filename):
 
 # adds inputs_dos file to cmds
 def add_dos(cmds, script_cmds):
+    """ Adds dos commands to cmds and overwrites ant existing dos commands.
+    Requires file ./inputs_dos to exist and pdos to be in script_cmds
+    Args:
+        cmds:
+        script_cmds:
+    Returns:
+        either given cmds if function criteria not met, or new_cmds with pdos
+        commands added
+    USED IN:
+        -
+    """
     from pymatgen.core.structure import Structure
+    # If the file ./input_dos doesn't exist, and 'pdos' isn't in script_cmds
     if not ope('./inputs_dos') and not ('pdos' in script_cmds):
         return cmds
     new_cmds = []
@@ -103,7 +131,8 @@ def add_dos(cmds, script_cmds):
         
     dos_line = '' 
     st = Structure.from_file('./POSCAR')
-    
+
+    # Is this second check for input_dos needed?
     if ope('./inputs_dos'):
         with open('./inputs_dos','r') as f:
             dos = f.read()
@@ -148,6 +177,13 @@ def add_dos(cmds, script_cmds):
     return new_cmds
 
 def autodos_sp(cmds, atoms):
+    """ Appends commands with pdos commands for given atoms
+    Args:
+        cmds: existing set of commands
+        atoms: element symbols for atoms of interest
+    Returns:
+        new_cmds: cmds with all possible pdos commands for atoms provided
+    """
     els = list(set(atoms.get_chemical_symbols()))
     doskeys = {'s': ['s'], 'p': ['p','px','py','pz'], 'd': ['d','dxy','dxz','dyz','dz2','dx2-y2']}
     alldos = {'s': ['H',  'Li','Be',   'B','C','N','O','F',
@@ -176,6 +212,12 @@ def autodos_sp(cmds, atoms):
     return newcmds
 
 def clean_doscmds(cmds):
+    """ Removes redundant pdos commands from cmds
+    Args:
+        cmds:
+    Returns:
+        new_cmds:
+    """
     new_cmds = []
     for cmd in cmds:
         # remove repeat pdos cmds 
@@ -196,6 +238,16 @@ def clean_doscmds(cmds):
 
 # main function for calculations
 def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
+    """ Gathers commands from inputs,
+    Args:
+        command_file: fname pattern for text file containing inputs (inputs)
+        jdftx_exe: JDFTx execution command ($JDFTx in your bash environment)
+        autodoscmd: Boolean whether to use autodos
+        interactive: Boolean whether to run script on an interactive node
+        killcmd: Boolean
+    Returns:
+        None
+    """
 
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
