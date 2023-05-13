@@ -26,7 +26,7 @@ try:
 except:
     res=None
 
-def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testing, get_header = False):
+def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testing,big_mem, get_header = False):
     try:
         modules=' '.join(os.environ['JDFTx_mods'].split('_'))
     except:
@@ -75,7 +75,10 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
         writelines+='#SBATCH -c '+str(32)+'\n'  #TODO: pick better numbers, prev 16*nodes
         writelines+='#SBATCH --ntasks-per-node=4\n'
         if gpu == 'True':
-            writelines+='#SBATCH -C gpu\n'
+            if big_mem: #specify big memory nodes on Perlmutter
+                writelines+='#SBATCH -C gpu&hbm80g\n'
+            else:
+                writelines+='#SBATCH -C gpu\n'
             writelines+='#SBATCH --gpus-per-task=1\n'
             writelines+='#SBATCH --gpu-bind=none \n'
     
