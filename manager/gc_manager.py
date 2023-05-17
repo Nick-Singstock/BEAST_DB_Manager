@@ -1641,6 +1641,10 @@ class jdft_manager():
         
         max_per_node = self.args.parallel
         total_calcs = len(roots) 
+        if total_calcs == 0:
+            print('No calculations to submit!')
+            return 
+        
         if total_calcs < max_per_node:
             max_per_node = total_calcs
         cores_per_node = core_architecture
