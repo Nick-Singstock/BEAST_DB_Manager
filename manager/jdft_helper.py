@@ -1077,14 +1077,16 @@ class helper():
         os.chdir(cwd)
         return jdos
     
-    def dos_analysis(self, dos_data, e_range = [-10, 5]):
+    def dos_analysis(self, dos_data, e_range = [-10, 0]):
         if len(dos_data) == 0:
             print('ERROR: DOS analysis failed!')
             return {}
         fermi = dos_data['Efermi']
+        zeroed = dos_data['zeroed_fermi']
+        bounds = e_range if zeroed else [e_range[0] - fermi, e_range[1] - fermi]
         analysis_dic = {'Efermi': fermi,
-                        'zeroed_fermi': dos_data['zeroed_fermi'],
-                        'analysis_en_range': (e_range[0], fermi)}
+                        'zeroed_fermi': zeroed,
+                        'analysis_en_range': bounds}
         
         # for spin in ['up', 'down']:
         # analysis_dic[spin] = {}
@@ -1102,10 +1104,10 @@ class helper():
         
         return analysis_dic
     
-    def get_dos_props(self, up, down, energy, fermi, e_range = [-10, 5], major_percent = 0.5):
+    def get_dos_props(self, up, down, energy, fermi, e_range, major_percent = 0.5):
         # get properties of a dos from vector of fillings and energies
         
-        inrange_indices = [0 if (e >= e_range[0] and e <= fermi) else 1 for e in energy]
+        inrange_indices = [1 if (e >= e_range[0] and e <= e_range[1]) else 0 for e in energy]
         inrange_up = np.multiply(inrange_indices, up)
         inrange_down = np.multiply(inrange_indices, down)
         
