@@ -1091,36 +1091,42 @@ class helper():
         # for spin in ['up', 'down']:
         # analysis_dic[spin] = {}
         analysis_dic['Total'] = self.get_dos_props(dos_data['up']['Total'], dos_data['down']['Total'],
-                                                             dos_data['up']['Energy'], fermi, e_range=e_range)
+                                                   dos_data['up']['Energy'], dos_data['down']['Energy'], 
+                                                   fermi, e_range=e_range)
         for atom, dosdic in dos_data['up'].items():
             if atom in ['Total', 'Energy']: 
                 continue
             analysis_dic[atom] = {}
-            for orbital, filling in dosdic.items():
+            for orbital, filling_up in dosdic.items():
                 # filling is vector for associated atom/orbital. 
-                orbital_props = self.get_dos_props(filling, dos_data['down'][atom][orbital], 
-                                                   dos_data['up']['Energy'], fermi, e_range=e_range)
+                orbital_props = self.get_dos_props(filling_up, dos_data['down'][atom][orbital], 
+                                                   dos_data['up']['Energy'], dos_data['down']['Energy'], 
+                                                   fermi, e_range=e_range)
                 analysis_dic[atom][orbital] = orbital_props
         
         return analysis_dic
     
-    def get_dos_props(self, up, down, energy, fermi, e_range, major_percent = 0.5):
+    def get_dos_props(self, up, down, e_up, e_down, fermi, e_range, major_percent = 0.5):
         # get properties of a dos from vector of fillings and energies
         
-        inrange_indices = [1 if (e >= e_range[0] and e <= e_range[1]) else 0 for e in energy]
-        inrange_up = np.multiply(inrange_indices, up)
-        inrange_down = np.multiply(inrange_indices, down)
+        inrange_ind_up = [1 if (e >= e_range[0] and e <= e_range[1]) else 0 for e in e_up]
+        inrange_ind_down = [1 if (e >= e_range[0] and e <= e_range[1]) else 0 for e in e_down]
+        inrange_up = np.multiply(inrange_ind_up, up)
+        inrange_down = np.multiply(inrange_ind_down, down)
         
         # volume, center, width
-        v_up = get_distribution_moment(energy, inrange_up)
-        c_up, w_up = get_distribution_moment(energy, inrange_up, (1,2))
+        v_up = get_distribution_moment(e_up, inrange_up)
+        c_up, w_up = get_distribution_moment(e_up, inrange_up, (1,2))
         
-        v_down = get_distribution_moment(energy, inrange_down)
-        c_down, w_down = get_distribution_moment(energy, inrange_down, (1,2))
+        v_down = get_distribution_moment(e_down, inrange_down)
+        c_down, w_down = get_distribution_moment(e_down, inrange_down, (1,2))
         
-        combo = np.add(inrange_up, inrange_down)
-        v_combo = get_distribution_moment(energy, combo)
-        c_combo, w_combo = get_distribution_moment(energy, combo, (1,2))
+        if len(inrange_up) == len(inrange_down):
+            combo = np.add(inrange_up, inrange_down)
+            v_combo = get_distribution_moment(e_up, combo)
+            c_combo, w_combo = get_distribution_moment(e_up, combo, (1,2))
+        else:
+            v_combo, c_combo, w_combo = 'None', 'None', 'None'
         
         # max_peak = max(inrange_filling)
         # major_peaks = [(e, inrange_filling[i]) for i,e in enumerate(energy) 
