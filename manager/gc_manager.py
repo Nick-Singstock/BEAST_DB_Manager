@@ -207,6 +207,8 @@ class jdft_manager():
                             ' be upgraded from no_bias or 0V converged calcs (default True).'+
                             ' False = calcs are independently setup and run. Can be used with -elec tag.',
                             type=str, default='True')
+        parser.add_argument('-bm', '--big_mem', help='Whether to use Perlmutter\'s large memory gpu nodes with'+
+                            '80GB of memory per GPU (default False)', type=bool, default=False)
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -462,6 +464,7 @@ class jdft_manager():
                 # save adsorbate and desorbed state calcs
                 elif calc_type in ['adsorbed', 'desorbed']:
                     # dic = surf: calc_type(s): mol: biases: configs: data. no configs for desorbed
+                    # print(data)
                     if verbose: 
                         if self.args.current_force == 'True': 
                             print('Adsorbed/Desorbed calc read (force='+cf+')')
@@ -1667,7 +1670,8 @@ class jdft_manager():
             
             sub_parallel(roots, self.cwd, self.args.nodes, os.environ['CORES_PER_NODE'],
                          self.args.run_time, 
-                         recursive = True if self.args.short_recursive=='True' else False)
+                         recursive = True if self.args.short_recursive=='True' else False,
+                         big_mem=self.args.big_mem)
             return
         
         else:

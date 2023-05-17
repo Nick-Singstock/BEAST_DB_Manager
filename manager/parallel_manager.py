@@ -16,7 +16,7 @@ jdftx_python_dir = os.environ['JDFTx_manager_home']
 
 def sub_parallel(roots, cwd, nodes, cores_per_node, 
                 time, procs = 2, testing = 'False',
-                recursive = False):
+                recursive = False, big_mem=False):
     print('Running '+str(len(roots))+ ' jobs in parallel on '+str(nodes)+' nodes (4 jobs/node)')
     
     manager_home = os.environ['JDFTx_manager_home']
@@ -46,7 +46,7 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     alloc = 'environ'
     # create parallel.sh header
     writelines = sub_write(nodes, cores_per_node, time, out, alloc, 'standard', script, 'False', 
-                           procs, 'True', testing, get_header = True)
+                           procs, 'True', testing, big_mem, get_header = True)
     
     # assign vars
 #    writelines += '\nexport SLURM_CPU_BIND="cores" \n'
