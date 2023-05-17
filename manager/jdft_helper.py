@@ -10,6 +10,7 @@ import json
 import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.core import Lattice
+from ase.dft import get_distribution_moment
 import re
 import subprocess
 
@@ -1075,6 +1076,57 @@ class helper():
             #self.plot_jdos(jdos)
         os.chdir(cwd)
         return jdos
+    
+    def dos_analysis(self, dos_data, e_range = [-10, 5]):
+        if len(dos_data) == 0:
+            print('ERROR: DOS analysis failed!')
+            return {}
+        fermi = dos_data['Efermi']
+        analysis_dic = {'Efermi': fermi,
+                        'zeroed_fermi': dos_data['zeroed_fermi'],
+                        'analysis_en_range': (e_range[0], fermi)}
+        
+        # for spin in ['up', 'down']:
+        # analysis_dic[spin] = {}
+        analysis_dic['Total'] = self.get_dos_props(dos_data['up']['Total'], dos_data['down']['Total'],
+                                                             dos_data['up']['Energy'], fermi, e_range=e_range)
+        for atom, dosdic in dos_data['up'].items():
+            if atom in ['Total', 'Energy']: 
+                continue
+            analysis_dic[atom] = {}
+            for orbital, filling in dosdic.items():
+                # filling is vector for associated atom/orbital. 
+                orbital_props = self.get_dos_props(filling, dos_data['down'][atom][orbital], 
+                                                   dos_data['up']['Energy'], fermi, e_range=e_range)
+                analysis_dic[atom][orbital] = orbital_props
+        
+        return analysis_dic
+    
+    def get_dos_props(self, up, down, energy, fermi, e_range = [-10, 5], major_percent = 0.5):
+        # get properties of a dos from vector of fillings and energies
+        
+        inrange_indices = [0 if (e >= e_range[0] and e <= fermi) else 1 for e in energy]
+        inrange_up = np.multiply(inrange_indices, up)
+        inrange_down = np.multiply(inrange_indices, down)
+        
+        # volume, center, width
+        v_up = get_distribution_moment(energy, inrange_up)
+        c_up, w_up = get_distribution_moment(energy, inrange_up, (1,2))
+        
+        v_down = get_distribution_moment(energy, inrange_down)
+        c_down, w_down = get_distribution_moment(energy, inrange_down, (1,2))
+        
+        combo = np.add(inrange_up, inrange_down)
+        v_combo = get_distribution_moment(energy, combo)
+        c_combo, w_combo = get_distribution_moment(energy, combo, (1,2))
+        
+        # max_peak = max(inrange_filling)
+        # major_peaks = [(e, inrange_filling[i]) for i,e in enumerate(energy) 
+        #                if inrange_filling[i] > major_percent * max_peak]
+        
+        return {'volume': v_combo, 'center': c_combo, 'width': w_combo,
+                'v_up': v_up, 'c_up': c_up, 'w_up': w_up, 
+                'v_down': v_down, 'c_down': c_down, 'w_down': w_down, } # 'major_peaks(en,fill)': major_peaks}
         
     def formula_to_dic(self, formula):
         assert '.' not in formula, 'ERROR: Cannot include decimals in formula. Only integers allowed.'

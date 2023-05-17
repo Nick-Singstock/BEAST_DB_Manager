@@ -136,7 +136,9 @@ class jdft_manager():
                             ' Default True.',type=str, default='True')
         parser.add_argument('-b', '--backup', help='Whether to backup calcs folder. Default False.',
                             type=str, default='False')
-        parser.add_argument('-dos', '--save_dos', help='Whether to save DOS data to all_data. Default False.',
+        parser.add_argument('-sdos', '--save_dos', help='Whether to save DOS data to json files (these are large!). Default False.',
+                            type=str, default='False')
+        parser.add_argument('-ados', '--analyze_dos', help='Whether to analyze DOS data and add analysis to all_data. Default False.',
                             type=str, default='False')
         parser.add_argument('-ra', '--read_all', help='Read all folders for new data. Does not use convergence '+
                             'file to speed up reading. Default False.', type=str, default='False')
@@ -355,23 +357,31 @@ class jdft_manager():
                                                   data['current_force'] < force_limit) else True)
                     
                     # add dos files 
-                    if data['converged'] and self.args.save_dos == 'True':
-                        if root not in dos_tracker:
-                            dos_data = h.get_jdos(root)
-                            all_dos[root] = dos_data
-                            dos_tracker[root] = {'n': dos_file_count, 
-                                                 'file': 'all_dos_'+str(dos_file_count)+'.json'}
-                            ndos += 1
-                            if ndos % dos_per_file == 0: # added intermittent saving of all_dos file 
-                                with open(opj(results_folder, 'dos', 
-                                              'all_dos_'+str(dos_file_count)+'.json'),'w') as f:
-                                    json.dump(all_dos, f)
-                                with open(opj(results_folder, 'dos_tracker.json'),'w') as f:
-                                    json.dump(dos_tracker, f)
-                                print('Int. DOS save at', ndos, 
-                                      '- all_dos reset - dos counter =', dos_file_count)
-                                dos_file_count += 1
-                                all_dos = {}
+                    if data['converged'] and (self.args.save_dos == 'True' or self.args.analyze_dos == 'True'):
+                        dos_data = h.get_jdos(root)
+                        
+                        # new function, analyzes dos data from jdftx to get dos props: centers, width, sharpness metrics 
+                        if self.args.analyze_dos == 'True':
+                            dos_analysis = h.dos_analysis(dos_data)
+                            data['dos_analysis'] = dos_analysis 
+                            
+                        if self.args.save_dos == 'True':
+                            if root not in dos_tracker:
+                                dos_data = h.get_jdos(root)
+                                all_dos[root] = dos_data
+                                dos_tracker[root] = {'n': dos_file_count, 
+                                                     'file': 'all_dos_'+str(dos_file_count)+'.json'}
+                                ndos += 1
+                                if ndos % dos_per_file == 0: # added intermittent saving of all_dos file 
+                                    with open(opj(results_folder, 'dos', 
+                                                  'all_dos_'+str(dos_file_count)+'.json'),'w') as f:
+                                        json.dump(all_dos, f)
+                                    with open(opj(results_folder, 'dos_tracker.json'),'w') as f:
+                                        json.dump(dos_tracker, f)
+                                    print('Int. DOS save at', ndos, 
+                                          '- all_dos reset - dos counter =', dos_file_count)
+                                    dos_file_count += 1
+                                    all_dos = {}
                 
                 # save molecule data
                 if calc_type == 'molecules':
