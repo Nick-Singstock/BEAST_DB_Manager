@@ -362,6 +362,11 @@ class jdft_manager():
                     if data['converged'] and (self.args.save_dos == 'True' or self.args.analyze_dos == 'True'):
                         dos_data = h.get_jdos(root)
                         
+                        # rerun calcs without dos 
+                        if dos_data == False:
+                            rerun.append(root)
+                            continue
+                        
                         # new function, analyzes dos data from jdftx to get dos props: centers, width, sharpness metrics 
                         if self.args.analyze_dos == 'True':
                             dos_analysis = h.dos_analysis(dos_data)

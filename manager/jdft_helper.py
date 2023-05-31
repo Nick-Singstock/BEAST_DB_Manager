@@ -1071,6 +1071,7 @@ class helper():
         except:
             print('ERROR: Cannot read DOS info for:', folder)
             jdos = {}
+            return False
         if plot:
             print('METAERROR: jdos plotting not yet added! Contact Nick.')
             #self.plot_jdos(jdos)
