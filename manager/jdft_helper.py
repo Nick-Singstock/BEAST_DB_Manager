@@ -1060,10 +1060,13 @@ class helper():
         os.chdir(folder)
         
         if os.path.exists('jpdos.json'):
-            with open('jpdos.json','r') as f:
-                jdos = json.load(f)
-            os.chdir(cwd)
-            return jdos
+            try:
+                with open('jpdos.json','r') as f:
+                    jdos = json.load(f)
+                os.chdir(cwd)
+                return jdos
+            except:
+                pass
         try:
             subprocess.call('get_jdos.py', shell=True)
             with open('jpdos.json','r') as f:
