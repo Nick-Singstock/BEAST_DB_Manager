@@ -1073,7 +1073,7 @@ class helper():
                 jdos = json.load(f)
         except:
             print('ERROR: Cannot read DOS info for:', folder)
-            jdos = {}
+            os.chdir(cwd)
             return False
         if plot:
             print('METAERROR: jdos plotting not yet added! Contact Nick.')
