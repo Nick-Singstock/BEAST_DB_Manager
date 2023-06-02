@@ -16,13 +16,21 @@ filedown = 'dosDn'
 remove_small_vals = False
 zero_fermi = True
 
-print('Reading DOS files.')
-with open(fileup, 'r') as f:
-    txt_up = f.read()
-with open(filedown, 'r') as f:
-    txt_down = f.read()
-with open('out', 'r', errors='ignore') as f:
-    txt_out = f.read()
+failed = False
+
+try:
+    print('Reading DOS files.')
+    with open(fileup, 'r') as f:
+        txt_up = f.read()
+    with open(filedown, 'r') as f:
+        txt_down = f.read()
+    with open('out', 'r', errors='ignore') as f:
+        txt_out = f.read()
+except:
+    print('Error: DOS files do not exist')
+    failed = True
+    
+    
 
 def read_EF(txt):
     target = 'mu: '
@@ -33,73 +41,74 @@ def read_EF(txt):
     assert ef is not None, 'ERROR: no mu/EF found.'
     return ef * hartree_to_ev
 
-print('Formatting DOS.')
-
-efermi = read_EF(txt_out)
-dos = {'up': {}, 'down': {}, 'Efermi': efermi, 'zeroed_fermi': zero_fermi}
-edic = {'up': {}, 'down': {}}
-for ispin,spin in enumerate(['up','down']):
-    # target format: {'up': {Fe_1: {'s': [], 'd': []}, 'Energy': [], 'Total': []}}
-    txt = [txt_up, txt_down][ispin]
-    for i,line in enumerate(txt.split('\n')):
-        if line in ['', ' ']:
-            continue
-        if i == 0:
-            # add keys
-            keys = [k for k in line.split('"') if k not in ['', ' ', '\t']]
-            continue
-        
-        values = [float(v) for v in line.split()]
-        if len(values) != len(keys):
-            print('ERROR: Failed to read line: '+str(i))
-            print(line)
-            continue
-        
-        # get energy in eV (centered @ efermi)
-        energy = values[keys.index('Energy')] * hartree_to_ev - (efermi if zero_fermi else 0.0)
-        estr = '%.3f'%energy
-        if estr in edic[spin]:
-            edic[spin][estr].append(values)
-        else:
-            edic[spin][estr] = [values]
-        
-    for estr, value_list in edic[spin].items():
-        for ii, v in enumerate(value_list[0]):
-            key = keys[ii]
-            
-            # add energy to dic
-            if key in ['Energy']:
-                en = float(estr)
-                if key not in dos[spin]:
-                    dos[spin][key] = [en]
-                else:
-                    dos[spin][key].append(en)
+if not failed:
+    print('Formatting DOS.')
+    
+    efermi = read_EF(txt_out)
+    dos = {'up': {}, 'down': {}, 'Efermi': efermi, 'zeroed_fermi': zero_fermi}
+    edic = {'up': {}, 'down': {}}
+    for ispin,spin in enumerate(['up','down']):
+        # target format: {'up': {Fe_1: {'s': [], 'd': []}, 'Energy': [], 'Total': []}}
+        txt = [txt_up, txt_down][ispin]
+        for i,line in enumerate(txt.split('\n')):
+            if line in ['', ' ']:
+                continue
+            if i == 0:
+                # add keys
+                keys = [k for k in line.split('"') if k not in ['', ' ', '\t']]
                 continue
             
-            # get dos average at energy
-            dos_eav = np.average([vs[ii] for vs in value_list])
-            if remove_small_vals and dos_eav < 0.01:
-                dos_eav = 0.0
-            
-            # add total dos based on average value
-            if key in ['Total']:
-                if key not in dos[spin]:
-                    dos[spin][key] = [dos_eav]
-                else:
-                    dos[spin][key].append(dos_eav)
+            values = [float(v) for v in line.split()]
+            if len(values) != len(keys):
+                print('ERROR: Failed to read line: '+str(i))
+                print(line)
                 continue
             
-            # key is an orbital string
-            el = key.split()[-2]
-            n = key.split()[-1].replace('#','')
-            orbital = key.split()[0]
+            # get energy in eV (centered @ efermi)
+            energy = values[keys.index('Energy')] * hartree_to_ev - (efermi if zero_fermi else 0.0)
+            estr = '%.3f'%energy
+            if estr in edic[spin]:
+                edic[spin][estr].append(values)
+            else:
+                edic[spin][estr] = [values]
             
-            el_key = el+'_'+n
-            if el_key not in dos[spin]:
-                dos[spin][el_key] = {}
-            if orbital not in dos[spin][el_key]:
-                dos[spin][el_key][orbital] = []
-            dos[spin][el_key][orbital].append(dos_eav) 
-
-with open('jpdos.json','w') as f:
-    json.dump(dos, f)
+        for estr, value_list in edic[spin].items():
+            for ii, v in enumerate(value_list[0]):
+                key = keys[ii]
+                
+                # add energy to dic
+                if key in ['Energy']:
+                    en = float(estr)
+                    if key not in dos[spin]:
+                        dos[spin][key] = [en]
+                    else:
+                        dos[spin][key].append(en)
+                    continue
+                
+                # get dos average at energy
+                dos_eav = np.average([vs[ii] for vs in value_list])
+                if remove_small_vals and dos_eav < 0.01:
+                    dos_eav = 0.0
+                
+                # add total dos based on average value
+                if key in ['Total']:
+                    if key not in dos[spin]:
+                        dos[spin][key] = [dos_eav]
+                    else:
+                        dos[spin][key].append(dos_eav)
+                    continue
+                
+                # key is an orbital string
+                el = key.split()[-2]
+                n = key.split()[-1].replace('#','')
+                orbital = key.split()[0]
+                
+                el_key = el+'_'+n
+                if el_key not in dos[spin]:
+                    dos[spin][el_key] = {}
+                if orbital not in dos[spin][el_key]:
+                    dos[spin][el_key][orbital] = []
+                dos[spin][el_key][orbital].append(dos_eav) 
+    
+    with open('jpdos.json','w') as f:
+        json.dump(dos, f)

@@ -365,6 +365,7 @@ class jdft_manager():
                         # rerun calcs without dos 
                         if dos_data == False:
                             rerun.append(root)
+                            print('*** Rerunning calc to generate DOS files ***')
                             continue
                         
                         # new function, analyzes dos data from jdftx to get dos props: centers, width, sharpness metrics 
