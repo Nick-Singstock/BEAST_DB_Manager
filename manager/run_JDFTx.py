@@ -10,6 +10,7 @@ from JDFTx import JDFTx
 import os
 from ase.io import read
 from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, GPMin, MDMin, FIRE
+from ase.constraints import FixBondLength
 from ase.io.trajectory import Trajectory
 from ase.neb import NEB
 import argparse
@@ -203,7 +204,8 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                   'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer','opt',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
                   'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type', 'np',
-                  'use_jdftx_ionic', 'jdftx_steps']
+                  'use_jdftx_ionic', 'jdftx_steps',
+                  'bond-fix']
 
     # setup default functions needed for running calcs
     def open_inputs(inputs_file):
@@ -398,6 +400,29 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             outfile = outfile,
             ionic_steps = False if jdftx_ionic is False else ionic_data  
             )
+    
+    def bond_constraint(atoms, script_cmds):
+        # Constrain bond lenghts according to 'bond-fix' tag in inputs
+        try:
+            position_constraint = atoms.constraints[0] # get selective dynamics of POSCAR
+        except:
+            position_constraint = atoms.constraints # if no selective dynamics exist, this returns a blank array
+        if 'bond-fix' in script_cmds.keys():
+            indices = script_cmds["bond-fix"].split() # bonded atom indices
+            constraints = []
+            assert len(indices) % 2 == 0, "list of bond-fix atoms must have an even number of items"
+            for i, index in enumerate(indices):
+                if i % 2 == 0:
+                    constraints.append(FixBondLength((int(indices[i]) - 1), int(indices[i+1]) - 1))
+                    #input tags are indexed to one but ase indexes to zero
+                    conv_logger(f"constraining bonds {int(indices[i])} and {int(indices[i+1])}")
+            # bond_constraint = FixBondLength(int(indices[0])-1, int(indices[1])-1)
+            constraints.append(position_constraint)
+            atoms.set_constraint(constraints)
+            return atoms
+        else:
+            conv_logger("Didn't constrain bond")
+            return atoms
         
     def read_convergence():
         '''
@@ -575,6 +600,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             
             # set atoms object
             atoms = read_atoms(restart)
+            atoms = bond_constraint(atoms, script_cmds) #if bond-fix 
             
             autodos_tag = True if ('autodos' in script_cmds and script_cmds['autodos'] == 'True') else False
             # auto add all pdos for single points and clean cmds
