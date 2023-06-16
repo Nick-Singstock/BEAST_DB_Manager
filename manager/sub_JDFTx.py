@@ -289,7 +289,8 @@ if __name__ == '__main__':
                         type=str, default='False')
     parser.add_argument('-test', '--test_queue', help='If True, runs job on test queue',
                         type=str, default='False')
-
+    parser.add_argument('-b', '--big_mem', help='If True, big boy memory',
+                        type=bool, default=False)
     args = parser.parse_args()
     #print(args.gpu, type(args.gpu))
     
