@@ -334,7 +334,7 @@ if __name__ == '__main__':
         if not end:
             if comp in ['Eagle','Summit','Perlmutter','Cori','Alpine']:
                 write(args.nodes,args.cores,args.time,args.outfile,args.allocation,args.qos,		
-                      script, args.recursive, args.processes, args.gpu, args.test_queue)
+                      script, args.recursive, args.processes, args.gpu, args.test_queue, args.big_mem)
             elif comp == 'Bridges2':
                 write_bridges(args.nodes,args.cores,args.time,outfile,args.partition,args.qos,
                               script, args.recursive, args.processes)
