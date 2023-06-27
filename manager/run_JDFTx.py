@@ -13,6 +13,7 @@ from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, GPMin, MD
 from ase.constraints import FixBondLength
 from ase.io.trajectory import Trajectory
 from ase.neb import NEB
+from ase import Atoms
 import argparse
 import subprocess
 from ase.optimize.minimahopping import MinimaHopping
@@ -198,14 +199,15 @@ def clean_doscmds(cmds):
 # main function for calculations
 def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
 
+    #These tags in notinclude signify tags that are associated with ASE but not JDFTx
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
                   'ion','climbing','pH','ph',  'autodos',
                   'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer','opt',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
                   'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type', 'np',
-                  'use_jdftx_ionic', 'jdftx_steps',
-                  'bond-fix']
+                  'use_jdftx_ionic', 'jdftx_steps', #Tags below here were added by Cooper
+                  'bond-fix', 'bader']
 
     # setup default functions needed for running calcs
     def open_inputs(inputs_file):
@@ -401,7 +403,13 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             ionic_steps = False if jdftx_ionic is False else ionic_data  
             )
     
-    def bond_constraint(atoms, script_cmds):
+    def bond_constraint(atoms, script_cmds) -> Atoms:
+        '''
+        Constrain bond lenghts according to 'bond-fix' tag in inputs
+
+        returns:
+            Atoms object with constraints specified in script_cmds
+        '''
         # Constrain bond lenghts according to 'bond-fix' tag in inputs
         try:
             position_constraint = atoms.constraints[0] # get selective dynamics of POSCAR
@@ -423,7 +431,12 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
         else:
             conv_logger("Didn't constrain bond")
             return atoms
-        
+    def bader() -> dict:
+        try:
+            subprocess.run("jbader.py -f tinyout", shell=True)
+        except:
+            conv_logger("jbader.py didn't run correctly")
+
     def read_convergence():
         '''
         convergence example:
@@ -569,7 +582,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
         conv_logger('starting opt calc with '+str(steps)+' steps.')
         for i in range(steps):
             conv_logger('\nStep '+str(i+1)+' starting\n')
-            if i+1 < previous_step:
+            if i+1 < previous_step: #advance to next step if previous calculation finished on later step
                 conv_logger('Step '+str(i+1)+' previously converged')
                 continue
             
@@ -702,7 +715,11 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             conv_logger('Step '+str(i+1)+' complete!')
             
             if i+1 < steps:
-                clean_folder(conv, i+1)
+                clean_folder(conv, i+1) # clear out state files if not on final convergence step
+            else:
+                # make tiynout and then do Bader analysis on it
+                h.make_tinyout(os.getcwd())
+                bader()
             
     if ctype == 'neb':
         if os.path.exists('convergence'):

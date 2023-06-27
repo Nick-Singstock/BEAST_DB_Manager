@@ -391,6 +391,7 @@ class helper():
     def read_data(self, folder):
         # currently reads inputs, opt_log for energies, and CONTCAR. Also checks convergence based on forces
         # reads out file for oxidation states and magentic moments
+        # Cooper added ability to read Bader charge ACF.dat files and store in dictionary form
         inputs = self.read_inputs(folder)
         opt_steps = self.read_optlog(folder)
         
@@ -446,8 +447,13 @@ class helper():
             fluid_fill = out_sites[7]
             vdw_coord = {'coord-num': out_sites[8], 'diag-C6': out_sites[9],
                          'EvdW-6': out_sites[10], 'EvdW-8': out_sites[11], }
-        
+            
+        bader_dict = "None"
+        if ope(opj(folder,"ACF.dat")):
+            bader_dict = self.get_bader_data(folder)
+            
         out_steps = self.read_out_steps(folder)
+
         
         return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
                 'inputs': inputs, 'Ecomponents': ecomp, 'current_energy': current_energy,
@@ -457,8 +463,26 @@ class helper():
                 'site_data': sites, 'net_oxidation': net_oxi, 'net_magmom': net_mag,
                 'convergence_file': convergence, 'eigStats': eigStats, 'energy_units': 'H',
                 'atom_forces': atom_forces, 'root': folder, 'out_steps': out_steps,
-                'fluid_occ': fluid_fill, 'magmoms': mags, 'D3-vdW': vdw_coord}
+                'fluid_occ': fluid_fill, 'magmoms': mags, 'D3-vdW': vdw_coord, # Below this line are additions from Cooper
+                'bader': bader_dict}
         
+    def get_bader_data(self, folder) -> dict:
+        '''
+        Converts ACF.dat files in converged directories to dicitonaries with charge and ox state data
+        '''
+        with open(os.path.join(folder,"ACF.dat")) as f:  
+            bader_text = f.read()
+        bader_dict = {}
+        # Parses ACF.dat file to read atomic charge data
+        for line in bader_text.split("\n"):
+            line = ''.join(line.strip())
+            if line.split(' ')[0].isnumeric():
+                atom_index = line.split(' ')[0]
+                filtered_list = [item for item in line.split(' ') if item != ''] # removes empty strings from list after splitting it
+                bader_dict[atom_index] ={'CHARGE':filtered_list[4], 'OXIDATION STATE':filtered_list[5]}
+        return bader_dict
+
+    
     def get_neb_data(self, folder, bias):
         # reads neb folder and returns data as a dictionary
         inputs = self.read_inputs(folder)
