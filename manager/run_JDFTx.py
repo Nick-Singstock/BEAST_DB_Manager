@@ -716,8 +716,8 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             
             if i+1 < steps:
                 clean_folder(conv, i+1) # clear out state files if not on final convergence step
-            else:
-                # make tiynout and then do Bader analysis on it
+            if bool(script_cmds["bader"]):
+                # make tiynout and then do Bader analysis on it if bader is specified in convergence
                 h.make_tinyout(os.getcwd())
                 bader()
             
