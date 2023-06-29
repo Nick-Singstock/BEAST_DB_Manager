@@ -59,6 +59,8 @@ gbrv_15_ref = [
     "14. 7. 10. 13. 11. 12. 15. 10. 3. 6. 19. 16. 15. 3. 4. 17. 14. 16. 19. 7. 16. 7. 9. 5. 1. 15. 9. 9. 14. 15. 19. 16. 15. 12. 10. 16. 3. 12. 14. 11. 15. 6. 13. 6. 12. 4. 5. 20. 10. 5. 15. 11. 12. 13. 4. 14. 18. 7. 11. 13. 13. 14. 12. 6. "
 ]
 
+# This is horribly incorrect (karma for asking chat gpt to write this for me)
+# BUT it only gets called if it cant find the ion name in gbrv_15_ref parallel arrays, which is only true for Na which actually is filled correctly
 valence_electrons = {
         'h': 1, 'he': 2,
         'li': 1, 'be': 2, 'b': 3, 'c': 4, 'n': 5, 'o': 6, 'f': 7, 'ne': 8,
