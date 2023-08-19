@@ -347,6 +347,14 @@ class jdft_manager():
                     if verbose: print('Adding inputs.')
                     continue
                 if 'CONTCAR' not in files and calc_type not in ['neb']:
+                    
+                    if 'wfns' in files:
+                        # calc has tried to start and is not entirely new
+                        # could be failing due to having wfns, needs to go through rerun_fixer
+                        rerun.append(root)
+                        if verbose: print('Calc failed on initial step. Adding to rerun.')
+                        continue
+                        
                     run_new.append(root)
                     if verbose and self.args.run_new == 'True': print('Running unstarted job.')
                     continue
@@ -484,7 +492,7 @@ class jdft_manager():
                         mol_config = sub_dirs[5]
                     bias = h.get_bias(bias_str)
                     if surf_name not in all_data or 'surf' not in all_data[surf_name]:
-    #                    print('Surface: '+surf_name+' must be created before adsorbed/desorbed calcs can be read!')
+                        print('Surface: '+surf_name+' must be converged before adsorbed/desorbed calcs can be read!')
                         continue
     #                print(surf_name)
     #                if surf_name not in all_data:
