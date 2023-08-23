@@ -103,6 +103,11 @@ def setup_neb(initial, final, nimages, save_loc, linear = False):
 
 def place_ads(loc, ads_sts, surface_st, mol, sites_allowed, 
               ads_distance = 2.0, min_dist = 0.5, freeze_depth = 1.8, _z_dir = 2):
+    
+    if surface_st.lattice.matrix[2][2] < 0:
+        # surface is negative, need to inverse molecule
+        ads_distance = ads_distance * -1
+    
     # place adsorbate on all sites within height
     if loc in ['All', 'Hollow', 'Ontop', 'Bridge', 'all', 'hollow', 'ontop', 'bridge']:
         print('Placing adsorbate with Pymatgen, may cause issues: '+loc)
@@ -189,7 +194,8 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
         for st in ads_sts:
             asf = AdsorbateSiteFinder(st)
             site = surface_st.cart_coords[loc-1] + ads_shift # VESTA indexes to 1:, convert to 0:
-            new_st = asf.add_adsorbate(mol.copy(), site, reorient = False)
+            new_st = asf.add_adsorbate(mol.copy(), site, reorient = True) 
+            # reorient = False does not fix bug with inverse molecule adding into surface 
             if any([any([ np.sqrt(np.sum([(x1.coords[i] - x2.coords[i])**2 for i in range(3)]))
                              < min_dist for x2 in new_st.sites if x2 != x1]) for x1 in new_st.sites]):
                     print('Distance Error in Adsorbate Adding')
