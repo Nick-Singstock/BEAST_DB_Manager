@@ -189,7 +189,7 @@ def place_ads(loc, ads_sts, surface_st, mol, sites_allowed,
         for st in ads_sts:
             asf = AdsorbateSiteFinder(st)
             site = surface_st.cart_coords[loc-1] + ads_shift # VESTA indexes to 1:, convert to 0:
-            new_st = asf.add_adsorbate(mol.copy(), site, reorient = True)
+            new_st = asf.add_adsorbate(mol.copy(), site, reorient = False)
             if any([any([ np.sqrt(np.sum([(x1.coords[i] - x2.coords[i])**2 for i in range(3)]))
                              < min_dist for x2 in new_st.sites if x2 != x1]) for x1 in new_st.sites]):
                     print('Distance Error in Adsorbate Adding')
