@@ -13,6 +13,7 @@ from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, GPMin, MD
 from ase.constraints import FixBondLength
 from ase.io.trajectory import Trajectory
 from ase.neb import NEB
+from ase import Atoms
 import argparse
 import subprocess
 from ase.optimize.minimahopping import MinimaHopping
@@ -198,14 +199,15 @@ def clean_doscmds(cmds):
 # main function for calculations
 def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
 
+    #These tags in notinclude signify tags that are associated with ASE but not JDFTx
     notinclude = ['ion-species','ionic-minimize',
                   #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
                   'ion','climbing','pH','ph',  'autodos',
                   'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer','opt',
                   'restart','parallel','safe-mode','hessian', 'step', 'Step',
                   'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type', 'np',
-                  'use_jdftx_ionic', 'jdftx_steps',
-                  'bond-fix']
+                  'use_jdftx_ionic', 'jdftx_steps', #Tags below here were added by Cooper
+                  'bond-fix', 'bader']
 
     # setup default functions needed for running calcs
     def open_inputs(inputs_file):
@@ -304,7 +306,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             conv_logger('Running on Cori with srun.')
         elif comp in ['Perlmutter']:
             exe_cmd = 'srun '+jdftx_exe
-            conv_logger('Running on Perl with srun.')
+            conv_logger("Running on Perl using exe cmd {exe_cmd}".format(exe_cmd=exe_cmd))
         else:
             if nprocs != False: # read np from n-kpts
                 jdftx_num_procs = nprocs
@@ -402,6 +404,12 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             )
     
     def bond_constraint(atoms, script_cmds):
+        '''
+        Constrain bond lenghts according to 'bond-fix' tag in inputs
+
+        returns:
+            Atoms object with constraints specified in script_cmds
+        '''
         # Constrain bond lenghts according to 'bond-fix' tag in inputs
         try:
             position_constraint = atoms.constraints[0] # get selective dynamics of POSCAR
@@ -415,7 +423,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 if i % 2 == 0:
                     constraints.append(FixBondLength((int(indices[i]) - 1), int(indices[i+1]) - 1))
                     #input tags are indexed to one but ase indexes to zero
-                    conv_logger(f"constraining bonds {int(indices[i])} and {int(indices[i+1])}")
+                    conv_logger("constraining bonds {bond_1} and {bond_2}".format(bond_1=int(indices[i]), bond_2=int(indices[i+1])))
             # bond_constraint = FixBondLength(int(indices[0])-1, int(indices[1])-1)
             constraints.append(position_constraint)
             atoms.set_constraint(constraints)
@@ -423,7 +431,12 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
         else:
             conv_logger("Didn't constrain bond")
             return atoms
-        
+    def bader():
+        try:
+            subprocess.run("jbader.py -f tinyout", shell=True)
+        except:
+            conv_logger("jbader.py didn't run correctly")
+
     def read_convergence():
         '''
         convergence example:
@@ -569,7 +582,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
         conv_logger('starting opt calc with '+str(steps)+' steps.')
         for i in range(steps):
             conv_logger('\nStep '+str(i+1)+' starting\n')
-            if i+1 < previous_step:
+            if i+1 < previous_step: #advance to next step if previous calculation finished on later step
                 conv_logger('Step '+str(i+1)+' previously converged')
                 continue
             
@@ -593,9 +606,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                         int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
             
             # single point calculation consistent notation
-            if max_steps == 0 and comp in ['Summit','Alpine','Perlmutter']:
+            if max_steps == 0 and comp in ['Summit','Alpine']:
                 max_steps = 1
-            elif max_steps == 1 and comp in ['Eagle']:
+            elif max_steps == 1 and comp in ['Eagle','Perlmutter']:
                 max_steps = 0
             
             # set atoms object
@@ -702,7 +715,11 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             conv_logger('Step '+str(i+1)+' complete!')
             
             if i+1 < steps:
-                clean_folder(conv, i+1)
+                clean_folder(conv, i+1) # clear out state files if not on final convergence step
+            if script_cmds.get("bader", False): # checks if "bader" is a key in script commands. If it is, it returns the assoacited value.
+                # If the key doesn't exist, it returns false. Then makes the tinyout and runs bader analysis
+                h.make_tinyout(os.getcwd())
+                bader()
             
     if ctype == 'neb':
         if os.path.exists('convergence'):
