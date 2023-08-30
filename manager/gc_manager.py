@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- 
 """
 High-throughput manager class for JDFTx calculations. Created alongside BEAST database. 
 
@@ -318,7 +318,8 @@ class jdft_manager():
                     continue
                 
                 nnewcalcs += 1
-                if nnewcalcs % 100 == 0:
+                if nnewcalcs % 2 == 0:
+                    print(all_data)
                     print('*** Temp convergence save ***')
                     with open(self.data_file, 'w') as f:
                         json.dump(all_data, f)
@@ -333,7 +334,7 @@ class jdft_manager():
                 if calc_type is None:
                     print('Error: No calc_type found for root: '+root+' Skipping.')
                     continue
-    #            sub_dirs = root.split(tag)[-1].split(os.sep)
+                 # sub_dirs = root.split(tag)[-1].split(os.sep)
                 sub_dirs = root.split(os.sep)
                 
                 if len(sub_dirs) < 4 and calc_type != 'bulks':
@@ -484,7 +485,7 @@ class jdft_manager():
                         mol_config = sub_dirs[5]
                     bias = h.get_bias(bias_str)
                     if surf_name not in all_data or 'surf' not in all_data[surf_name]:
-    #                    print('Surface: '+surf_name+' must be created before adsorbed/desorbed calcs can be read!')
+                        print('Surface: '+surf_name+' must be created before adsorbed/desorbed calcs can be read!')
                         continue
     #                print(surf_name)
     #                if surf_name not in all_data:

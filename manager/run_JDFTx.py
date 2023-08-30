@@ -306,7 +306,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             conv_logger('Running on Cori with srun.')
         elif comp in ['Perlmutter']:
             exe_cmd = 'srun '+jdftx_exe
-            conv_logger('Running on Perl with srun.')
+            conv_logger("Running on Perl using exe cmd {exe_cmd}".format(exe_cmd=exe_cmd))
         else:
             if nprocs != False: # read np from n-kpts
                 jdftx_num_procs = nprocs
@@ -403,7 +403,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             ionic_steps = False if jdftx_ionic is False else ionic_data  
             )
     
-    def bond_constraint(atoms, script_cmds) -> Atoms:
+    def bond_constraint(atoms, script_cmds):
         '''
         Constrain bond lenghts according to 'bond-fix' tag in inputs
 
@@ -423,7 +423,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 if i % 2 == 0:
                     constraints.append(FixBondLength((int(indices[i]) - 1), int(indices[i+1]) - 1))
                     #input tags are indexed to one but ase indexes to zero
-                    conv_logger(f"constraining bonds {int(indices[i])} and {int(indices[i+1])}")
+                    conv_logger("constraining bonds {bond_1} and {bond_2}".format(bond_1=int(indices[i]), bond_2=int(indices[i+1])))
             # bond_constraint = FixBondLength(int(indices[0])-1, int(indices[1])-1)
             constraints.append(position_constraint)
             atoms.set_constraint(constraints)
@@ -431,7 +431,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
         else:
             conv_logger("Didn't constrain bond")
             return atoms
-    def bader() -> dict:
+    def bader():
         try:
             subprocess.run("jbader.py -f tinyout", shell=True)
         except:
@@ -606,9 +606,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                         int(script_cmds['max-steps']) if 'max-steps' in script_cmds else 100) # 100 default
             
             # single point calculation consistent notation
-            if max_steps == 0 and comp in ['Summit','Alpine','Perlmutter']:
+            if max_steps == 0 and comp in ['Summit','Alpine']:
                 max_steps = 1
-            elif max_steps == 1 and comp in ['Eagle']:
+            elif max_steps == 1 and comp in ['Eagle','Perlmutter']:
                 max_steps = 0
             
             # set atoms object
@@ -641,7 +641,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 #conv_logger('contcar_from_out')
                 # for lattice optimizations, write contcar file from out file between steps
                 st = h.read_out_struct('./')
-                st.to('POSCAR','./CONTCAR')
+                st.to(filename='CONTCAR',fmt='POSCAR')
                 dyn.atoms = read_atoms(True)
                 dyn.atoms.set_calculator(calculator)
                 # Done: Test lattice opt
