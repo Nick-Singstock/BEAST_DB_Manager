@@ -13,6 +13,7 @@ import os
 import argparse
 import subprocess
 import json
+from monty.json import MontyEncoder, MontyDecoder
 from time import sleep
 from pymatgen.core.structure import Structure
 from pymatgen.io.vasp.inputs import Kpoints
@@ -320,8 +321,9 @@ class jdft_manager():
                 nnewcalcs += 1
                 if nnewcalcs % 100 == 0:
                     print('*** Temp convergence save ***')
+                    data_json = MontyEncoder().encode(all_data)
                     with open(self.data_file, 'w') as f:
-                        json.dump(all_data, f)
+                        f.write(data_json, f)
                 
                 # get type of calculation
                 calc_type = None
