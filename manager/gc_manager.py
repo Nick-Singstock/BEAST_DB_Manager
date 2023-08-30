@@ -318,7 +318,7 @@ class jdft_manager():
                     continue
                 
                 nnewcalcs += 1
-                if nnewcalcs % 2 == 0:
+                if nnewcalcs % 100 == 0:
                     print(all_data)
                     print('*** Temp convergence save ***')
                     with open(self.data_file, 'w') as f:
