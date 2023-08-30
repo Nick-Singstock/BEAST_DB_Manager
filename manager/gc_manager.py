@@ -319,7 +319,6 @@ class jdft_manager():
                 
                 nnewcalcs += 1
                 if nnewcalcs % 100 == 0:
-                    print(all_data)
                     print('*** Temp convergence save ***')
                     with open(self.data_file, 'w') as f:
                         json.dump(all_data, f)
