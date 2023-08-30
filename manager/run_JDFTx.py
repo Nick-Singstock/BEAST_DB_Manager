@@ -628,7 +628,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 #conv_logger('contcar_from_out')
                 # for lattice optimizations, write contcar file from out file between steps
                 st = h.read_out_struct('./')
-                st.to('POSCAR','./CONTCAR')
+                st.to(filename='CONTCAR',fmt='POSCAR')
                 dyn.atoms = read_atoms(True)
                 dyn.atoms.set_calculator(calculator)
                 # Done: Test lattice opt
