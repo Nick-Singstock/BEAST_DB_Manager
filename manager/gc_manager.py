@@ -1789,8 +1789,9 @@ class jdft_manager():
                 # save 
 #                if len(all_data.keys()) < 2:
                 print('\nSaving converged calculations.')
-                with open(self.data_file, 'w') as f:
-                    json.dump(all_data, f)
+                data_json = MontyEncoder().encode(all_data)
+                    with open(self.data_file, 'w') as f:
+                        f.write(data_json, f)
         
             # save and rerun unconverged (if requested)
             with open(os.path.join(results_folder, 'unconverged.txt'), 'w') as f:
