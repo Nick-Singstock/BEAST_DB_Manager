@@ -8,12 +8,15 @@ Script to cut surfaces from bulk materials using bond conservation logic
 
 from ase.io import read, write
 from ase.data import atomic_numbers, covalent_radii, covalent_radii
+from ase.build import make_supercell
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.core import Structure
 from pymatgen.core.surface import SlabGenerator
 import statistics
 import numpy as np
 import os
+import argparse
+import json
 
 
 ##### Sun's Imports #####
@@ -24,6 +27,8 @@ from pymatgen.io.cif import CifParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 #########################
 
+def evaluate_list(lst, threshold=5):
+    return [1 if item > threshold else 2 for item in lst]
 
 def calculate_surf_stats(surface_atoms):
     '''
@@ -62,8 +67,11 @@ def calculate_surf_stats(surface_atoms):
     surf_dens = surf_count/A
     return A, surf_dens, top_var # returns area, atomic surface density, variance from top atom
 
-def calculate_area(surface_atoms):
-    lattice = surface_atoms.
+def calculate_a_b_lenghts(surface_atoms):
+    lattice = surface_atoms.get_cell()
+    a = np.linalg.norm(lattice[0,:])
+    b = np.linalg.norm(lattice[1,:]) # get a and b lengths from unit cell
+    return a, b
 
 def write_managed_surface(surface_atoms, bulk, index, manager_root):
     index = list(index)
@@ -76,51 +84,98 @@ def write_managed_surface(surface_atoms, bulk, index, manager_root):
     else:
         write(os.path.join(surface_path, bulk + "_" + index, "POSCAR"), surface_atoms)
 
+def write_surfaces(surfaces, bulk, index, manager_root):
+    index = list(index)
+    index = map(str, index)
+    index = ''.join(index)
+    surface_path = os.path.join(manager_root, "calcs/surfs")
+    if not os.path.exists(os.path.join(surface_path, bulk + "_" + index)):
+        os.mkdir(os.path.join(surface_path, bulk + "_" + index))
+        os.mkdir(os.path.join(surface_path, bulk + "_" + index, "__all_surfs"))
+    for i, surf in enumerate(surfaces):
+        write(os.path.join(surface_path, bulk + "_" + index, "__all_surfs", "POSCAR" + str(i).zfill(2)))
 
-manager_root = os.getcwd()
-if "manager_control.txt" not in os.listdir(manager_root):
-    raise Exception("manager_control.txt not found in root directory. Make sure this script is run from a gc_manager directory.")
-
-
-
-
-
-slab_height = 10
-bulk_path = os.path.join(manager_root, "calcs/bulks")
-
-for bulk_directory in os.listdir(bulk_path):
-    bulk_atoms = read(os.path.join(bulk_path, bulk_directory, "POSCAR"))
-    bulk_struct = Structure.from_file(os.path.join(bulk_path, bulk_directory, "POSCAR"))
-    SS=ScreenSurf(bulk_struct)
-    indices, percentages =SS.ScreenSurfaces(natomsinsphere=50,keep=0.8,samespeconly=False,ignore=[], verbose=False)
-    successful_surfaces = 0 # Add to this count after a surface meets all critera. Stop generating surfaces when this count hits a threshold
-    for miller_index in indices: # each miller_index is a unique miller index from Sun's algorithm
-        slabgen = SlabGenerator(bulk_struct, miller_index, slab_height, min_vacuum_size=15, center_slab=True)
-        slabs = slabgen.get_slabs()
-        dens = 0 # initializing dens and flatness variables for comparing terminations
-        flatness = 1000
-        for slab in slabs: # each slab is a unique termination
-            slab_atoms = AseAtomsAdaptor().get_atoms(slab) # slab atoms denotes terminations that have not yet been accepted
-            A, new_dens, new_flatness = calculate_surf_stats(slab_atoms)
-            if new_dens > dens: # Find the slab with highest atomic density
-                dens = new_dens
-                flatness = new_flatness
-                surface_atoms = slab_atoms # surface_atoms is the accepted termination within the index
-            elif dens - new_dens < 0.001: # check if floats are equal within tolerance
-                if new_flatness < flatness: # if surface atomic densities are equal, make decision based on surface flatness
-                    flatness = new_flatness
-                    surface_atoms = slab_atoms
-
-        # now the surface must also pass the number of atoms and unit cell size test
-        A = 
-            write_managed_surface(surface_atoms, bulk_directory, miller_index, manager_root)
-
-    # print(index, percentages)
-
+def write_stats(stats:dict, manager_root):
+    with open(os.path.join(manager_root, 'surface_manager_stats.json')) as f:
+        json.dump(stats, f)
     
 
 
+def main(slab_width, slab_height, num_atoms, num_facets):
+    manager_root = os.getcwd()
+    if "manager_control.txt" not in os.listdir(manager_root):
+        raise Exception("manager_control.txt not found in root directory. Make sure this script is run from a gc_manager directory.")
+
+    slab_height = 10
+    bulk_path = os.path.join(manager_root, "calcs/bulks")
+    selection_stats = {} # dictionary to keep track of which surfaces the algorithm chooses
 
 
+    for bulk_directory in os.listdir(bulk_path):
+        bulk_atoms = read(os.path.join(bulk_path, bulk_directory, "POSCAR"))
+        bulk_struct = Structure.from_file(os.path.join(bulk_path, bulk_directory, "POSCAR"))
+        SS=ScreenSurf(bulk_struct)
+        indices, percentages =SS.ScreenSurfaces(natomsinsphere=50,keep=0.8,samespeconly=False,ignore=[], verbose=False)
+        successful_surfaces = 0 # Add to this count after a surface meets all critera. Stop generating surfaces when this count hits a threshold
+        selection_stats[bulk_directory] = {}
+        for miller_index in indices: # each miller_index is a unique miller index from Sun's algorithm
+            miller_string = ''.join(map(str,list(miller_index)))
+            selection_stats[bulk_directory][miller_string] = {}
+            slabgen = SlabGenerator(bulk_struct, miller_index, slab_height, min_vacuum_size=15, center_slab=True)
+            slabs = slabgen.get_slabs()
+            write_surfaces(slabs, bulk_directory, miller_index, manager_root)
+            dens = 0 # initializing dens and flatness variables for comparing terminations
+            flatness = 1000
+            for islab, slab in enumerate(slabs): # each slab is a unique termination
+                slab_atoms = AseAtomsAdaptor().get_atoms(slab) # slab atoms denotes terminations that have not yet been accepted
+                A, new_dens, new_flatness = calculate_surf_stats(slab_atoms)
+                selection_stats[bulk_directory][miller_string].update(str(islab).zfill(2): {'surf_dens': new_dens, 'flatness': new_flatness})
+                if new_dens > dens: # Find the slab with highest atomic density
+                    dens = new_dens
+                    flatness = new_flatness
+                    surface_atoms = slab_atoms # surface_atoms is the accepted termination within the index
+                    kept_islab = islab
+                elif dens - new_dens < 0.001: # check if floats are equal within tolerance
+                    if new_flatness < flatness: # if surface atomic densities are equal, make decision based on surface flatness
+                        flatness = new_flatness
+                        surface_atoms = slab_atoms
+                        kept_islab = islab
+
+            # now the surface must also pass unit cell size test.
+            a, b = calculate_a_b_lenghts(surface_atoms)
+            if min([a,b]) < slab_width: # need to make supercell if either dimension is below 5
+                supercell_dimensions = evaluate_list([a,b], threshold=slab_width) # returns a list of 1's or 2's depending on size of a and b 
+                P = np.array([supercell_dimensions[0], 0, 0], # transformation matrix to scale surface unit cell.
+                            [0, supercell_dimensions[1], 0],
+                            [0, 0, 1])
+                surface_atoms = make_supercell(surface_atoms, P)
+            
+            # finally, the surface must not have too many atoms
+            if len(surface_atoms.numbers) < num_atoms:
+                # surface passed the final check and is written to the surfaces directory
+                successful_surfaces += 1
+                selection_stats[bulk_directory][miller_string].update({"selected_termination": str(kept_islab).zfill(2)})
+                write_managed_surface(surface_atoms, bulk_directory, miller_index, manager_root)
+            if successful_surfaces >= num_facets: # go to next bulk material
+                break
+
+    write_stats(selection_stats, manager_root) # write summary of surface search as json
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser
+    parser.add_argument('-sw', '--slab_width', help='Threshold for determining if a slab is too narrow. defaults to 5 angstroms',
+                            type=float, default=5.0)
+    parser.add_argument('-sh', '--slab_height', help='Unit cell slab height. defaults to 10 angstroms',
+                        type=float, default=10.0)
+    parser.add_argument('-na', '--num_atoms', help='Maximum number of atoms per unit cell. Defaults to 45',
+                        type=int, default=45)
+    parser.add_argument('-nf', '--num_facets', help='Algorithm will generate facets until it hits this number. defaults to 2',
+                        type=int, default=2)
+    
+    args = parser.parse_args()
+
+    # run everything in the main() function
+    main(slab_width = args.slab_width, slab_height = args.slab_height, num_atoms = args.num_atoms, num_facets = args.num_facets)
 
 
