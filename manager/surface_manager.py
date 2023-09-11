@@ -59,7 +59,10 @@ def calculate_surf_stats(surface_atoms):
             surf_indices.append(i)
             continue
     surf_z_coords = new_positions[:,2][surf_indices]
-    top_var = statistics.variance(surf_z_coords, new_positions[highest_atom_index, 2])
+    if len(surf_z_coords) == 1: # If there is only one surface atom, the variance is meaningless so the script will just return an unreasonably high number
+        top_var = 1000
+    else:
+        top_var = statistics.variance(surf_z_coords, new_positions[highest_atom_index, 2])
     surf_dens = surf_count/A
     return A, surf_dens, top_var # returns area, atomic surface density, variance from top atom
 
@@ -95,21 +98,25 @@ def write_surfaces(surfaces, bulk, index, manager_root):
 def write_stats(stats:dict, manager_root):
     with open(os.path.join(manager_root, 'surface_manager_stats.json'), 'w') as f:
         json.dump(stats, f)
-    
+
+def get_bulks(manager_root):
+    bulks = [i for i in os.listdir(os.path.join(manager_root, "calcs/bulks")) if not i.startswith("__")] # ignore files starting with "__"
+    return bulks
+ 
 def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, selection_stats, manager_root):
     '''
     Main function for finding stable surface facets and choosing stable terminations from those facets.
 
     ==== Inputs ====
-    slab_width - minimum slab width
-    slab_height - slab height passed to pymatgen SlabGenerator function
-    num_atoms - maximum number of atoms in slab unit cell
-    num_facets - target number of accepted facets. It may not find this many but it definitely won't find more
-    selection_stats - dictionary that keeps data on how the algorithm is deciding on surfaces
+    slab_width: float - minimum slab width
+    slab_height: int - slab height passed to pymatgen SlabGenerator function
+    num_atoms: int - maximum number of atoms in slab unit cell
+    num_facets: int - target number of accepted facets. It may not find this many but it definitely won't find more
+    selection_stats: dict - dictionary that keeps data on how the algorithm is deciding on surfaces
 
     ==== Returns ====
-    selection_stats - dictionary that keeps data on how the algorithm is deciding on surfaces
-
+    selection_stats: dict - dictionary that keeps data on how the algorithm is deciding on surfaces
+    successful_surfaces: int - number of surfaces that the algorithm finds for a given bulk
 
 
     '''
@@ -174,12 +181,13 @@ def main(slab_width, slab_height, num_atoms, num_facets):
     bulk_path = os.path.join(manager_root, "calcs/bulks")
     selection_stats = {} # dictionary to keep track of which surfaces the algorithm chooses
     selection_stats["converged"] = {}
-    bulks_to_go = [i for i in os.listdir(bulk_path)] # keep track of which bulks the algorithm has yet to converge for
-    for ih, height in enumerate(range(slab_height, 3, -2)):
+    bulks_to_go = get_bulks(manager_root) # keep track of which bulks the algorithm has yet to converge for
+    print(bulks_to_go)
+    for ih, height in enumerate(range(slab_height, 7, -2)):
         # this height loop will incrementally lower the surface height until the algorithm is able to make surfaces for all the bulks
         print("\n ==================== \n Screening surfaces with height {height} \n ==================== \n".format(height=height))
         for ibulk, bulk in enumerate(bulks_to_go):
-            print("Screening surfaces for {bulk}".format(bulk=bulk))
+            print("\n Screening surfaces for {bulk}".format(bulk=bulk))
             selection_stats, succesful_surfaces = generate_surfaces(bulk, slab_width, height, num_atoms, num_facets, selection_stats, manager_root)
             if succesful_surfaces == num_facets:
                 selection_stats["converged"].update({bulk: height})
