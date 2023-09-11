@@ -187,7 +187,7 @@ def main(slab_width, slab_height, num_atoms, num_facets, rerun):
     selection_stats["converged"] = {}
     bulks_to_go = get_bulks(manager_root, rerun) # keep track of which bulks the algorithm has yet to converge for
     print(bulks_to_go)
-    for ih, height in enumerate(range(slab_height, , -2)):
+    for ih, height in enumerate(range(slab_height, 7, -2)):
         # this height loop will incrementally lower the surface height until the algorithm is able to make surfaces for all the bulks
         print("\n ==================== \n Screening surfaces with height {height} \n ==================== \n".format(height=height))
         for ibulk, bulk in enumerate(bulks_to_go):
