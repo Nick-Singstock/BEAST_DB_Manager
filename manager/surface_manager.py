@@ -99,7 +99,7 @@ def write_stats(stats:dict, manager_root):
     with open(os.path.join(manager_root, 'surface_manager_stats.json'), 'w') as f:
         json.dump(stats, f)
 
-def get_bulks(manager_root):
+def get_bulks(manager_root, rerun):
     bulks = [i for i in os.listdir(os.path.join(manager_root, "calcs/bulks")) if not i.startswith("__")] # ignore files starting with "__"
     made_bulks = [i.split("_")[0] for i in os.listdir(os.path.join(manager_root, "calcs/surfs"))] # finds bulks that have already been made into surfaces
     if rerun:
