@@ -210,7 +210,7 @@ if __name__ == "__main__":
                         type=int, default=40)
     parser.add_argument('-nf', '--num_facets', help='Algorithm will generate facets until it hits this number. defaults to 2',
                         type=int, default=2)
-    parsewr.add_argument('-r', '--rerun', help='Whether the algorithm will rerun for all bulks or just do the bulks that are not in the surfs/ directory. defaults to True',
+    parser.add_argument('-r', '--rerun', help='Whether the algorithm will rerun for all bulks or just do the bulks that are not in the surfs/ directory. defaults to True',
                         type=str, default='True')
     
     args = parser.parse_args()
