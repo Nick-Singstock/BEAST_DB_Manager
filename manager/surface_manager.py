@@ -101,7 +101,11 @@ def write_stats(stats:dict, manager_root):
 
 def get_bulks(manager_root):
     bulks = [i for i in os.listdir(os.path.join(manager_root, "calcs/bulks")) if not i.startswith("__")] # ignore files starting with "__"
-    return bulks
+    made_bulks = [i.split("_")[0] for i in os.listdir(os.path.join(manager_root, "calcs/surfs"))] # finds bulks that have already been made into surfaces
+    if rerun:
+        return bulks
+    else: # if rerun is false, only return bulks that have not been made into surfaces
+        return [i for i in bulks if i not in made_bulks]
  
 def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, selection_stats, manager_root):
     '''
@@ -172,7 +176,7 @@ def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, sele
     # write_stats(selection_stats, manager_root) # write summary of surface search as json
     return selection_stats, successful_surfaces
 
-def main(slab_width, slab_height, num_atoms, num_facets):
+def main(slab_width, slab_height, num_atoms, num_facets, rerun):
     manager_root = os.getcwd()
     if "manager_control.txt" not in os.listdir(manager_root):
         raise Exception("manager_control.txt not found in root directory. Make sure this script is run from a gc_manager directory.")
@@ -181,9 +185,9 @@ def main(slab_width, slab_height, num_atoms, num_facets):
     bulk_path = os.path.join(manager_root, "calcs/bulks")
     selection_stats = {} # dictionary to keep track of which surfaces the algorithm chooses
     selection_stats["converged"] = {}
-    bulks_to_go = get_bulks(manager_root) # keep track of which bulks the algorithm has yet to converge for
+    bulks_to_go = get_bulks(manager_root, rerun) # keep track of which bulks the algorithm has yet to converge for
     print(bulks_to_go)
-    for ih, height in enumerate(range(slab_height, 7, -2)):
+    for ih, height in enumerate(range(slab_height, , -2)):
         # this height loop will incrementally lower the surface height until the algorithm is able to make surfaces for all the bulks
         print("\n ==================== \n Screening surfaces with height {height} \n ==================== \n".format(height=height))
         for ibulk, bulk in enumerate(bulks_to_go):
@@ -206,8 +210,10 @@ if __name__ == "__main__":
                         type=int, default=40)
     parser.add_argument('-nf', '--num_facets', help='Algorithm will generate facets until it hits this number. defaults to 2',
                         type=int, default=2)
+    parsewr.add_argument('-r', '--rerun', help='Whether the algorithm will rerun for all bulks or just do the bulks that are not in the surfs/ directory. defaults to True',
+                        type=str, default='True')
     
     args = parser.parse_args()
 
     # run everything in the main() function
-    main(slab_width = args.slab_width, slab_height = args.slab_height, num_atoms = args.num_atoms, num_facets = args.num_facets)
+    main(slab_width = args.slab_width, slab_height = args.slab_height, num_atoms = args.num_atoms, num_facets = args.num_facets, rerun = args.rerun)
