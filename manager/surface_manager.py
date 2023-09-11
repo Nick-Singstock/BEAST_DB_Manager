@@ -66,7 +66,7 @@ def calculate_surf_stats(surface_atoms):
     surf_dens = surf_count/A
     return A, surf_dens, top_var # returns area, atomic surface density, variance from top atom
 
-def calculate_a_b_lenghts(surface_atoms):
+def calculate_a_b_lengths(surface_atoms):
     lattice = surface_atoms.get_cell()
     a = np.linalg.norm(lattice[0,:])
     b = np.linalg.norm(lattice[1,:]) # get a and b lengths from unit cell
@@ -102,10 +102,12 @@ def write_stats(stats:dict, manager_root):
 def get_bulks(manager_root, rerun):
     bulks = [i for i in os.listdir(os.path.join(manager_root, "calcs/bulks")) if not i.startswith("__")] # ignore files starting with "__"
     made_bulks = [i.split("_")[0] for i in os.listdir(os.path.join(manager_root, "calcs/surfs"))] # finds bulks that have already been made into surfaces
+    bulk_set = set(bulks)
+    made_set = set(made_bulks)
     if rerun:
         return bulks
     else: # if rerun is false, only return bulks that have not been made into surfaces
-        return [i for i in bulks if i not in made_bulks]
+        return list(bulk_set.difference(made_set))
  
 def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, selection_stats, manager_root):
     '''
@@ -129,9 +131,17 @@ def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, sele
     bulk_atoms = read(os.path.join(bulk_path, bulk, "CONTCAR"))
     bulk_struct = Structure.from_file(os.path.join(bulk_path, bulk, "CONTCAR"))
     SS=ScreenSurf(bulk_struct)
-    indices, percentages =SS.ScreenSurfaces(natomsinsphere=50,keep=0.8,samespeconly=False,ignore=[], print_errors=False)
     successful_surfaces = 0 # Add to this count after a surface meets all critera. Stop generating surfaces when this count hits a threshold
     selection_stats[bulk] = {}
+    try:
+        indices, percentages =SS.ScreenSurfaces(natomsinsphere=50,keep=0.8,samespeconly=False,ignore=[], print_errors=False)
+    except:
+        print("\n Didn't find any miller indices. Skipping to next material. \n")
+        return selection_stats, successful_surfaces
+    indices_strings = [''.join(map(str,list(miller_index))) for miller_index in indices]
+    selection_stats[bulk].update({"miller_indices":indices_strings, "percentages": percentages})
+    if type(indices[0]) == np.int64:
+        indices = indices[np.newaxis, :] # if only one index is returned, convert it to a 2D array so the for loop works
     for miller_index in indices: # each miller_index is a unique miller index from Sun's algorithm
         miller_string = ''.join(map(str,list(miller_index)))
         selection_stats[bulk][miller_string] = {}
@@ -143,7 +153,8 @@ def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, sele
         for islab, slab in enumerate(slabs): # each slab is a unique termination
             slab_atoms = AseAtomsAdaptor().get_atoms(slab) # slab atoms denotes terminations that have not yet been accepted
             A, new_dens, new_flatness = calculate_surf_stats(slab_atoms)
-            selection_stats[bulk][miller_string].update({str(islab).zfill(2): {'surf_dens': new_dens, 'flatness': new_flatness}})
+            selection_stats[bulk][miller_string].update({str(islab).zfill(2): {'surf_dens': new_dens, 'flatness': new_flatness,
+                                                                             'natoms': len(slab_atoms.numbers), 'cell_length': calculate_a_b_lengths(slab_atoms)}})
             if new_dens > dens: # Find the slab with highest atomic density
                 dens = new_dens
                 flatness = new_flatness
@@ -156,7 +167,7 @@ def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, sele
                     kept_islab = islab
 
         # now the surface must also pass unit cell size test.
-        a, b = calculate_a_b_lenghts(surface_atoms)
+        a, b = calculate_a_b_lengths(surface_atoms)
         if min([a,b]) < slab_width: # need to make supercell if either dimension is below 5
             supercell_dimensions = evaluate_list([a,b], threshold=slab_width) # returns a list of 1's or 2's depending on size of a and b 
             P = np.array([[supercell_dimensions[0], 0, 0], # transformation matrix to scale surface unit cell.
@@ -176,7 +187,7 @@ def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, sele
     # write_stats(selection_stats, manager_root) # write summary of surface search as json
     return selection_stats, successful_surfaces
 
-def main(slab_width, slab_height, num_atoms, num_facets, rerun):
+def main(slab_width, slab_height, num_atoms, num_facets, rerun, slab_min):
     manager_root = os.getcwd()
     if "manager_control.txt" not in os.listdir(manager_root):
         raise Exception("manager_control.txt not found in root directory. Make sure this script is run from a gc_manager directory.")
@@ -186,18 +197,22 @@ def main(slab_width, slab_height, num_atoms, num_facets, rerun):
     selection_stats = {} # dictionary to keep track of which surfaces the algorithm chooses
     selection_stats["converged"] = {}
     bulks_to_go = get_bulks(manager_root, rerun) # keep track of which bulks the algorithm has yet to converge for
-    print(bulks_to_go)
-    for ih, height in enumerate(range(slab_height, 7, -2)):
+    print("initial bulks", bulks_to_go)
+    for ih, height in enumerate(range(slab_height, slab_min - 1, -2)): # -1 on slab_min so that it actually reaches that value
         # this height loop will incrementally lower the surface height until the algorithm is able to make surfaces for all the bulks
         print("\n ==================== \n Screening surfaces with height {height} \n ==================== \n".format(height=height))
+        done_bulk_indices = []
         for ibulk, bulk in enumerate(bulks_to_go):
             print("\n Screening surfaces for {bulk}".format(bulk=bulk))
             selection_stats, succesful_surfaces = generate_surfaces(bulk, slab_width, height, num_atoms, num_facets, selection_stats, manager_root)
             if succesful_surfaces == num_facets:
                 selection_stats["converged"].update({bulk: height})
-                bulks_to_go.pop(ibulk) # If the algorithm finds the target number of surfaces, keep the bulk in this list.
-    
+                done_bulk_indices.append(ibulk) # If the algorithm finds the target number of surfaces, keep the bulk indices in this list.
+        bulks_to_go = [bulks_to_go[i] for i in range(len(bulks_to_go)) if i not in done_bulk_indices] # remove bulks that have converged from bulks_to_go
+        
     selection_stats.update({"unconverged":bulks_to_go}) # write unssuccessful surfaces to selection stats
+    print(f"writing stats json")
+    print(selection_stats)
     write_stats(selection_stats, manager_root) # dump final json
 
 if __name__ == "__main__":
@@ -210,10 +225,13 @@ if __name__ == "__main__":
                         type=int, default=40)
     parser.add_argument('-nf', '--num_facets', help='Algorithm will generate facets until it hits this number. defaults to 2',
                         type=int, default=2)
-    parser.add_argument('-r', '--rerun', help='Whether the algorithm will rerun for all bulks or just do the bulks that are not in the surfs/ directory. defaults to True',
-                        type=str, default='True')
+    parser.add_argument('-r', '--rerun', help='Whether the algorithm will rerun for all bulks or just do the bulks that are not in the surfs/ directory. defaults to False',
+                        type=bool, default=False)
+    parser.add_argument('-sm', '--slab_min', help='Minimum slab height. defaults to 8 angstroms',
+                        type=int, default=8)
     
     args = parser.parse_args()
 
     # run everything in the main() function
-    main(slab_width = args.slab_width, slab_height = args.slab_height, num_atoms = args.num_atoms, num_facets = args.num_facets, rerun = args.rerun)
+    main(slab_width = args.slab_width, slab_height = args.slab_height, num_atoms = args.num_atoms, num_facets = args.num_facets, rerun = args.rerun,
+        slab_min = args.slab_min)
