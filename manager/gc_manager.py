@@ -323,7 +323,7 @@ class jdft_manager():
                     print('*** Temp convergence save ***')
                     data_json = MontyEncoder().encode(all_data)
                     with open(self.data_file, 'w') as f:
-                        f.write(data_json, f)
+                        f.write(data_json)
                 
                 # get type of calculation
                 calc_type = None
@@ -1049,7 +1049,7 @@ class jdft_manager():
                                 cmd = 'cp '+os.path.join(folder, file)+' '+os.path.join(to_folder, file)
                                 self.run(cmd)
                             st = [initst, finalst][i]
-                            st.to('POSCAR', os.path.join(to_folder, 'CONTCAR'))
+                            st.to(fmt='POSCAR', filename=os.path.join(to_folder, 'CONTCAR'))
                             
                         # both final and initial folders are setup
                         # 1) check for paths with forces < criteria, if so, copy files
@@ -1087,13 +1087,13 @@ class jdft_manager():
                             init_st = Structure.from_file(os.path.join(neb_dir,'00','CONTCAR'))
                             neighbor_st = Structure.from_file(os.path.join(neb_dir,'01','CONTCAR'))
                             nst, ist = minimum_movement_strs(neighbor_st, init_st)
-                            ist.to('POSCAR', os.path.join(neb_dir,'00','CONTCAR'))
+                            ist.to(fmt='POSCAR', filename=os.path.join(neb_dir,'00','CONTCAR'))
                             final_st = Structure.from_file(os.path.join(neb_dir,
                                                            str(images+1).zfill(2),'CONTCAR'))
                             neighbor_st = Structure.from_file(os.path.join(neb_dir,
                                                               str(images).zfill(2),'CONTCAR'))
                             nst, fst = minimum_movement_strs(neighbor_st, final_st)
-                            fst.to('POSCAR', os.path.join(neb_dir,str(images+1).zfill(2),'CONTCAR'))
+                            fst.to(fmt='POSCAR', filename=os.path.join(neb_dir,str(images+1).zfill(2),'CONTCAR'))
                             
                         else:
                             # 2) setup idpp folders from scratch and add inputs for neb
@@ -1138,7 +1138,7 @@ class jdft_manager():
         if sd:
             st = Structure.from_file(opj(root, 'POSCAR'))
             new_st = assign_selective_dynamics(st, sd_dist)
-            new_st.to('POSCAR', opj(root, 'POSCAR'))
+            new_st.to(fmt='POSCAR', filename=opj(root, 'POSCAR'))
         
         # copy inputs from inputs_folder and update based on tags
         self.run('cp '+os.path.join(inputs_folder, 'surfs_inputs')+' '+os.path.join(root, 'inputs'))
@@ -1790,8 +1790,8 @@ class jdft_manager():
 #                if len(all_data.keys()) < 2:
                 print('\nSaving converged calculations.')
                 data_json = MontyEncoder().encode(all_data)
-                    with open(self.data_file, 'w') as f:
-                        f.write(data_json, f)
+                with open(self.data_file, 'w') as f:
+                    f.write(data_json)
         
             # save and rerun unconverged (if requested)
             with open(os.path.join(results_folder, 'unconverged.txt'), 'w') as f:

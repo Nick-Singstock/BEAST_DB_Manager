@@ -75,7 +75,7 @@ def save_structures(st_list, location = './', skip_existing = False, single_loc 
             os.mkdir(root)
         if skip_existing and os.path.isfile(os.path.join(root, 'POSCAR')):
             continue
-        st.to('POSCAR', os.path.join(root, 'POSCAR'))
+        st.to(fmt='POSCAR', filename=os.path.join(root, 'POSCAR'))
         folders.append(root)
     return folders
 
@@ -96,9 +96,9 @@ def setup_neb(initial, final, nimages, save_loc, linear = False):
         sub_folder = os.path.join(save_loc, str(i).zfill(2))
         if not os.path.exists(sub_folder):
             os.mkdir(sub_folder)
-        st.to('POSCAR',os.path.join(sub_folder, 'POSCAR'))
+        st.to(fmt='POSCAR',filename=os.path.join(sub_folder, 'POSCAR'))
         if i == 0 or i == nimages-1:
-            st.to('POSCAR',os.path.join(sub_folder, 'CONTCAR'))
+            st.to(fmt='POSCAR',filename=os.path.join(sub_folder, 'CONTCAR'))
     return True
 
 def place_ads(loc, ads_sts, surface_st, mol, sites_allowed, 
