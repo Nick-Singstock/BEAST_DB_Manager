@@ -138,10 +138,10 @@ def generate_surfaces(bulk, slab_width, slab_height, num_atoms, num_facets, sele
     except:
         print("\n Didn't find any miller indices. Skipping to next material. \n")
         return selection_stats, successful_surfaces
-    indices_strings = [''.join(map(str,list(miller_index))) for miller_index in indices]
-    selection_stats[bulk].update({"miller_indices":indices_strings, "percentages": percentages})
     if type(indices[0]) == np.int64:
         indices = indices[np.newaxis, :] # if only one index is returned, convert it to a 2D array so the for loop works
+    indices_strings = [''.join(map(str,list(miller_index))) for miller_index in indices]
+    selection_stats[bulk].update({"miller_indices":indices_strings, "percentages": percentages})
     for miller_index in indices: # each miller_index is a unique miller index from Sun's algorithm
         miller_string = ''.join(map(str,list(miller_index)))
         selection_stats[bulk][miller_string] = {}
