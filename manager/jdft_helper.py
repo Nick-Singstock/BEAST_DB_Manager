@@ -535,7 +535,7 @@ class helper():
         return names, posns, R
 
     def get_rel_atoms(self, outfname):
-        names, posns, R = get_input_coord_vars_from_outfile(outfname)
+        names, posns, R = self.get_input_coord_vars_from_outfile(outfname)
         direct_posns = np.dot(posns, np.linalg.inv(R.T))
         z_vals = direct_posns[:,2]
         delZ = max(z_vals) - min(z_vals)
