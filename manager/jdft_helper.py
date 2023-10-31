@@ -392,6 +392,7 @@ class helper():
         # currently reads inputs, opt_log for energies, and CONTCAR. Also checks convergence based on forces
         # reads out file for oxidation states and magentic moments
         # Cooper added ability to read Bader charge ACF.dat files and store in dictionary form
+        # Cooper also added reading of s, p, d band averages for each atom in the surfaces #TODO make this general
         inputs = self.read_inputs(folder)
         opt_steps = self.read_optlog(folder)
         
@@ -451,9 +452,8 @@ class helper():
         bader_dict = "None"
         if ope(opj(folder,"ACF.dat")):
             bader_dict = self.get_bader_data(folder)
-            
-        out_steps = self.read_out_steps(folder)
 
+        out_steps = self.read_out_steps(folder)
         
         return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
                 'inputs': inputs, 'Ecomponents': ecomp, 'current_energy': current_energy,
@@ -482,7 +482,140 @@ class helper():
                 bader_dict[atom_index] ={'CHARGE':filtered_list[4], 'OXIDATION STATE':filtered_list[5]}
         return bader_dict
 
+    ###########################################################################################
+    ######### Functions written by Ben and added by Cooper to calculate band averages #########
+    # these currently only work for surfaces
+    def get_band_averages(self, folder) -> dict:
+        '''
+        return a dictionary of format
+        [spin][atom name][atom number][orb name] = mean
+        (and orb names span over all the orbitals listed for that atom in the dos files)
+        '''
+        dosup = opj(folder, "dosUp")
+
+    def get_start_line(self, outfname):
+        #gets starting line in the out file
+        start = 0
+        for i, line in enumerate(open(outfname)):
+            if "JDFTx 1." in line:
+                start = i
+        return start
+
+    def get_input_coord_vars_from_outfile(self, outfname):
+        start_line = self.get_start_line(outfname)
+        names = []
+        posns = []
+        R = np.zeros([3,3])
+        lat_row = 0
+        active_lattice = False
+        with open(outfname) as f:
+            for i, line in enumerate(f):
+                if i > start_line:
+                    tokens = line.split()
+                    if len(tokens) > 0:
+                        if tokens[0] == "ion":
+                            names.append(tokens[1])
+                            posns.append(np.array([float(tokens[2]), float(tokens[3]), float(tokens[4])]))
+                        elif tokens[0] == "lattice":
+                            active_lattice = True
+                        elif active_lattice:
+                            if lat_row < 3:
+                                R[lat_row, :] = [float(x) for x in tokens[:3]]
+                                lat_row += 1
+                            else:
+                                active_lattice = False
+                        elif "Initializing the Grid" in line:
+                            break
+        if not len(names) > 0:
+            print("No ion names found")
+        if len(names) != len(posns):
+            print("Unequal ion positions/names found")
+        if np.sum(R) == 0:
+            print("No lattice matrix found")
+        return names, posns, R
+
+    def get_rel_atoms(self, outfname):
+        names, posns, R = get_input_coord_vars_from_outfile(outfname)
+        direct_posns = np.dot(posns, np.linalg.inv(R.T))
+        z_vals = direct_posns[:,2]
+        delZ = max(z_vals) - min(z_vals)
+        cutoff = max(z_vals) - 0.3*delZ
+        rel_idcs = []
+        for i, z in enumerate(z_vals):
+            if z > cutoff:
+                rel_idcs.append(i)
+        idx_dict = {}
+        for i, el in enumerate(names):
+            if not el in idx_dict:
+                idx_dict[el] = []
+            idx_dict[el].append(i)
+        rel_dict = {}
+        for idx in rel_idcs:
+            el = names[idx]
+            if not el in rel_dict:
+                rel_dict[el] = []
+            num = str(idx_dict[el].index(idx) + 1)
+            rel_dict[el].append(num)
+        return rel_dict
+
+    def get_rel_means_dict_helper(self, dosfname, rel_dict):
+        nrgs = []
+        vals_dict = {}
+        col_idx_dict = {}
+        means_dict = {}
+        header = None
+        with open(dosfname, "r") as f:
+            for i, line in enumerate(f):
+                if i == 0:
+                    header = line.strip().split("\t")
+                    for atom in rel_dict:
+                        vals_dict[atom] = {}
+                        col_idx_dict[atom] = {}
+                        means_dict[atom] = {}
+                        for num in rel_dict[atom]:
+                            vals_dict[atom][num] = {}
+                            col_idx_dict[atom][num] = {}
+                            means_dict[atom][num] = {}
+                    for idx, _label in enumerate(header):
+                        label = _label.strip('"')
+                        if "orbital" in label:
+                            orb = label.split("orbital")[0].strip()
+                            atom = label.split("at")[1].split("#")[0].strip()
+                            num = label.split("#")[1].strip()
+                            if atom in col_idx_dict:
+                                if num in col_idx_dict[atom]:
+                                    col_idx_dict[atom][num][orb] = idx
+                                    vals_dict[atom][num][orb] = []
+                                    means_dict[atom][num][orb] = 0
+                else:
+                    vals = np.array(line.strip().split(), dtype=float)
+                    nrgs.append(vals[0])
+                    for atom in col_idx_dict:
+                        for num in col_idx_dict[atom]:
+                            for orb in col_idx_dict[atom][num]:
+                                idx = col_idx_dict[atom][num][orb]
+                                vals_dict[atom][num][orb].append(vals[idx])
+        for atom in vals_dict:
+            for num in vals_dict[atom]:
+                for orb in vals_dict[atom][num]:
+                    means_dict[atom][num][orb] += np.average(nrgs, weights=vals_dict[atom][num][orb])
+        return means_dict
+
+    def get_rel_means_dict(self, path):
+        dosup = opj(path, "dosUp")
+        dosdn = opj(path, "dosDn")
+        rel_dict = self.get_rel_atoms(opj(path, "out"))
+        meansUp_dict = self.get_rel_means_dict_helper(dosup, rel_dict)
+        meansDn_dict = self.get_rel_means_dict_helper(dosdn, rel_dict)
+        means_dict = {
+            "up": meansUp_dict,
+            "dn": meansDn_dict
+        }
+        return means_dict
     
+    ######### Functions written by Ben and added by Cooper to calculate band averages #########
+    ###########################################################################################
+
     def get_neb_data(self, folder, bias):
         # reads neb folder and returns data as a dictionary
         inputs = self.read_inputs(folder)

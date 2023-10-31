@@ -466,6 +466,8 @@ class jdft_manager():
                         all_data[surf_name]['surf'] = {}
                     data['bias'] = bias
                     all_data[surf_name]['surf'][bias_str] = data
+                    all_data[surf_name]['surf'][bias_str]['band_means'] = h.get_rel_means_dict(root)
+                    print(f"adding band average data to {surf_name}")
                     if data['converged']:
                         all_data['converged'].append(root)
                         if verbose: print('Surface calc converged.')
@@ -558,15 +560,15 @@ class jdft_manager():
     #                    print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
     #                          +' Added to rerun.')
                         continue # remove after testing
-                        if neb_data['opt'] != 'None' and neb_data['opt'][-1]['force'] < force_limit:
-                            print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
-                                  +' Added to rerun.')
-                            rerun.append(root)
-                        else:
-                            neb_force = '%.3f'%(neb_data['opt'][-1]['force']) if neb_data['opt'] != 'None' else 'None'
-                            print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
-                                  +' Skipping due to high forces ('+neb_force+')')
-                    continue
+                    if neb_data['opt'] != 'None' and neb_data['opt'][-1]['force'] < force_limit:
+                        print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
+                                +' Added to rerun.')
+                        rerun.append(root)
+                    else:
+                        neb_force = '%.3f'%(neb_data['opt'][-1]['force']) if neb_data['opt'] != 'None' else 'None'
+                        print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
+                                +' Skipping due to high forces ('+neb_force+')')
+                        continue
         
         # save remaining dos 
         if self.args.save_dos == 'True':
