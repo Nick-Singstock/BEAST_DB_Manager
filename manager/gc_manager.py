@@ -186,7 +186,7 @@ class jdft_manager():
                            'file to new calc folders and update.',
                             type=str, default='True')
         parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 1000)',
-                            type=int, default=350)
+                            type=int, default=1000)
         parser.add_argument('-kptdb', '--kpoint_density_bulk', help='Bulk Kpoint grid density (default 1000)',
                             type=int, default=1000)
         parser.add_argument('-elec', '--copy_electronic', help='If True, copy electronic state files '+
