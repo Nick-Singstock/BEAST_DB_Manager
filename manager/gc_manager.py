@@ -185,7 +185,7 @@ class jdft_manager():
         parser.add_argument('-conv', '--use_convergence', help='If True (default), copy convergence '+
                            'file to new calc folders and update.',
                             type=str, default='True')
-        parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 350)',
+        parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 1000)',
                             type=int, default=350)
         parser.add_argument('-kptdb', '--kpoint_density_bulk', help='Bulk Kpoint grid density (default 1000)',
                             type=int, default=1000)
