@@ -210,6 +210,8 @@ class jdft_manager():
                             type=str, default='True')
         parser.add_argument('-bm', '--big_mem', help='Whether to use Perlmutter\'s large memory gpu nodes with'+
                             '80GB of memory per GPU (default False)', type=bool, default=False)
+        parser.add_argument('-mdos', '--mean_dos', help='whether to store mean DOS data for each band and each atom for all surfaces',
+                            type=bool, default=False)
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -466,8 +468,12 @@ class jdft_manager():
                         all_data[surf_name]['surf'] = {}
                     data['bias'] = bias
                     all_data[surf_name]['surf'][bias_str] = data
-                    all_data[surf_name]['surf'][bias_str]['band_means'] = h.get_rel_means_dict(root)
-                    print(f"adding band average data to {surf_name}")
+                    if self.args.mean_dos == True:
+                        try:
+                            all_data[surf_name]['surf'][bias_str]['band_means'] = h.get_rel_means_dict(root)
+                            print(f"adding band average data to {surf_name}")
+                        except:
+                            print(f"failed to add band average data to {surf_name}")
                     if data['converged']:
                         all_data['converged'].append(root)
                         if verbose: print('Surface calc converged.')
