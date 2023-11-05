@@ -42,6 +42,11 @@ class helper():
     
     def write_inputs(self, inputs_dic, folder):
         # expects a dictionary of inputs with either strings or lists of strings as vals
+        text = self.inputs_to_string(inputs_dic)
+        with open(os.path.join(folder, 'inputs'), 'w') as f:
+            f.write(text)
+    
+    def inputs_to_string(self, inputs_dic):
         text = ''
         for k,v in inputs_dic.items():
             if type(v) == list:
@@ -49,8 +54,7 @@ class helper():
                     text += k + ' ' + vi + '\n'
             else:
                 text += k + ' ' + v + '\n'
-        with open(os.path.join(folder, 'inputs'), 'w') as f:
-            f.write(text)
+        return text
 
     def read_optlog(self, folder, file = 'opt.log', verbose = True):
         try:
