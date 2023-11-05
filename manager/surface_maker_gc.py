@@ -58,7 +58,7 @@ def make_surface(file, folder, index, slab_height, vac_space, center, stoich, pr
         print('ERROR: No surfaces generated with specified settings.')
         
     for i, slab in enumerate(all_slabs):
-        slab.to('POSCAR', '../../surfs/'+folder+'_'+index+'/__all_surfs/' + 'POSCAR_'+str(i).zfill(2))
+        slab.to(fmt='POSCAR', filename='../../surfs/'+folder+'_'+index+'/__all_surfs/' + 'POSCAR_'+str(i).zfill(2))
     
     # copy inputs for bulk for surf kpoints
     subprocess.call('cp inputs '+ '../../surfs/'+

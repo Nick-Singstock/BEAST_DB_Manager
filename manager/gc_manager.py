@@ -13,6 +13,7 @@ import os
 import argparse
 import subprocess
 import json
+from monty.json import MontyEncoder, MontyDecoder
 from time import sleep
 from pymatgen.core.structure import Structure
 from pymatgen.io.vasp.inputs import Kpoints
@@ -184,8 +185,8 @@ class jdft_manager():
         parser.add_argument('-conv', '--use_convergence', help='If True (default), copy convergence '+
                            'file to new calc folders and update.',
                             type=str, default='True')
-        parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 350)',
-                            type=int, default=350)
+        parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 1000)',
+                            type=int, default=1000)
         parser.add_argument('-kptdb', '--kpoint_density_bulk', help='Bulk Kpoint grid density (default 1000)',
                             type=int, default=1000)
         parser.add_argument('-elec', '--copy_electronic', help='If True, copy electronic state files '+
@@ -209,6 +210,8 @@ class jdft_manager():
                             type=str, default='True')
         parser.add_argument('-bm', '--big_mem', help='Whether to use Perlmutter\'s large memory gpu nodes with'+
                             '80GB of memory per GPU (default False)', type=bool, default=False)
+        parser.add_argument('-mdos', '--mean_dos', help='whether to store mean DOS data for each band and each atom for all surfaces',
+                            type=bool, default=False)
         self.args = parser.parse_args()
 
     def __get_run_cmd__(self):
@@ -320,8 +323,9 @@ class jdft_manager():
                 nnewcalcs += 1
                 if nnewcalcs % 100 == 0:
                     print('*** Temp convergence save ***')
+                    data_json = MontyEncoder().encode(all_data)
                     with open(self.data_file, 'w') as f:
-                        json.dump(all_data, f)
+                        f.write(data_json)
                 
                 # get type of calculation
                 calc_type = None
@@ -464,6 +468,12 @@ class jdft_manager():
                         all_data[surf_name]['surf'] = {}
                     data['bias'] = bias
                     all_data[surf_name]['surf'][bias_str] = data
+                    if self.args.mean_dos == True:
+                        try:
+                            all_data[surf_name]['surf'][bias_str]['band_means'] = h.get_rel_means_dict(root)
+                            print(f"adding band average data to {surf_name}")
+                        except:
+                            print(f"failed to add band average data to {surf_name}")
                     if data['converged']:
                         all_data['converged'].append(root)
                         if verbose: print('Surface calc converged.')
@@ -556,15 +566,15 @@ class jdft_manager():
     #                    print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
     #                          +' Added to rerun.')
                         continue # remove after testing
-                        if neb_data['opt'] != 'None' and neb_data['opt'][-1]['force'] < force_limit:
-                            print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
-                                  +' Added to rerun.')
-                            rerun.append(root)
-                        else:
-                            neb_force = '%.3f'%(neb_data['opt'][-1]['force']) if neb_data['opt'] != 'None' else 'None'
-                            print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
-                                  +' Skipping due to high forces ('+neb_force+')')
-                    continue
+                    if neb_data['opt'] != 'None' and neb_data['opt'][-1]['force'] < force_limit:
+                        print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
+                                +' Added to rerun.')
+                        rerun.append(root)
+                    else:
+                        neb_force = '%.3f'%(neb_data['opt'][-1]['force']) if neb_data['opt'] != 'None' else 'None'
+                        print('NEB path '+path_name+' for '+surf_name+' at '+bias_str+' not converged.'
+                                +' Skipping due to high forces ('+neb_force+')')
+                        continue
         
         # save remaining dos 
         if self.args.save_dos == 'True':
@@ -1047,7 +1057,7 @@ class jdft_manager():
                                 cmd = 'cp '+os.path.join(folder, file)+' '+os.path.join(to_folder, file)
                                 self.run(cmd)
                             st = [initst, finalst][i]
-                            st.to('POSCAR', os.path.join(to_folder, 'CONTCAR'))
+                            st.to(fmt='POSCAR', filename=os.path.join(to_folder, 'CONTCAR'))
                             
                         # both final and initial folders are setup
                         # 1) check for paths with forces < criteria, if so, copy files
@@ -1085,13 +1095,13 @@ class jdft_manager():
                             init_st = Structure.from_file(os.path.join(neb_dir,'00','CONTCAR'))
                             neighbor_st = Structure.from_file(os.path.join(neb_dir,'01','CONTCAR'))
                             nst, ist = minimum_movement_strs(neighbor_st, init_st)
-                            ist.to('POSCAR', os.path.join(neb_dir,'00','CONTCAR'))
+                            ist.to(fmt='POSCAR', filename=os.path.join(neb_dir,'00','CONTCAR'))
                             final_st = Structure.from_file(os.path.join(neb_dir,
                                                            str(images+1).zfill(2),'CONTCAR'))
                             neighbor_st = Structure.from_file(os.path.join(neb_dir,
                                                               str(images).zfill(2),'CONTCAR'))
                             nst, fst = minimum_movement_strs(neighbor_st, final_st)
-                            fst.to('POSCAR', os.path.join(neb_dir,str(images+1).zfill(2),'CONTCAR'))
+                            fst.to(fmt='POSCAR', filename=os.path.join(neb_dir,str(images+1).zfill(2),'CONTCAR'))
                             
                         else:
                             # 2) setup idpp folders from scratch and add inputs for neb
@@ -1136,7 +1146,7 @@ class jdft_manager():
         if sd:
             st = Structure.from_file(opj(root, 'POSCAR'))
             new_st = assign_selective_dynamics(st, sd_dist)
-            new_st.to('POSCAR', opj(root, 'POSCAR'))
+            new_st.to(fmt='POSCAR', filename=opj(root, 'POSCAR'))
         
         # copy inputs from inputs_folder and update based on tags
         self.run('cp '+os.path.join(inputs_folder, 'surfs_inputs')+' '+os.path.join(root, 'inputs'))
@@ -1787,8 +1797,9 @@ class jdft_manager():
                 # save 
 #                if len(all_data.keys()) < 2:
                 print('\nSaving converged calculations.')
+                data_json = MontyEncoder().encode(all_data)
                 with open(self.data_file, 'w') as f:
-                    json.dump(all_data, f)
+                    f.write(data_json)
         
             # save and rerun unconverged (if requested)
             with open(os.path.join(results_folder, 'unconverged.txt'), 'w') as f:
