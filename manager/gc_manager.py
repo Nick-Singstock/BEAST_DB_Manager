@@ -1853,7 +1853,7 @@ class jdft_manager():
         parallel = self.args.parallel
         bundle = True if self.args.bundle_jobs == 'True' else False
 
-        if self.args.singlepoint == 'True':
+        if self.args.singlepoint == True:
             # run single point calculation
             singlepoint_roots = self.generate_singlepoint_roots(all_data)
             self.copy_singlepoint_inputs(singlepoint_roots)
