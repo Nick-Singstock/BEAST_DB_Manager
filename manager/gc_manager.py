@@ -1746,12 +1746,13 @@ class jdft_manager():
     def remove_wfns(self, converged):
         sleep(5)
         cwd = os.getcwd()
+        remove_files = ["wfns", "V_fluidTot", "fluidState", "tau_up", "tau_dn"]
         for root in converged:
             os.chdir(root)
             files = os.listdir()
-            if 'wfns' in files:
-                print('Removing wfns: '+root)
-                self.run('rm wfns')
+            for file in remove_files:
+                print(f'Removing {file}'+root)
+                self.run(f'rm {file}')
             os.chdir(cwd)
     
     def path_to_calc_type(self, path):
@@ -1777,7 +1778,10 @@ class jdft_manager():
         # function to check if the singlepoint_convergence file written by run_JDFTx.py is the same
         # as the singlepoint_convergence file copied into the directory.
         # returns True if the tags in both are the same and False if they differ
-        converged_tags = h.read_inputs(root, file="singlepoint_convergence")
+        if ope(opj(root, 'singlepoint_convergence')):
+            converged_tags = h.read_inputs(root, file="singlepoint_convergence")
+        else:
+            return False
         input_tags = h.read_inputs(root, file="singlepoint_inputs")
         if input_tags == converged_tags:
             return True
@@ -1787,20 +1791,21 @@ class jdft_manager():
     def generate_singlepoint_roots(self, all_data, verbose = True):
         singlepoint_roots = []
         for dir in all_data["converged"]:
-            calc_path = os.path.join(calc_folder, dir)
+            calc_path = os.path.join(dir)
             calc_type = self.path_to_calc_type(calc_path)
+            print(dir, calc_type)
             if calc_type in ['adsorbed', 'desorbed', 'surfs']:
                 # add single point calcs to run_new
-                if ope(opj(calc_path, 'CONTCAR')) and ope(opj(calc_path, 'singlepoint_inputs')):
-                    if not ope(opj(calc_path, 'singlepoint_convergence')):
-                        print(f"Single point inputs file found at {calc_path}, but calculation has not run")
-                        print(f"adding {calc_path} to singlepoint_roots")
-                        singlepoint_roots.append(calc_path)
-                    elif ope(opj(calc_path, 'singlepoint_convergence')): # singlepoint covergence file written
-                        if not self.check_singlepoint_convergence(calc_path):
-                            print(f"Single point inputs file found at {calc_path}, but inputs differ")
-                            print(f"adding {calc_path} to singlepoint_roots")
-                            singlepoint_roots.append(calc_path)
+                if ope(opj(dir, 'CONTCAR')):
+                    if not ope(opj(dir, 'singlepoint_convergence')):
+                        print(f"Single point inputs file found at {dir}, but calculation has not run")
+                        print(f"adding {dir} to singlepoint_roots")
+                        singlepoint_roots.append(dir)
+                    elif ope(opj(dir, 'singlepoint_convergence')): # singlepoint covergence file written
+                        if not self.check_singlepoint_convergence(dir):
+                            print(f"Single point inputs file found at {dir}, but inputs differ")
+                            print(f"adding {dir} to singlepoint_roots")
+                            singlepoint_roots.append(dir)
                         else:
                             if verbose: print(f"Single point inputs file found at {calc_path}, and inputs match")
         return singlepoint_roots
@@ -1856,6 +1861,7 @@ class jdft_manager():
         if self.args.singlepoint == True:
             # run single point calculation
             singlepoint_roots = self.generate_singlepoint_roots(all_data)
+            print(singlepoint_roots, "singlepoint_roots")
             self.copy_singlepoint_inputs(singlepoint_roots)
             self.run_all_parallel(singlepoint_roots, bundle = bundle)
             return
