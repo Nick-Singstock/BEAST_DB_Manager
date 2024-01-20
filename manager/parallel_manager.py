@@ -16,7 +16,7 @@ jdftx_python_dir = os.environ['JDFTx_manager_home']
 
 def sub_parallel(roots, cwd, nodes, cores_per_node, 
                 time, procs = 2, testing = 'False',
-                recursive = False, big_mem=False):
+                recursive = False, big_mem=False, singlepoint=False):
     print('Running '+str(len(roots))+ ' jobs in parallel on '+str(nodes)+' nodes (4 jobs/node)')
     
     manager_home = os.environ['JDFTx_manager_home']
@@ -39,7 +39,8 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     
     if gpu:
         script += ' -g True'
-    
+    if singlepoint: # add singlepoint tag for running singlepoints on whole dataset
+        script += ' --singlepoint True'
     # tag to include regen attempt 
     #script += ' -r True'
     

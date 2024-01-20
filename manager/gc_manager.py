@@ -208,9 +208,12 @@ class jdft_manager():
                             ' be upgraded from no_bias or 0V converged calcs (default True).'+
                             ' False = calcs are independently setup and run. Can be used with -elec tag.',
                             type=str, default='True')
+        # Cooper added arguments
         parser.add_argument('-bm', '--big_mem', help='Whether to use Perlmutter\'s large memory gpu nodes with'+
                             '80GB of memory per GPU (default False)', type=bool, default=False)
         parser.add_argument('-mdos', '--mean_dos', help='whether to store mean DOS data for each band and each atom for all surfaces',
+                            type=bool, default=False)
+        parser.add_argument('--singlepoint', help='whether to run singlepoint calculations for all surfaces',
                             type=bool, default=False)
         self.args = parser.parse_args()
 
@@ -1699,7 +1702,7 @@ class jdft_manager():
             sub_parallel(roots, self.cwd, self.args.nodes, os.environ['CORES_PER_NODE'],
                          self.args.run_time, 
                          recursive = True if self.args.short_recursive=='True' else False,
-                         big_mem=self.args.big_mem)
+                         big_mem=self.args.big_mem, singlepoint=self.args.singlepoint)
             return
         
         else:
@@ -1743,13 +1746,91 @@ class jdft_manager():
     def remove_wfns(self, converged):
         sleep(5)
         cwd = os.getcwd()
+        remove_files = ["wfns", "V_fluidTot", "fluidState", "tau_up", "tau_dn"]
         for root in converged:
             os.chdir(root)
             files = os.listdir()
-            if 'wfns' in files:
-                print('Removing wfns: '+root)
-                self.run('rm wfns')
+            for file in remove_files:
+                print(f'Removing {file}'+root)
+                self.run(f'rm {file}')
             os.chdir(cwd)
+    
+    def path_to_calc_type(self, path):
+        path_items = path.split(os.sep)
+        if 'calcs' in path_items:
+            calc_index = path_items.index('calcs')
+            if path_items[calc_index+1] == 'adsorbed':
+                return 'adsorbed'
+            elif path_items[calc_index+1] == 'surfs':
+                return 'surfs'
+            elif path_items[calc_index+1] == 'desorbed':
+                return 'desorbed'
+            elif path_items[calc_index+1] == 'molecules':
+                return 'molecules'
+            elif path_items[calc_index+1] == 'neb':
+                return 'neb'
+            elif path_items[calc_index+1] == 'bulks':
+                return 'bulks'
+        else:
+            return None
+
+    def check_singlepoint_convergence(self, root):
+        # function to check if the singlepoint_convergence file written by run_JDFTx.py is the same
+        # as the singlepoint_convergence file copied into the directory.
+        # returns True if the tags in both are the same and False if they differ
+        if ope(opj(root, 'singlepoint_convergence')):
+            converged_tags = h.read_inputs(root, file="singlepoint_convergence")
+        else:
+            return False
+        input_tags = h.read_inputs(root, file="singlepoint_inputs")
+        if input_tags == converged_tags:
+            return True
+        else:
+            return False
+
+    def generate_singlepoint_roots(self, all_data, verbose = True):
+        singlepoint_roots = []
+        for dir in all_data["converged"]:
+            calc_path = os.path.join(dir)
+            calc_type = self.path_to_calc_type(calc_path)
+            print(dir, calc_type)
+            if calc_type in ['adsorbed', 'desorbed', 'surfs']:
+                # add single point calcs to run_new
+                if ope(opj(dir, 'CONTCAR')):
+                    if not ope(opj(dir, 'singlepoint_convergence')):
+                        print(f"Single point inputs file found at {dir}, but calculation has not run")
+                        print(f"adding {dir} to singlepoint_roots")
+                        singlepoint_roots.append(dir)
+                    elif ope(opj(dir, 'singlepoint_convergence')): # singlepoint covergence file written
+                        if not self.check_singlepoint_convergence(dir):
+                            print(f"Single point inputs file found at {dir}, but inputs differ")
+                            print(f"adding {dir} to singlepoint_roots")
+                            singlepoint_roots.append(dir)
+                        else:
+                            if verbose: print(f"Single point inputs file found at {calc_path}, and inputs match")
+        return singlepoint_roots
+    
+    def copy_singlepoint_inputs(self, singlepoint_roots):
+        singlepoint_inputs = h.read_inputs(inputs_folder, file="singlepoint_inputs")
+        inputs_str = h.inputs_to_string(singlepoint_inputs)
+        for root in singlepoint_roots:
+            if not ope(opj(root, 'singlepoint_inputs')):
+                print(f"singlepoint_inputs file doesn't exist in {root}")
+                print(f"copying singlepoint_inputs file to {root}")
+                with open(opj(root, 'singlepoint_inputs'), 'w') as f:
+                    f.write(inputs_str)
+            else:
+                if self.check_singlepoint_convergence(root):
+                    print(f"singlepoint_inputs file exists in {root} and matches inputs")
+                    print("no action taken, moving to next directory")
+                elif not self.check_singlepoint_convergence(root):
+                    print(f"singlepoint_inputs file exists in {root} but inputs differ")
+                    print(f"copying singlepoint_inputs file to {root}")
+                    with open(opj(root, 'singlepoint_inputs'), 'w') as f:
+                        f.write(inputs_str)
+
+                    
+                
 
     def manager(self):
         '''
@@ -1772,11 +1853,19 @@ class jdft_manager():
         if os.path.isfile(self.data_file) and self.args.read_all != 'True':
             with open(self.data_file, 'r') as f:
                 all_data = json.load(f)
-                
+
         # get parallel tag
         parallel = self.args.parallel
         bundle = True if self.args.bundle_jobs == 'True' else False
-        
+
+        if self.args.singlepoint == True:
+            # run single point calculation
+            singlepoint_roots = self.generate_singlepoint_roots(all_data)
+            print(singlepoint_roots, "singlepoint_roots")
+            self.copy_singlepoint_inputs(singlepoint_roots)
+            self.run_all_parallel(singlepoint_roots, bundle = bundle)
+            return
+    
         # scan through all subfolders to check for converged structures 
         add_inputs = []
         ncalcs = None

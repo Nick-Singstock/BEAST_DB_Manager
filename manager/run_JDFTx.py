@@ -19,6 +19,8 @@ import subprocess
 from ase.optimize.minimahopping import MinimaHopping
 import numpy as np
 from jdft_helper import helper 
+from suggest_input_tags import set_elec_n_bands
+import re
 h = helper()
 
 opj = os.path.join
@@ -39,6 +41,15 @@ except:
     comp='Eagle'
 
 def conv_logger(txt, out_file = 'calc.log'):
+    if os.path.exists(out_file):
+        with open(out_file,'r') as f:
+            old = f.read()
+    else:
+        old = ''
+    with open(out_file,'w') as f:
+        f.write(old + txt + '\n')
+
+def sp_conv_logger(txt, out_file = 'sp_calc.log'):
     if os.path.exists(out_file):
         with open(out_file,'r') as f:
             old = f.read()
@@ -196,6 +207,258 @@ def clean_doscmds(cmds):
     conv_logger('clean cmds: '+str(new_cmds))
     return new_cmds
 
+######## Functions for setting up ASE calculator ########
+def open_inputs(inputs_file):
+    with open(inputs_file,'r') as f:
+        inputs = f.read()
+    return inputs
+
+def read_line(line, notinclude):
+    line = line.strip()
+    if len(line) == 0 or line[0] == '#': 
+        return 0,0,'None'
+    linelist = line.split()
+    
+    defaults = ['default','inputs']
+    inputs = h.read_inputs('./')
+    
+    if linelist[0] in notinclude:
+        # command, value, type
+        cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'script'
+        if val in defaults:
+            val = inputs[cmd]
+        return cmd, val, typ
+    else:
+        if len(linelist) > 1:
+            # command, value, type
+            cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'cmd'
+            if val in defaults:
+                val = inputs[cmd]
+            return cmd, val, typ
+        else:
+            return line, '', 'cmd'
+    
+
+def read_commands(inputs, notinclude):
+    cmds = []
+    script_cmds = {}
+#        with open(command_file,'r') as f:
+    for line in inputs.split('\n'):
+#            conv_logger('Line = ', line)
+        cmd, val, typ = read_line(line, notinclude)
+        if typ == 'None':
+            continue
+        elif typ == 'script':
+            if cmd in ['pdos','pDOS']:
+                if 'pdos' not in script_cmds:
+                    script_cmds['pdos'] = []
+                script_cmds['pdos'].append(val)
+                continue
+            script_cmds[cmd] = val
+        elif typ == 'cmd':
+            tpl = (cmd, val)
+            cmds.append(tpl)
+
+#        cmds += [('core-overlap-check', 'none')]
+    cmds = add_dos(cmds, script_cmds)
+    return cmds, script_cmds
+
+
+
+def calc_type(cmds, script_cmds):
+#        conv_logger('calc_type debug: '+str(cmds))
+    if 'nimages' in script_cmds.keys():
+        calc = 'neb'
+    elif 'optimizer' in script_cmds and script_cmds['optimizer'] in ['MD','md']:
+        calc = 'md'
+    elif 'opt' in script_cmds and script_cmds['opt'] in ['MD','md']:
+        calc = 'md'
+    elif any([('lattice-minimize' == c[0] and 'nIterations' in c[1] and 
+                int(c[1].split()[1]) > 0 ) for c in cmds]):
+        calc = 'lattice'
+    else:
+        calc = 'opt'
+    return calc
+
+def get_exe_cmd(script_cmds, interactive=False, nprocs = False):
+    if comp == 'Eagle':
+        exe_cmd = 'mpirun --bind-to none '+jdftx_exe
+    elif comp in ['Cori',]:
+        exe_cmd = 'srun --cpu-bind=cores -c 8 '+jdftx_exe
+        conv_logger('Running on Cori with srun.')
+    elif comp in ['Perlmutter']:
+        exe_cmd = 'srun '+jdftx_exe
+        conv_logger("Running on Perl using exe cmd {exe_cmd}".format(exe_cmd=exe_cmd))
+    else:
+        if nprocs != False: # read np from n-kpts
+            jdftx_num_procs = nprocs
+        else:
+            jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
+        
+        if 'np' in script_cmds:
+            jdftx_num_procs = script_cmds['np']
+        
+        exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
+        conv_logger('exe_cmd: ' + exe_cmd)
+    
+    if interactive:
+        print('Running JDFTx on an interactive node via sub_JDFTx.py')
+        exe_cmd = 'srun -n 2 -c 16 --hint=nomultithread '+jdftx_exe #+' -i in -o out'
+        
+    return exe_cmd
+
+     
+def read_atoms(restart, script_cmds):
+    if restart:
+        atoms = read('CONTCAR',format='vasp')
+    else:
+        atoms = read('POSCAR',format='vasp')
+    
+    if 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['bulk','periodic','Bulk','Periodic']:
+        return atoms
+    elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['slab','Slab','surf','Surf']:
+        atoms.set_pbc([True, True, False])
+    elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['mol','Mol','isolated']:
+        atoms.set_pbc([False, False, False])
+    
+    # default: periodic
+#        else: 
+#            atoms.set_pbc([True, True, False])
+    return atoms
+
+def get_nprocs(cmds):
+    for cmd in cmds:
+        if cmd[0] == 'kpoint-folding':
+            kpts = [int(kpt) for kpt in cmd[1].split()]
+            return np.product(kpts) * 2 # this *2 assumes spin-polarized calcs. May break for spin-paired?
+    return False # no kpts tag found
+
+def set_calc(cmds, script_cmds, outfile = os.getcwd(), jdftx_ionic = False, interactive=False):
+    psuedos = script_cmds['pseudos']
+    nprocs = get_nprocs(cmds)
+    conv_logger('nprocs: '+str(nprocs))
+    
+    ionic_data = [ # steps, econv, 
+        int(script_cmds['jdftx_steps']) if 'jdftx_steps' in script_cmds else 5,
+        (float(script_cmds['econv']) if 'econv' in script_cmds else 1E-4) / hartree_to_ev,
+        ]
+    
+    return JDFTx(
+        executable = get_exe_cmd(script_cmds, nprocs, interactive),
+        pseudoSet=psuedos,
+        commands=cmds,
+        outfile = outfile,
+        ionic_steps = False if jdftx_ionic is False else ionic_data  
+        )
+
+def optimizer(imag_atoms,script_cmds,logfile='opt.log'):
+    """
+    ASE Optimizers:
+        BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, GPMin, MDMin and FIRE.
+    """
+    use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
+    opt_alpha = 150 if 'opt-alpha' not in script_cmds else int(script_cmds['opt-alpha'])
+    if 'optimizer' in script_cmds:
+        opt = script_cmds['optimizer']
+    elif 'opt' in script_cmds:
+        opt = script_cmds['opt']
+    else:
+        opt='FIRE'
+    
+    opt_dict = {'BFGS':BFGS, 'BFGSLineSearch':BFGSLineSearch,
+                'LBFGS':LBFGS, 'LBFGSLineSearch':LBFGSLineSearch,
+                'GPMin':GPMin, 'MDMin':MDMin, 'FIRE':FIRE}
+    if opt in ['BFGS','LBFGS']:
+        if use_hessian:
+            dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl',alpha=opt_alpha)
+        else:
+            dyn = opt_dict[opt](imag_atoms,logfile=logfile,alpha=opt_alpha)
+    elif opt == 'FIRE':
+        if use_hessian:
+            dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl',a=(opt_alpha/70) * 0.1)
+        else:
+            dyn = opt_dict[opt](imag_atoms,logfile=logfile,a=(opt_alpha/70) * 0.1)
+    else:
+        if use_hessian:
+            dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl')
+        else:
+            dyn = opt_dict[opt](imag_atoms,logfile=logfile)
+    return dyn
+
+def write_singlepoint_converegence(cmds, script_cmds):
+    inputs_dict = cmds.update(script_cmds)
+    inputs_str = h.inputs_to_string(inputs_dict)
+    with open("singlepoint_convergence", "w") as f:
+        f.write(inputs_str)
+
+def update_commands_from_inputs_dict(cmds, script_cmds, inputs_dict):
+    for updated_tag, updated_val in inputs_dict.items():
+        for i, (cmd, val) in enumerate(cmds):
+            if cmd == updated_tag and cmd != 'dump':
+                cmds[i] = (str(updated_tag), str(updated_val))
+            else: continue
+    return cmds
+
+#######################################################
+
+
+########################################################################################################################
+################################## Single point run function ###########################################################
+
+def run_singlepoint(jdftx_exe, interactive=False):
+    # this function runs a JDFTx singlepoint. It will not update any ASE files. It just dumps JDFTx outputs only.
+
+    notinclude = ['ion-species','ionic-minimize',
+                #'latt-scale','latt-move-scale','coulomb-interaction','coords-type',
+                'ion','climbing','pH','ph',  'autodos',
+                'logfile','pseudos','nimages','max_steps','max-steps','fmax','optimizer','opt',
+                'restart','parallel','safe-mode','hessian', 'step', 'Step',
+                'opt-alpha', 'md-steps', 'econv', 'pdos', 'pDOS', 'lattice-type', 'np',
+                'use_jdftx_ionic', 'jdftx_steps', #Tags below here were added by Cooper
+                'bond-fix', 'bader']
+
+    inputs = open_inputs('singlepoint_inputs')
+    inputs_dict = h.read_inputs('./', 'singlepoint_inputs')
+    cmds, script_cmds = read_commands(inputs, notinclude)
+    pseudos = script_cmds['pseudos']
+    nbands, kpt_str = set_elec_n_bands('.','CONTCAR', pseudos, band_scaling=1.2, kpoint_density=1000)
+    sp_conv_logger('nbands: '+str(nbands)+'\n')
+    path = os.getcwd()
+    bias = h.bias_from_path(path)
+    sp_conv_logger('bias: '+str(bias)+'\n')
+    if bias != None:
+        bias_float = h.bias_str_to_float(bias)
+        inputs_dict['target_mu'] = str(h.bias_to_mu(bias_float))
+        sp_conv_logger('target-mu: '+str(h.bias_to_mu(bias_float))+'\n')
+        cmds.append(('target-mu', str(h.bias_to_mu(bias_float))))
+    elif bias == None:
+        if 'target_mu' in cmds.keys():
+            inputs_dict.pop('target_mu')
+    inputs_dict['elec-n-bands'] = nbands
+    inputs_dict['kpoint-folding'] = kpt_str
+    # update inputs commands
+    cmds = update_commands_from_inputs_dict(cmds, script_cmds, inputs_dict)
+    sp_conv_logger('Beginning singlepoint calculation')
+    sp_conv_logger('cmds: '+str(cmds))
+    atoms = read_atoms(restart=True, script_cmds=script_cmds) # restart=True to read CONTCAR every time
+    # JDFTx.py sets coulomb truncation. It uses the get_pbc() method on the ASE atoms structure to do so
+    atoms.set_pbc([True, True, False]) # currently only does slab calculations
+    calculator = set_calc(cmds, script_cmds, jdftx_ionic = False, interactive=interactive)
+    atoms.set_calculator(calculator)
+    max_steps = 0 # singlepoint, max_steps should always be zero
+    fmax = 1000
+    traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
+    dyn = optimizer(atoms, script_cmds, logfile="singlepoint.log")
+    dyn.run(fmax=fmax,steps=max_steps)
+    traj.close()
+    sp_conv_logger('Singlepoint calculation complete')
+    subprocess.run("cp singlepoint_inputs singlepoint_convergence", shell=True)
+
+    
+################################## Single point run function ###########################################################
+########################################################################################################################
+################################## Main optimization calculation run function ##########################################
+
 # main function for calculations
 def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
 
@@ -209,86 +472,14 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                   'use_jdftx_ionic', 'jdftx_steps', #Tags below here were added by Cooper
                   'bond-fix', 'bader']
 
-    # setup default functions needed for running calcs
-    def open_inputs(inputs_file):
-        with open(inputs_file,'r') as f:
-            inputs = f.read()
-        return inputs
-    
-    def read_line(line):
-        line = line.strip()
-        if len(line) == 0 or line[0] == '#': 
-            return 0,0,'None'
-        linelist = line.split()
-        
-        defaults = ['default','inputs']
-        inputs = h.read_inputs('./')
-        
-        if linelist[0] in notinclude:
-            # command, value, type
-            cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'script'
-            if val in defaults:
-                val = inputs[cmd]
-            return cmd, val, typ
-        else:
-            if len(linelist) > 1:
-                # command, value, type
-                cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'cmd'
-                if val in defaults:
-                    val = inputs[cmd]
-                return cmd, val, typ
-            else:
-                return line, '', 'cmd'
-        
-        conv_logger('Line not read: '+str(line))
-        return 0,0,'None'
-                
-    def read_commands(inputs, notinclude = notinclude):
-        cmds = []
-        script_cmds = {}
-#        with open(command_file,'r') as f:
-        for line in inputs.split('\n'):
-#            conv_logger('Line = ', line)
-            cmd, val, typ = read_line(line)
-            if typ == 'None':
-                continue
-            elif typ == 'script':
-                if cmd in ['pdos','pDOS']:
-                    if 'pdos' not in script_cmds:
-                        script_cmds['pdos'] = []
-                    script_cmds['pdos'].append(val)
-                    continue
-                script_cmds[cmd] = val
-            elif typ == 'cmd':
-                tpl = (cmd, val)
-                cmds.append(tpl)
-
-#        cmds += [('core-overlap-check', 'none')]
-        cmds = add_dos(cmds, script_cmds)
-        return cmds, script_cmds
-
-    inputs = open_inputs(command_file)
-    cmds, script_cmds = read_commands(inputs,notinclude)
+    inputs = open_inputs(command_file) # inputs is a string read from an inputs file
+    cmds, script_cmds = read_commands(inputs,notinclude) # cmds is a list of tuples, script_cmds is a dictionary
 #    cmds = add_dos(cmds)
-
-    def calc_type(cmds, script_cmds):
-#        conv_logger('calc_type debug: '+str(cmds))
-        if 'nimages' in script_cmds.keys():
-            calc = 'neb'
-        elif 'optimizer' in script_cmds and script_cmds['optimizer'] in ['MD','md']:
-            calc = 'md'
-        elif 'opt' in script_cmds and script_cmds['opt'] in ['MD','md']:
-            calc = 'md'
-        elif any([('lattice-minimize' == c[0] and 'nIterations' in c[1] and 
-                   int(c[1].split()[1]) > 0 ) for c in cmds]):
-            calc = 'lattice'
-        else:
-            calc = 'opt'
-        return calc
 
     ctype = calc_type(cmds, script_cmds)
     conv_logger('ctype: '+ctype)
-
+    traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
+    dyn.attach(traj.write, interval=1)
 #    psuedos = script_cmds['pseudos']
 #    max_steps = int(script_cmds['max_steps'])
 #    fmax = float(script_cmds['fmax'])
@@ -298,110 +489,11 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
 #    safe_mode = False if ('safe-mode' in script_cmds and script_cmds['safe-mode'] == 'False') else True
 #    use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
     
-    def get_exe_cmd(script_cmds, nprocs = False):
-        if comp == 'Eagle':
-            exe_cmd = 'mpirun --bind-to none '+jdftx_exe
-        elif comp in ['Cori',]:
-            exe_cmd = 'srun --cpu-bind=cores -c 8 '+jdftx_exe
-            conv_logger('Running on Cori with srun.')
-        elif comp in ['Perlmutter']:
-            exe_cmd = 'srun '+jdftx_exe
-            conv_logger("Running on Perl using exe cmd {exe_cmd}".format(exe_cmd=exe_cmd))
-        else:
-            if nprocs != False: # read np from n-kpts
-                jdftx_num_procs = nprocs
-            else:
-                jdftx_num_procs = os.environ['JDFTx_NUM_PROCS']
-            
-            if 'np' in script_cmds:
-                jdftx_num_procs = script_cmds['np']
-            
-            exe_cmd = 'mpirun -np '+str(jdftx_num_procs)+' '+jdftx_exe
-            conv_logger('exe_cmd: ' + exe_cmd)
-        
-        if interactive:
-            print('Running JDFTx on an interactive node via sub_JDFTx.py')
-            exe_cmd = 'srun -n 2 -c 16 --hint=nomultithread '+jdftx_exe #+' -i in -o out'
-            
-        return exe_cmd
 
-        
-    def read_atoms(restart):
-        if restart:
-            atoms = read('CONTCAR',format='vasp')
-        else:
-            atoms = read('POSCAR',format='vasp')
-        
-        if 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['bulk','periodic','Bulk','Periodic']:
-            return atoms
-        elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['slab','Slab','surf','Surf']:
-            atoms.set_pbc([True, True, False])
-        elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['mol','Mol','isolated']:
-            atoms.set_pbc([False, False, False])
-        
-        # default: periodic
-#        else: 
-#            atoms.set_pbc([True, True, False])
-        return atoms
+
     
-    def optimizer(imag_atoms,script_cmds,logfile='opt.log'):
-        """
-        ASE Optimizers:
-            BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, GPMin, MDMin and FIRE.
-        """
-        use_hessian = True if ('hessian' in script_cmds and script_cmds['hessian'] == 'True') else False
-        opt_alpha = 150 if 'opt-alpha' not in script_cmds else int(script_cmds['opt-alpha'])
-        if 'optimizer' in script_cmds:
-            opt = script_cmds['optimizer']
-        elif 'opt' in script_cmds:
-            opt = script_cmds['opt']
-        else:
-            opt='FIRE'
-        
-        opt_dict = {'BFGS':BFGS, 'BFGSLineSearch':BFGSLineSearch,
-                    'LBFGS':LBFGS, 'LBFGSLineSearch':LBFGSLineSearch,
-                    'GPMin':GPMin, 'MDMin':MDMin, 'FIRE':FIRE}
-        if opt in ['BFGS','LBFGS']:
-            if use_hessian:
-                dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl',alpha=opt_alpha)
-            else:
-                dyn = opt_dict[opt](imag_atoms,logfile=logfile,alpha=opt_alpha)
-        elif opt == 'FIRE':
-            if use_hessian:
-                dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl',a=(opt_alpha/70) * 0.1)
-            else:
-                dyn = opt_dict[opt](imag_atoms,logfile=logfile,a=(opt_alpha/70) * 0.1)
-        else:
-            if use_hessian:
-                dyn = opt_dict[opt](imag_atoms,logfile=logfile,restart='hessian.pckl')
-            else:
-                dyn = opt_dict[opt](imag_atoms,logfile=logfile)
-        return dyn
-    
-    def get_nprocs(cmds):
-        for cmd in cmds:
-            if cmd[0] == 'kpoint-folding':
-                kpts = [int(kpt) for kpt in cmd[1].split()]
-                return np.product(kpts) * 2
-        return False # no kpts tag found
-    
-    def set_calc(cmds, script_cmds, outfile = os.getcwd(), jdftx_ionic = False):
-        psuedos = script_cmds['pseudos']
-        nprocs = get_nprocs(cmds)
-        conv_logger('nprocs: '+str(nprocs))
-        
-        ionic_data = [ # steps, econv, 
-            int(script_cmds['jdftx_steps']) if 'jdftx_steps' in script_cmds else 5,
-            (float(script_cmds['econv']) if 'econv' in script_cmds else 1E-4) / hartree_to_ev,
-            ]
-        
-        return JDFTx(
-            executable = get_exe_cmd(script_cmds, nprocs),
-            pseudoSet=psuedos,
-            commands=cmds,
-            outfile = outfile,
-            ionic_steps = False if jdftx_ionic is False else ionic_data  
-            )
+
+
     
     def bond_constraint(atoms, script_cmds):
         '''
@@ -458,7 +550,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 if add_step:
                     step  = str(int(step)+1) # update so steps are always indexed to 1
             else:
-                cmd, val, typ = read_line(line)
+                cmd, val, typ = read_line(line, notinclude)
                 if typ == 'None':
                     continue
                 if step in conv:
@@ -551,9 +643,9 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
     
     if ctype == 'md':
         restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
-        atoms = read_atoms(restart)
+        atoms = read_atoms(restart, script_cmds)
         
-        calculator = set_calc(cmds, script_cmds)
+        calculator = set_calc(cmds, script_cmds, interactive=interactive)
         atoms.set_calculator(calculator)
         
         opt = MinimaHopping(atoms=atoms)
@@ -612,7 +704,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 max_steps = 0
             
             # set atoms object
-            atoms = read_atoms(restart)
+            atoms = read_atoms(restart, script_cmds)
             atoms = bond_constraint(atoms, script_cmds) #if bond-fix 
             
             autodos_tag = True if ('autodos' in script_cmds and script_cmds['autodos'] == 'True') else False
@@ -621,12 +713,14 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 cmds = autodos_sp(cmds, atoms)
             # clean repeat dos cmds
             cmds = clean_doscmds(cmds)
+
+            # need to update
             
             # bundle ionic steps within jdftx to increase speed, if requested
             jdftx_ionic = True if ('use_jdftx_ionic' in script_cmds and script_cmds['use_jdftx_ionic'] == 'True') else False
             
             # set calculator
-            calculator = set_calc(cmds, script_cmds, jdftx_ionic = jdftx_ionic)
+            calculator = set_calc(cmds, script_cmds, jdftx_ionic = jdftx_ionic, interactive=interactive)
             atoms.set_calculator(calculator)
     
             #Structure optimization                
@@ -642,7 +736,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 # for lattice optimizations, write contcar file from out file between steps
                 st = h.read_out_struct('./')
                 st.to(filename='CONTCAR',fmt='POSCAR')
-                dyn.atoms = read_atoms(True)
+                dyn.atoms = read_atoms(True, script_cmds)
                 dyn.atoms.set_calculator(calculator)
                 # Done: Test lattice opt
                 
@@ -823,6 +917,8 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
     if killcmd:
         assert False, "\n\n### Calculation completed: Kill command called to stop job ###\n\n"
 
+################################## Main optimization calculation run function ##########################################
+########################################################################################################################
 
 if __name__ == '__main__':
     
@@ -842,6 +938,9 @@ if __name__ == '__main__':
                         type=str, default='False')
     parser.add_argument('-r', '--regen', help='If True, check calc convergence and rerun if needed.',
                         type=str, default='False')
+    parser.add_argument('--singlepoint', help=('If True, run in singlepoint mode. The script looks'
+                                                       ' for a single_point_inputs file and ignores everything else but a CONTCAR'),
+                        type=bool, default=False)
 #    parser.add_argument('-p', '--parallel', help='If True, runs parallel sub-job with JDFTx.',
 #                        type=str, default='False')
 
@@ -863,10 +962,13 @@ if __name__ == '__main__':
     conv_logger('\n\n----- Entering run function -----')
     autodoscmd = True if args.autodos == 'True' else False
     killcmd = True if args.kill == 'True' else False
-    run_calc(command_file, jdftx_exe, autodoscmd, 
-             True if args.interactive == 'True' else False,
-             killcmd)
-    
+    if args.singlepoint == False:
+        run_calc(command_file, jdftx_exe, autodoscmd, 
+                True if args.interactive == 'True' else False,
+                killcmd)
+    elif args.singlepoint == True:
+        run_singlepoint(jdftx_exe, interactive=True if args.interactive == 'True' else False)
+     
     # if calc did not converge, try to restart up to 3 times
     regen = True if args.regen == 'True' else False
     if regen:

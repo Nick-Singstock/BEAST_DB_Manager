@@ -42,6 +42,11 @@ class helper():
     
     def write_inputs(self, inputs_dic, folder):
         # expects a dictionary of inputs with either strings or lists of strings as vals
+        text = self.inputs_to_string(inputs_dic)
+        with open(os.path.join(folder, 'inputs'), 'w') as f:
+            f.write(text)
+    
+    def inputs_to_string(self, inputs_dic):
         text = ''
         for k,v in inputs_dic.items():
             if type(v) == list:
@@ -49,8 +54,7 @@ class helper():
                     text += k + ' ' + vi + '\n'
             else:
                 text += k + ' ' + v + '\n'
-        with open(os.path.join(folder, 'inputs'), 'w') as f:
-            f.write(text)
+        return text
 
     def read_optlog(self, folder, file = 'opt.log', verbose = True):
         try:
@@ -387,6 +391,10 @@ class helper():
         if bias == 'No_bias':
             return 'No_bias'
         return '%.2f'%bias + 'V'
+    
+    def bias_to_mu(self, bias, solvent="CANDLE"):
+        if solvent == "CANDLE":
+            return (-4.66 - bias)/27.2114
     
     def read_data(self, folder):
         # currently reads inputs, opt_log for energies, and CONTCAR. Also checks convergence based on forces
@@ -798,7 +806,22 @@ class helper():
         assert len(bias_sort) == len(bias_list), 'METAERROR: Sorted bias list is incorrect length.'
         return bias_sort
     
-        
+    def bias_from_path(self, path):
+        path_items = path.split(os.sep)
+        pattern = '^-?\d+\.\d+V$'
+        for item in path_items:
+            if re.match(pattern, item):
+                return item
+            elif 'No_bias' == item:
+                return None
+            
+    def bias_float_to_str(self, bias):
+        return f"{bias:.2f}" + "V"
+    
+    def bias_str_to_float(self, bias):
+        return float(bias.strip('V'))
+
+                
     
     def csv_analysis(self, analysis):
         string = 'Ref. Type/Surf,Atom/Mol/Ads,Site_Number,Site_Atom,Ref./Ads. Energies at Biases (eV)\n'
