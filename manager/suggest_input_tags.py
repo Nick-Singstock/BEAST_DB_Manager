@@ -71,7 +71,7 @@ def set_elec_n_bands(root, file, psd, band_scaling, kpoint_density):
     kpt_str = ' '.join([str(k) for k in kpts['kpoints'][0]])
     print('kpoints = '+kpt_str+' (density = '+str(kpoint_density)+')')
     
-    return max([nbands_add, nbands_mult])
+    return max([nbands_add, nbands_mult]), kpt_str
 
 
 if __name__ == '__main__':

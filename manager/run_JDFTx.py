@@ -19,6 +19,8 @@ import subprocess
 from ase.optimize.minimahopping import MinimaHopping
 import numpy as np
 from jdft_helper import helper 
+from suggest_input_tags import set_elec_n_bands
+import re
 h = helper()
 
 opj = os.path.join
@@ -243,7 +245,7 @@ def read_commands(inputs, notinclude):
 #        with open(command_file,'r') as f:
     for line in inputs.split('\n'):
 #            conv_logger('Line = ', line)
-        cmd, val, typ = read_line(line)
+        cmd, val, typ = read_line(line, notinclude)
         if typ == 'None':
             continue
         elif typ == 'script':
@@ -389,6 +391,13 @@ def write_singlepoint_converegence(cmds, script_cmds):
     with open("singlepoint_convergence", "w") as f:
         f.write(inputs_str)
 
+def update_commands_from_inputs_dict(cmds, script_cmds, inputs_dict):
+    for updated_tag, updated_val in inputs_dict.items():
+        for i, (cmd, val) in enumerate(cmds):
+            if cmd == updated_tag and cmd != 'dump':
+                cmds[i] = (str(updated_tag), str(updated_val))
+            else: continue
+    return cmds
 
 #######################################################
 
@@ -408,11 +417,32 @@ def run_singlepoint(jdftx_exe, interactive=False):
                 'use_jdftx_ionic', 'jdftx_steps', #Tags below here were added by Cooper
                 'bond-fix', 'bader']
 
-    inputs = open_inputs('single_point_inputs')
+    inputs = open_inputs('singlepoint_inputs')
+    inputs_dict = h.read_inputs('./', 'singlepoint_inputs')
     cmds, script_cmds = read_commands(inputs, notinclude)
+    pseudos = script_cmds['pseudos']
+    nbands, kpt_str = set_elec_n_bands('.','CONTCAR', pseudos, band_scaling=1.2, kpoint_density=1000)
+    sp_conv_logger('nbands: '+str(nbands)+'\n')
+    path = os.getcwd()
+    bias = h.bias_from_path(path)
+    sp_conv_logger('bias: '+str(bias)+'\n')
+    if bias != None:
+        bias_float = h.bias_str_to_float(bias)
+        inputs_dict['target_mu'] = str(h.bias_to_mu(bias_float))
+        sp_conv_logger('target-mu: '+str(h.bias_to_mu(bias_float))+'\n')
+        cmds.append(('target-mu', str(h.bias_to_mu(bias_float))))
+    elif bias == None:
+        if 'target_mu' in cmds.keys():
+            inputs_dict.pop('target_mu')
+    inputs_dict['elec-n-bands'] = nbands
+    inputs_dict['kpoint-folding'] = kpt_str
+    # update inputs commands
+    cmds = update_commands_from_inputs_dict(cmds, script_cmds, inputs_dict)
     sp_conv_logger('Beginning singlepoint calculation')
     sp_conv_logger('cmds: '+str(cmds))
     atoms = read_atoms(restart=True, script_cmds=script_cmds) # restart=True to read CONTCAR every time
+    # JDFTx.py sets coulomb truncation. It uses the get_pbc() method on the ASE atoms structure to do so
+    atoms.set_pbc([True, True, False]) # currently only does slab calculations
     calculator = set_calc(cmds, script_cmds, jdftx_ionic = False, interactive=interactive)
     atoms.set_calculator(calculator)
     max_steps = 0 # singlepoint, max_steps should always be zero
@@ -421,6 +451,8 @@ def run_singlepoint(jdftx_exe, interactive=False):
     dyn = optimizer(atoms, script_cmds, logfile="singlepoint.log")
     dyn.run(fmax=fmax,steps=max_steps)
     traj.close()
+    sp_conv_logger('Singlepoint calculation complete')
+    subprocess.run("cp singlepoint_inputs singlepoint_convergence", shell=True)
 
     
 ################################## Single point run function ###########################################################
@@ -440,8 +472,8 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                   'use_jdftx_ionic', 'jdftx_steps', #Tags below here were added by Cooper
                   'bond-fix', 'bader']
 
-    inputs = open_inputs(command_file)
-    cmds, script_cmds = read_commands(inputs,notinclude)
+    inputs = open_inputs(command_file) # inputs is a string read from an inputs file
+    cmds, script_cmds = read_commands(inputs,notinclude) # cmds is a list of tuples, script_cmds is a dictionary
 #    cmds = add_dos(cmds)
 
     ctype = calc_type(cmds, script_cmds)
@@ -518,7 +550,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 if add_step:
                     step  = str(int(step)+1) # update so steps are always indexed to 1
             else:
-                cmd, val, typ = read_line(line)
+                cmd, val, typ = read_line(line, notinclude)
                 if typ == 'None':
                     continue
                 if step in conv:

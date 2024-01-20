@@ -392,6 +392,10 @@ class helper():
             return 'No_bias'
         return '%.2f'%bias + 'V'
     
+    def bias_to_mu(self, bias, solvent="CANDLE"):
+        if solvent == "CANDLE":
+            return (-4.66 - bias)/27.2114
+    
     def read_data(self, folder):
         # currently reads inputs, opt_log for energies, and CONTCAR. Also checks convergence based on forces
         # reads out file for oxidation states and magentic moments
@@ -802,7 +806,22 @@ class helper():
         assert len(bias_sort) == len(bias_list), 'METAERROR: Sorted bias list is incorrect length.'
         return bias_sort
     
-        
+    def bias_from_path(self, path):
+        path_items = path.split(os.sep)
+        pattern = '^-?\d+\.\d+V$'
+        for item in path_items:
+            if re.match(pattern, item):
+                return item
+            elif 'No_bias' == item:
+                return None
+            
+    def bias_float_to_str(self, bias):
+        return f"{bias:.2f}" + "V"
+    
+    def bias_str_to_float(self, bias):
+        return float(bias.strip('V'))
+
+                
     
     def csv_analysis(self, analysis):
         string = 'Ref. Type/Surf,Atom/Mol/Ads,Site_Number,Site_Atom,Ref./Ads. Energies at Biases (eV)\n'
