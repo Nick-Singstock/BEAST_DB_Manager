@@ -1,0 +1,11 @@
+Running Convergence Step: 1
+      Step     Time          Energy         fmax
+*Force-consistent energies used in optimization.
+LBFGS:   0 17:36:55   -128532.401077*     0.0003
+LBFGS:   1 17:39:30   -128537.213792*     0.0024
+LBFGS:   2 17:42:13   -128541.361729*     0.0016
+LBFGS:   3 17:44:43   -128541.799960*     0.0005
+LBFGS:   4 17:46:40   -128541.828540*     0.0042
+LBFGS:   5 17:47:57   -128541.828765*     0.0010
+LBFGS:   6 17:50:20   -128541.828766*     0.0008
+LBFGS:   7 17:51:09   -128541.828766*     0.0003

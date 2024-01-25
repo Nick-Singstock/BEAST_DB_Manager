@@ -1,0 +1,13 @@
+
+Running Convergence Step: 1
+LBFGS:   0 13:38:29   -491.177557*    13.0666
+LBFGS:   1 13:38:40   -495.714251*    11.5921
+LBFGS:   2 13:38:44   -496.536504*     2.6603
+LBFGS:   3 13:38:47   -496.552596*     1.8157
+
+Running Convergence Step: 2
+LBFGS:   0 13:39:05   -496.552596*     1.8152
+LBFGS:   1 13:39:10   -496.563200*     0.0059
+
+Running Convergence Step: 3
+LBFGS:   0 13:39:20   -496.563200*     0.0049

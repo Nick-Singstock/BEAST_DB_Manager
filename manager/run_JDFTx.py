@@ -476,10 +476,12 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
     cmds, script_cmds = read_commands(inputs,notinclude) # cmds is a list of tuples, script_cmds is a dictionary
 #    cmds = add_dos(cmds)
 
+    # atoms = read_atoms(restart=False, script_cmds=script_cmds) # restart=False to read POSCAR every time
     ctype = calc_type(cmds, script_cmds)
     conv_logger('ctype: '+ctype)
-    traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
-    dyn.attach(traj.write, interval=1)
+    # traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
+    # dyn = optimizer(atoms, script_cmds)
+    # dyn.attach(traj.write, interval=1)
 #    psuedos = script_cmds['pseudos']
 #    max_steps = int(script_cmds['max_steps'])
 #    fmax = float(script_cmds['fmax'])
@@ -523,11 +525,6 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
         else:
             conv_logger("Didn't constrain bond")
             return atoms
-    def bader():
-        try:
-            subprocess.run("jbader.py -f tinyout", shell=True)
-        except:
-            conv_logger("jbader.py didn't run correctly")
 
     def read_convergence():
         '''
@@ -680,6 +677,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             
             if len(conv) > 0:
                 # update all commands from convergence file
+                print(conv, "conv")
                 cmds, script_cmds = update_cmds(conv, i+1, cmds, script_cmds)
                 # update dos tags
                 cmds = add_dos(cmds, script_cmds)

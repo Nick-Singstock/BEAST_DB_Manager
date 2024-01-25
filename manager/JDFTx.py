@@ -40,7 +40,6 @@ class JDFTx(Calculator):
                 #Get default values from environment:
                 self.executable = replaceVariable(executable, 'JDFTx')      #Path to the jdftx executable (cpu or gpu)
                 self.pseudoDir = replaceVariable(pseudoDir, 'JDFTx_pseudo') #Path to the pseudopotentials folder
-
                 if (self.executable is None):
                         raise Exception('Specify path to jdftx in argument \'executable\' or in environment variable \'JDFTx\'.')
                 if (self.pseudoDir is None) and (not (pseudoSet in pseudoSetMap)):
@@ -66,7 +65,6 @@ class JDFTx(Calculator):
                 self.InitCommands = [('wavefunction','read wfns'),('elec-initial-fillings','read fillings'),
                                      ('elec-initial-eigenvals','eigenvals'),('fluid-initial-state','fluidState'),
                                      ('kpoint-reduce-inversion','yes')]
-
 
                 # Parse commands, which can be a dict or a list of 2-tuples.
                 if isinstance(commands, dict):

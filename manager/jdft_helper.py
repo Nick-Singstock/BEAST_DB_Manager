@@ -11,6 +11,7 @@ import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.core import Lattice
 from ase.dft import get_distribution_moment
+from ase.io import read as ase_read
 import re
 import subprocess
 
@@ -1181,8 +1182,251 @@ class helper():
                 else:
                     # single version of command
                     conv_dic[step][cmd] = val
-        return conv_dic
+        return conv_dic, len(conv_dic)
     
+    def read_prev_step(self, file):
+        if not os.path.exists(file):
+            return 0
+        with open(file,'r') as f:
+            log = f.read()
+        step = 0
+        for line in log.split('\n'):
+            if 'Running Convergence Step:' in line:
+                step = int(line.split()[-1])
+        return step
+
+    def update_cmds(self, conv, step, cmds, script_cmds, update_wfns = False):
+        updates = conv[str(step)]
+        new_cmds = {}
+        for cmd, val in updates.items():
+
+            # updates: {'cmd': [v, type], 'OR', [[v1, v2], type]}
+            # val = list
+            if val[1] == 'None':
+                continue
+            elif val[1] == 'script':
+                script_cmds[cmd] = val[0]
+            elif val[1] == 'cmd':
+                new_cmds[cmd] = val[0]
+        
+        if update_wfns:
+            ecut = '0'
+            nbands = '0'
+            if 'elec-cutoff' in new_cmds and step > 1 and 'elec-cutoff' in conv[str(step-1)]:
+                ecut = conv[str(step-1)]['elec-cutoff'][0]
+            if 'kpoint-folding' in new_cmds and step > 1 and 'kpoint-folding' in conv[str(step-1)]:
+                nbands = self.read_out_nbands()
+            if ecut != '0' or nbands != '0':
+                new_cmds['wavefunction'] = 'read wfns '+nbands+' '+ecut
+                new_cmds['elec-initial-fillings'] = 'read fillings '+nbands
+        
+        formatted_cmds = [(cmd,val) for cmd,val in new_cmds.items()]
+        formatted_cmds += [cmd for cmd in cmds if cmd[0] not in new_cmds]
+        return formatted_cmds, script_cmds
+
+    def autodos_sp(self, cmds, atoms):
+        els = list(set(atoms.get_chemical_symbols()))
+        doskeys = {'s': ['s'], 'p': ['p','px','py','pz'], 'd': ['d','dxy','dxz','dyz','dz2','dx2-y2']}
+        alldos = {'s': ['H',  'Li','Be',   'B','C','N','O','F',
+                        'Na','Mg',  'Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',  'Al','Si','P','S','Cl',
+                        'K','Ca',   'Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd',  'Ga','Ge','As','Se','Br',
+                        'Rb','Sr',  'Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg'        'In','Sn','Sb','Te','I'],
+                'p': ['B','C','N','O','F',        'Al','Si','P','S','Cl',
+                        'Ga','Ge','As','Se','Br',   'In','Sn','Sb','Te','I', 'Tl','Pb'],
+                'd': ['Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
+                        'Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd',
+                        'Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg']}
+        new_dos = []
+        for el in els:
+            el_dos = [el]
+            for orb in ['s','p','d']:
+                orb_els = alldos[orb]
+                if el in orb_els:
+                    el_dos += doskeys[orb]
+            if len(el_dos) < 2:
+                continue # no dos orbitals for this atom
+            dosstr = ' '.join(el_dos)
+            new_dos.append(dosstr)
+        new_dos.append('Total')
+        dos_cmds = {'pdos': new_dos}
+        newcmds = self.add_dos(cmds, dos_cmds)
+        return newcmds
+
+    def add_dos(self, cmds, script_cmds):
+        from pymatgen.core.structure import Structure
+        if not ope('./inputs_dos') and not ('pdos' in script_cmds):
+            return cmds
+        new_cmds = []
+        for cmd in cmds:
+            if 'density-of-states' in cmd:
+                print('WARNING: command density-of-states in inputs file is being overwritten by inputs_dos.')
+                continue
+            new_cmds += [cmd]
+            
+        dos_line = '' 
+        st = Structure.from_file('./POSCAR')
+        
+        if ope('./inputs_dos'):
+            with open('./inputs_dos','r') as f:
+                dos = f.read()
+        
+            for line in dos.split('\n'):
+                if 'Orbital' in line and len(line.split()) >= 3:
+                    # Format: Orbital Atom_type orbital_type(s, spaced)
+                    # Adds DOS for ALL atoms of this type and all requested orbitals
+                    atom_type = line.split()[1]
+                    indices = [i for i,el in enumerate(st.species) if str(el) == atom_type]
+                    orbitals = line.split()[2:]
+                    assert all([orb in ['s','p','px','py','pz','d','dxy','dxz','dyz','dz2','dx2-y2','f'] 
+                                for orb in orbitals]), ('ERROR: Not all orbital types allowed! ('+', '.join(orbitals)+')')
+                    for i in range(len(indices)):
+                        for orbital in orbitals:
+                            dos_line += ' \\\nOrbital ' +atom_type + ' ' + str(i+1) + ' ' + orbital 
+                else:
+                    dos_line += ' \\\n' + line
+        
+        # allow pdos line in script_cmds
+        if 'pdos' in script_cmds:
+            if type(script_cmds['pdos']) == str:
+                script_cmds['pdos'] = [script_cmds['pdos']]
+            for pdos in script_cmds['pdos']:
+                if len(pdos.split()) > 1:
+                    # Format (list): Atom_type orbital_type(s, spaced)
+                    # Adds DOS for ALL atoms of this type and all requested orbitals
+                    atom_type = pdos.split(' ')[0]
+                    indices = [i for i,el in enumerate(st.species) if str(el) == atom_type]
+                    orbitals = pdos.split(' ')[1:]
+                    assert all([orb in ['s','p','px','py','pz','d','dxy','dxz','dyz','dz2','dx2-y2','f'] 
+                                for orb in orbitals]), ('ERROR: Not all orbital types allowed! ('+', '.join(orbitals)+')')
+                    for i in range(len(indices)):
+                        for orbital in orbitals:
+                            dos_line += ' \\\nOrbital ' +atom_type + ' ' + str(i+1) + ' ' + orbital 
+                else:
+                    dos_line += ' \\\n' + pdos
+        
+        new_cmds += [('density-of-states', dos_line)]
+        return new_cmds
+
+    def read_atoms(self, restart, script_cmds):
+        if restart:
+            atoms = ase_read('CONTCAR',format='vasp')
+        else:
+            atoms = ase_read('POSCAR',format='vasp')
+        
+        if 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['bulk','periodic','Bulk','Periodic']:
+            return atoms
+        elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['slab','Slab','surf','Surf']:
+            atoms.set_pbc([True, True, False])
+        elif 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['mol','Mol','isolated']:
+            atoms.set_pbc([False, False, False])
+        return atoms
+
+    def clean_doscmds(self, cmds):
+        new_cmds = []
+        for cmd in cmds:
+            # remove repeat pdos cmds 
+            if cmd[0] == 'density-of-states':
+                dosline = cmd[1]
+                pdos = dosline.split(' \\\n')
+                new_pdos = []
+                for p in pdos:
+                    if p not in new_pdos:
+                        new_pdos.append(p)
+                cmd = (cmd[0], ' \\\n'.join(new_pdos))
+            
+            if cmd not in new_cmds:
+                new_cmds.append(cmd)
+        return new_cmds
+
+    def clean_folder(self, conv, step, folder = './', delete = True):
+        if not delete:
+            return
+        elec_tags = ['kpoint-folding', 'elec-cutoff', 'pseudos']
+        diffs = False
+        for tag in elec_tags:
+            t1 = tag in conv[str(step)]
+            t2 = tag in conv[str(step+1)]
+            if t1 != t2: # if tag in only one
+                diffs = True
+            # if tag in both and value is different
+            elif t1 == t2 and t1 and conv[str(step)][tag] != conv[str(step+1)][tag]:
+                diffs = True
+        
+        if diffs:
+            files_to_remove = ['wfns','fillings','eigenvals','fluidState']
+            for file in files_to_remove:
+                if ope(opj(folder, file)):
+                    subprocess.call('rm '+opj(folder,file), shell=True)
+
+    def open_inputs(self, inputs_file):
+        with open(inputs_file,'r') as f:
+            inputs = f.read()
+        return inputs
+
+    def read_line(self, line, notinclude):
+        line = line.strip()
+        if len(line) == 0 or line[0] == '#': 
+            return 0,0,'None'
+        linelist = line.split()
+        
+        defaults = ['default','inputs']
+        inputs = self.read_inputs('./')
+        
+        if linelist[0] in notinclude:
+            # command, value, type
+            cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'script'
+            if val in defaults:
+                val = inputs[cmd]
+            return cmd, val, typ
+        else:
+            if len(linelist) > 1:
+                # command, value, type
+                cmd, val, typ = linelist[0], ' '.join(linelist[1:]), 'cmd'
+                if val in defaults:
+                    val = inputs[cmd]
+                return cmd, val, typ
+            else:
+                return line, '', 'cmd'
+        
+
+    def read_commands(self, inputs, notinclude):
+        cmds = []
+        script_cmds = {}
+    #        with open(command_file,'r') as f:
+        for line in inputs.split('\n'):
+    #            conv_logger('Line = ', line)
+            cmd, val, typ = self.read_line(line, notinclude)
+            if typ == 'None':
+                continue
+            elif typ == 'script':
+                if cmd in ['pdos','pDOS']:
+                    if 'pdos' not in script_cmds:
+                        script_cmds['pdos'] = []
+                    script_cmds['pdos'].append(val)
+                    continue
+                script_cmds[cmd] = val
+            elif typ == 'cmd':
+                tpl = (cmd, val)
+                cmds.append(tpl)
+
+    #        cmds += [('core-overlap-check', 'none')]
+        cmds = self.add_dos(cmds, script_cmds)
+        return cmds, script_cmds
+
+    def bader(self):
+        try:
+            subprocess.run("jbader.py -f tinyout", shell=True)
+            return 0
+        except Exception as e:
+            return e
+
+    def read_out_nbands(self):
+        with open('out','r', errors='ignore') as f:
+            out_txt = f.read()
+        for line in out_txt.split('\n')[::-1]:
+            if 'nBands' in line and 'nElectrons' in line and 'nStates' in line:
+                return line.split()[3]
+
     def write_convergence(self, root, conv_dic):
         txt = ''
         assert '1' in conv_dic, 'METAERROR: Value Step 1 not in convergence dictionary, cannot write file.'
@@ -1362,7 +1606,22 @@ class helper():
         assert len(els_list) == len(el_frac), 'ERROR: elements and coefficients not balanced in "formula_to_dic".'
 #        assert all([ k in self.el_masses.keys() for k in els_list ]), 'ERROR: unknown element detected: '+formula
         return {els_list[i]: el_frac[i] for i,_ in enumerate(els_list)}
-        
+
+    def calc_type(self, cmds, script_cmds):
+#        conv_logger('calc_type debug: '+str(cmds))
+        if 'nimages' in script_cmds.keys():
+            calc = 'neb'
+        elif 'optimizer' in script_cmds and script_cmds['optimizer'] in ['MD','md']:
+            calc = 'md'
+        elif 'opt' in script_cmds and script_cmds['opt'] in ['MD','md']:
+            calc = 'md'
+        elif any([('lattice-minimize' == c[0] and 'nIterations' in c[1] and 
+                    int(c[1].split()[1]) > 0 ) for c in cmds]):
+            calc = 'lattice'
+        else:
+            calc = 'opt'
+        return calc
+
     def log_output(self,*args):
         line = ''
         if ope('./output_log'):

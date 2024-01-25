@@ -1,0 +1,1626 @@
+
+*************** JDFTx 1.7.0 (git hash 7d4d6a67) ***************
+
+Start date and time: Tue Nov  7 17:32:42 2023
+Executable /global/cfs/cdirs/m4025/Software/Perlmutter/JDFTx/build-gpu/jdftx_gpu with command-line: -i in -o out
+Running on hosts (process indices):  nid008432 (0-3)
+Divided in process groups (process indices):  0 (0)  1 (1)  2 (2)  3 (3)
+gpuInit: Found compatible cuda device 0 'NVIDIA A100-SXM4-80GB'
+gpuInit: Found compatible cuda device 1 'NVIDIA A100-SXM4-80GB'
+gpuInit: Found compatible cuda device 2 'NVIDIA A100-SXM4-80GB'
+gpuInit: Found compatible cuda device 3 'NVIDIA A100-SXM4-80GB'
+gpuInit: Selected device 0
+Resource initialization completed at t[s]:      4.96
+Run totals: 4 processes, 128 threads, 4 GPUs
+Memory pool size: 36000 MB (per process)
+
+
+Input parsed successfully to the following command list (including defaults):
+
+band-projection-params yes no
+basis kpoint-dependent
+converge-empty-states yes
+coords-type Cartesian
+core-overlap-check none
+coulomb-interaction Periodic
+davidson-band-ratio 1.1
+dump End State Forces ElecDensity Dtot BandEigs BandProjections Fillings Ecomponents Kpoints Gvectors
+dump 
+dump 
+dump 
+dump 
+dump 
+dump 
+dump 
+dump 
+dump 
+dump-name $VAR
+elec-cutoff 20 100
+elec-eigen-algo Davidson
+elec-ex-corr gga-PBE
+elec-initial-magnetization 0.000000 no
+elec-n-bands 364
+elec-smearing Fermi 0.001
+electronic-minimize  \
+	dirUpdateScheme      FletcherReeves \
+	linminMethod         DirUpdateRecommended \
+	nIterations          100 \
+	history              15 \
+	knormThreshold       0 \
+	energyDiffThreshold  1e-07 \
+	nEnergyDiff          2 \
+	alphaTstart          1 \
+	alphaTmin            1e-10 \
+	updateTestStepSize   yes \
+	alphaTreduceFactor   0.1 \
+	alphaTincreaseFactor 3 \
+	nAlphaAdjustMax      3 \
+	wolfeEnergy          0.0001 \
+	wolfeGradient        0.9 \
+	fdTest               no
+exchange-regularization WignerSeitzTruncated
+fluid None
+fluid-ex-corr (null) lda-PZ
+fluid-gummel-loop 10 1.000000e-05
+fluid-minimize  \
+	dirUpdateScheme      PolakRibiere \
+	linminMethod         DirUpdateRecommended \
+	nIterations          100 \
+	history              15 \
+	knormThreshold       0 \
+	energyDiffThreshold  0 \
+	nEnergyDiff          2 \
+	alphaTstart          1 \
+	alphaTmin            1e-10 \
+	updateTestStepSize   yes \
+	alphaTreduceFactor   0.1 \
+	alphaTincreaseFactor 3 \
+	nAlphaAdjustMax      3 \
+	wolfeEnergy          0.0001 \
+	wolfeGradient        0.9 \
+	fdTest               no
+fluid-solvent H2O 55.338 ScalarEOS \
+	epsBulk 78.4 \
+	pMol 0.92466 \
+	epsInf 1.77 \
+	Pvap 1.06736e-10 \
+	sigmaBulk 4.62e-05 \
+	Rvdw 2.61727 \
+	Res 1.42 \
+	tauNuc 343133 \
+	poleEl 15 7 1
+forces-output-coords Positions
+initial-state $VAR
+ion Ag   0.000000000000000   0.000000000000000   0.000000000000000 1
+ion Ag   0.000000000000000   3.596123000000001   3.596123000000001 1
+ion Ag   3.596123000000001   0.000000000000000   3.596123000000001 1
+ion Ag   3.596123000000001   3.596123000000001   0.000000000000000 1
+ion Ag   7.192245000000001   0.000000000000000   0.000000000000000 1
+ion Ag   7.192245000000001   3.596123000000001   3.596123000000001 1
+ion Ag   0.000000000000000   7.192245000000001   0.000000000000000 1
+ion Ag   3.596123000000001   7.192245000000001   3.596123000000001 1
+ion Ag   7.192245000000001   7.192245000000001   0.000000000000000 1
+ion Ag   0.000000000000000   0.000000000000000   7.192245000000001 1
+ion Ag   3.596123000000001   3.596123000000001   7.192245000000001 1
+ion Ag   7.192245000000001   0.000000000000000   7.192245000000001 1
+ion Ag   0.000000000000000   7.192245000000001   7.192245000000001 1
+ion Ag   7.192245000000001   7.192245000000001   7.192245000000001 1
+ion Ag  10.788368000000002   0.000000000000000   3.596123000000001 1
+ion Ag  10.788368000000002   3.596123000000001   0.000000000000000 1
+ion Ag   0.000000000000000  10.788368000000002   3.596123000000001 1
+ion Ag   3.596123000000001  10.788368000000002   0.000000000000000 1
+ion Ag   7.192245000000001  10.788368000000002   3.596123000000001 1
+ion Ag  10.788368000000002   7.192245000000001   3.596123000000001 1
+ion Ag  10.788368000000002  10.788368000000002   0.000000000000000 1
+ion Ag   0.000000000000000   3.596123000000001  10.788368000000002 1
+ion Ag   3.596123000000001   0.000000000000000  10.788368000000002 1
+ion Ag   7.192245000000001   3.596123000000001  10.788368000000002 1
+ion Ag   3.596123000000001   7.192245000000001  10.788368000000002 1
+ion Ag  10.788368000000002   0.000000000000000  10.788368000000002 1
+ion Ag  10.788368000000002   3.596123000000001   7.192245000000001 1
+ion Ag   0.000000000000000  10.788368000000002  10.788368000000002 1
+ion Ag   3.596123000000001  10.788368000000002   7.192245000000001 1
+ion Ag   7.192245000000001  10.788368000000002  10.788368000000002 1
+ion Ag  10.788368000000002   7.192245000000001  10.788368000000002 1
+ion Ag  10.788368000000002  10.788368000000002   7.192245000000001 1
+ion-species GBRV_v1.5/$ID_pbe_v1.uspp
+ion-width 0
+ionic-minimize  \
+	dirUpdateScheme      L-BFGS \
+	linminMethod         DirUpdateRecommended \
+	nIterations          0 \
+	history              15 \
+	knormThreshold       0.0001 \
+	energyDiffThreshold  1e-06 \
+	nEnergyDiff          2 \
+	alphaTstart          1 \
+	alphaTmin            1e-10 \
+	updateTestStepSize   yes \
+	alphaTreduceFactor   0.1 \
+	alphaTincreaseFactor 3 \
+	nAlphaAdjustMax      3 \
+	wolfeEnergy          0.0001 \
+	wolfeGradient        0.9 \
+	fdTest               no
+kpoint   0.000000000000   0.000000000000   0.000000000000  1.00000000000000
+kpoint-folding 5 5 5 
+latt-move-scale 1 1 1
+latt-scale 1 1 1 
+lattice  \
+	  14.384491000000001    0.000000000000000    0.000000000000000  \
+	   0.000000000000000   14.384491000000001    0.000000000000000  \
+	   0.000000000000000    0.000000000000000   14.384491000000001 
+lattice-minimize  \
+	dirUpdateScheme      L-BFGS \
+	linminMethod         DirUpdateRecommended \
+	nIterations          300 \
+	history              15 \
+	knormThreshold       0 \
+	energyDiffThreshold  1e-06 \
+	nEnergyDiff          2 \
+	alphaTstart          1 \
+	alphaTmin            1e-10 \
+	updateTestStepSize   yes \
+	alphaTreduceFactor   0.1 \
+	alphaTincreaseFactor 3 \
+	nAlphaAdjustMax      3 \
+	wolfeEnergy          0.0001 \
+	wolfeGradient        0.9 \
+	fdTest               no
+lcao-params -1 1e-06 0.001
+pcm-variant GLSSA13
+spintype z-spin
+subspace-rotation-factor 1 yes
+symmetries none
+symmetry-threshold 0.0001
+van-der-waals D3
+
+
+Applied RMS atom displacement 0 bohrs to make symmetries exact.
+
+---------- Initializing the Grid ----------
+R = 
+[      14.3845            0            0  ]
+[            0      14.3845            0  ]
+[            0            0      14.3845  ]
+unit cell volume = 2976.35
+G =
+[   0.436803          0          0  ]
+[          0   0.436803          0  ]
+[          0          0   0.436803  ]
+Minimum fftbox size, Smin = [  68  68  68  ]
+Chosen fftbox size, S = [  70  70  70  ]
+
+---------- Initializing tighter grid for wavefunction operations ----------
+R = 
+[      14.3845            0            0  ]
+[            0      14.3845            0  ]
+[            0            0      14.3845  ]
+unit cell volume = 2976.35
+G =
+[   0.436803          0          0  ]
+[          0   0.436803          0  ]
+[          0          0   0.436803  ]
+Minimum fftbox size, Smin = [  60  60  60  ]
+Chosen fftbox size, S = [  60  60  60  ]
+
+---------- Exchange Correlation functional ----------
+Initalized PBE GGA exchange.
+Initalized PBE GGA correlation.
+
+---------- Setting up pseudopotentials ----------
+Width of ionic core gaussian charges (only for fluid interactions / plotting) set to 0
+
+Reading pseudopotential file '/global/u2/r/ravish/Project-BEAST/Software/Perlmutter/JDFTx/build-gpu/pseudopotentials/GBRV_v1.5/ag_pbe_v1.uspp':
+  Title: Ag.  Created by USPP 7.3.6 on 1-4-15
+  Reference state energy: -147.606242.  19 valence electrons in orbitals:
+    |400>  occupation: 2  eigenvalue: -3.637437
+    |410>  occupation: 6  eigenvalue: -2.297267
+    |420>  occupation: 10  eigenvalue: -0.417763
+    |500>  occupation: 0.5  eigenvalue: -0.283525
+    |510>  occupation: 0  eigenvalue: -0.122889
+  lMax: 2  lLocal: 0  QijEcut: 5.5
+  6 projectors sampled on a log grid with 717 points:
+    l: 0  eig: -0.283528  rCut: 1.5
+    l: 0  eig: -3.637440  rCut: 1.5
+    l: 1  eig: -0.122892  rCut: 1.5
+    l: 1  eig: -2.297267  rCut: 1.5
+    l: 2  eig: -0.417762  rCut: 1.7
+    l: 2  eig: -1.000000  rCut: 1.7
+  Partial core density with radius 1.2
+  Transforming core density to a uniform radial grid of dG=0.02 with 1329 points.
+  Transforming local potential to a uniform radial grid of dG=0.02 with 1329 points.
+  Transforming nonlocal projectors to a uniform radial grid of dG=0.02 with 432 points.
+  Transforming density augmentations to a uniform radial grid of dG=0.02 with 1329 points.
+  Transforming atomic orbitals to a uniform radial grid of dG=0.02 with 432 points.
+  Core radius for overlap checks: 1.70 bohrs.
+
+Initialized 1 species with 32 total atoms.
+
+Folded 1 k-points by 5x5x5 to 125 k-points.
+
+---------- Setting up k-points, bands, fillings ----------
+No reducable k-points. 
+Computing the number of bands and number of electrons
+Calculating initial fillings.
+nElectrons: 608.000000   nBands: 364   nStates: 250
+
+----- Setting up reduced wavefunction bases (one per k-point) -----
+average nbasis = 12716.392 , ideal nbasis = 12715.179
+
+Initializing DFT-D3 calculator:
+	Parameters set for gga-PBE functional
+	s6:  1.000  s_r6:  1.217
+	s8:  0.722  s_r8:  1.000
+	Per-atom parameters loaded for:
+	Ag:  sqrtQ[a0]:  5.443  Rcov[a0]:  2.173  CN: [ 0.00 0.97 ]
+
+---------- Setting up ewald sum ----------
+Optimum gaussian width for ewald sums = 3.220670 bohr.
+Real space sum over 729 unit cells with max indices [  4  4  4  ]
+Reciprocal space sum over 4913 terms with max indices [  8  8  8  ]
+
+Computing DFT-D3 correction:
+# coordination-number Ag 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.329495
+EvdW_8 =   -0.433611
+
+---------- Allocating electronic variables ----------
+Initializing wave functions:  linear combination of atomic orbitals
+Ag pseudo-atom occupations:   s ( 2 1 )  p ( 6 0 )  d ( 10 )
+	FillingsUpdate:  mu: +0.829584416  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00720  Tot: +0.00003 ]
+LCAOMinimize: Iter:   0  F: -4722.9578772912309432  |grad|_K:  1.522e-04  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.839542863  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00371  Tot: +0.00001 ]
+LCAOMinimize: Iter:   1  F: -4723.2418506140238605  |grad|_K:  3.436e-06  alpha:  5.908e-01  linmin:  3.651e-01  cgtest: -9.004e-01  t[s]:     41.13
+	FillingsUpdate:  mu: +0.839544958  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00371  Tot: +0.00001 ]
+LCAOMinimize: Iter:   2  F: -4723.2419046695695215  |grad|_K:  3.002e-06  alpha:  9.959e-01  linmin: -2.033e-05  cgtest:  8.813e-01  t[s]:     47.58
+LCAOMinimize: Encountered beta<0, resetting CG.
+	FillingsUpdate:  mu: +0.839288010  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00377  Tot: +0.00001 ]
+LCAOMinimize: Iter:   3  F: -4723.2420189463064162  |grad|_K:  5.513e-07  alpha:  5.820e-01  linmin: -6.529e-04  cgtest:  4.506e-03  t[s]:     54.00
+	FillingsUpdate:  mu: +0.839282777  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00377  Tot: +0.00001 ]
+LCAOMinimize: Iter:   4  F: -4723.2420201402001112  |grad|_K:  7.365e-08  alpha:  1.805e-01  linmin: -6.964e-04  cgtest: -3.028e-03  t[s]:     60.45
+	FillingsUpdate:  mu: +0.839282420  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00377  Tot: +0.00001 ]
+LCAOMinimize: Iter:   5  F: -4723.2420201805443867  |grad|_K:  3.033e-08  alpha:  3.422e-01  linmin:  4.038e-04  cgtest: -2.078e-03  t[s]:     66.93
+	FillingsUpdate:  mu: +0.839282199  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00377  Tot: +0.00001 ]
+LCAOMinimize: Iter:   6  F: -4723.2420201955856101  |grad|_K:  4.598e-09  alpha:  7.544e-01  linmin:  4.404e-03  cgtest: -1.688e-02  t[s]:     73.37
+LCAOMinimize: Converged (|Delta F|<1.000000e-06 for 2 iters).
+
+
+---- Citations for features of the code used in this run ----
+
+   Software package:
+      R. Sundararaman, K. Letchworth-Weaver, K.A. Schwarz, D. Gunceler, Y. Ozhabes and T.A. Arias, 'JDFTx: software for joint density-functional theory', SoftwareX 6, 278 (2017)
+
+   gga-PBE exchange-correlation functional:
+      J.P. Perdew, K. Burke and M. Ernzerhof, Phys. Rev. Lett. 77, 3865 (1996)
+
+   Pseudopotentials:
+      KF Garrity, JW Bennett, KM Rabe and D Vanderbilt, Comput. Mater. Sci. 81, 446 (2014)
+
+   DFT-D3 dispersion correction:
+      S. Grimme, J. Antony, S. Ehrlich and H. Krieg, J. Chem. Phys. 132, 154104 (2010)
+
+   Total energy minimization with Auxiliary Hamiltonian:
+      C. Freysoldt, S. Boeck, and J. Neugebauer, Phys. Rev. B 79, 241103(R) (2009)
+
+   Smooth electrostatic potentials by atom-potential subtraction:
+      R. Sundararaman and Y. Ping, J. Chem. Phys. 146, 104109 (2017)
+
+This list may not be complete. Please suggest additional citations or
+report any other bugs at https://github.com/shankar1729/jdftx/issues
+
+Initialization completed successfully at t[s]:     74.39
+
+
+--------- Lattice Minimization ---------
+
+Computing DFT-D3 correction:
+# coordination-number Ag 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.329495
+EvdW_8 =   -0.433611
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.839282199  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00377  Tot: +0.00001 ]
+ElecMinimize: Iter:   0  F: -4723.242020195586520  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.840790890  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00238  Tot: +0.00001 ]
+	SubspaceRotationAdjust: set factor to 1
+ElecMinimize: Iter:   1  F: -4723.433982863680285  |grad|_K:       -nan  alpha:  4.721e-01  linmin:  5.559e-05  t[s]:     90.05
+	FillingsUpdate:  mu: +0.836441867  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00161  Tot: +0.00001 ]
+	SubspaceRotationAdjust: set factor to 0.932
+ElecMinimize: Iter:   2  F: -4723.465610804772950  |grad|_K:       -nan  alpha:  2.740e-01  linmin: -1.560e-05  t[s]:     99.84
+	FillingsUpdate:  mu: +0.836608427  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00092  Tot: +0.00001 ]
+	SubspaceRotationAdjust: set factor to 1.12
+ElecMinimize: Iter:   3  F: -4723.475602566054476  |grad|_K:       -nan  alpha:  3.564e-01  linmin:  3.075e-07  t[s]:    109.60
+	FillingsUpdate:  mu: +0.836789010  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00048  Tot: +0.00001 ]
+	SubspaceRotationAdjust: set factor to 1.3
+ElecMinimize: Iter:   4  F: -4723.477960983981575  |grad|_K:       -nan  alpha:  4.330e-01  linmin:  1.673e-06  t[s]:    119.37
+	FillingsUpdate:  mu: +0.836853898  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00023  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.37
+ElecMinimize: Iter:   5  F: -4723.478534894897166  |grad|_K:       -nan  alpha:  4.253e-01  linmin:  5.675e-06  t[s]:    129.17
+	FillingsUpdate:  mu: +0.836867106  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00013  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.38
+ElecMinimize: Iter:   6  F: -4723.478619408886516  |grad|_K:       -nan  alpha:  3.681e-01  linmin:  1.587e-06  t[s]:    138.94
+	FillingsUpdate:  mu: +0.836850735  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00008  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.41
+ElecMinimize: Iter:   7  F: -4723.478644441667711  |grad|_K:       -nan  alpha:  3.358e-01  linmin:  1.305e-06  t[s]:    148.70
+	FillingsUpdate:  mu: +0.836856007  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00004  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.46
+ElecMinimize: Iter:   8  F: -4723.478652359134685  |grad|_K:       -nan  alpha:  3.936e-01  linmin:  8.563e-07  t[s]:    158.47
+	FillingsUpdate:  mu: +0.836847382  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00003  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.23
+ElecMinimize: Iter:   9  F: -4723.478654476259180  |grad|_K:       -nan  alpha:  3.628e-01  linmin:  8.756e-07  t[s]:    168.24
+	FillingsUpdate:  mu: +0.836848511  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00002  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.77
+ElecMinimize: Iter:  10  F: -4723.478655116470691  |grad|_K:       -nan  alpha:  2.178e-01  linmin:  7.419e-08  t[s]:    178.07
+	FillingsUpdate:  mu: +0.836852271  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.812
+ElecMinimize: Iter:  11  F: -4723.478655487565447  |grad|_K:       -nan  alpha:  2.987e-01  linmin:  1.331e-06  t[s]:    187.88
+	FillingsUpdate:  mu: +0.836850559  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.804
+ElecMinimize: Iter:  12  F: -4723.478655608415465  |grad|_K:       -nan  alpha:  3.573e-01  linmin:  4.685e-07  t[s]:    197.66
+	FillingsUpdate:  mu: +0.836851076  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.664
+ElecMinimize: Iter:  13  F: -4723.478655653715578  |grad|_K:       -nan  alpha:  3.220e-01  linmin:  2.109e-07  t[s]:    207.45
+	FillingsUpdate:  mu: +0.836851208  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.676
+ElecMinimize: Iter:  14  F: -4723.478655670157423  |grad|_K:       -nan  alpha:  3.252e-01  linmin: -1.182e-06  t[s]:    217.24
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 8.725e-04
+
+Computing DFT-D3 correction:
+# coordination-number Ag 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238 11.238
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.329495
+EvdW_8 =   -0.433611
+# Lattice vectors:
+R = 
+[      14.3845            0            0  ]
+[            0      14.3845            0  ]
+[            0            0      14.3845  ]
+unit cell volume = 2976.35
+
+# Strain tensor in Cartesian coordinates:
+[            0            0            0  ]
+[            0            0            0  ]
+[            0            0            0  ]
+
+# Stress tensor in Cartesian coordinates [Eh/a0^3]:
+[  -0.00130553 -2.11739e-11   2.3897e-11  ]
+[ -2.11739e-11  -0.00130553  4.60163e-12  ]
+[   2.3897e-11  4.60163e-12  -0.00130553  ]
+
+# Ionic positions in cartesian coordinates:
+ion Ag   0.000000000000000   0.000000000000000   0.000000000000000 1
+ion Ag   0.000000000000000   3.596123000000001   3.596123000000001 1
+ion Ag   3.596123000000001   0.000000000000000   3.596123000000001 1
+ion Ag   3.596123000000001   3.596123000000001   0.000000000000000 1
+ion Ag   7.192245000000001   0.000000000000000   0.000000000000000 1
+ion Ag   7.192245000000001   3.596123000000001   3.596123000000001 1
+ion Ag   0.000000000000000   7.192245000000001   0.000000000000000 1
+ion Ag   3.596123000000001   7.192245000000001   3.596123000000001 1
+ion Ag   7.192245000000001   7.192245000000001   0.000000000000000 1
+ion Ag   0.000000000000000   0.000000000000000   7.192245000000001 1
+ion Ag   3.596123000000001   3.596123000000001   7.192245000000001 1
+ion Ag   7.192245000000001   0.000000000000000   7.192245000000001 1
+ion Ag   0.000000000000000   7.192245000000001   7.192245000000001 1
+ion Ag   7.192245000000001   7.192245000000001   7.192245000000001 1
+ion Ag  10.788368000000002   0.000000000000000   3.596123000000001 1
+ion Ag  10.788368000000002   3.596123000000001   0.000000000000000 1
+ion Ag   0.000000000000000  10.788368000000002   3.596123000000001 1
+ion Ag   3.596123000000001  10.788368000000002   0.000000000000000 1
+ion Ag   7.192245000000001  10.788368000000002   3.596123000000001 1
+ion Ag  10.788368000000002   7.192245000000001   3.596123000000001 1
+ion Ag  10.788368000000002  10.788368000000002   0.000000000000000 1
+ion Ag   0.000000000000000   3.596123000000001  10.788368000000002 1
+ion Ag   3.596123000000001   0.000000000000000  10.788368000000002 1
+ion Ag   7.192245000000001   3.596123000000001  10.788368000000002 1
+ion Ag   3.596123000000001   7.192245000000001  10.788368000000002 1
+ion Ag  10.788368000000002   0.000000000000000  10.788368000000002 1
+ion Ag  10.788368000000002   3.596123000000001   7.192245000000001 1
+ion Ag   0.000000000000000  10.788368000000002  10.788368000000002 1
+ion Ag   3.596123000000001  10.788368000000002   7.192245000000001 1
+ion Ag   7.192245000000001  10.788368000000002  10.788368000000002 1
+ion Ag  10.788368000000002   7.192245000000001  10.788368000000002 1
+ion Ag  10.788368000000002  10.788368000000002   7.192245000000001 1
+
+# Forces in Cartesian coordinates:
+force Ag   0.000001309861921  -0.000004150443282   0.000003837151571 1
+force Ag   0.000001424771697   0.000001788508069   0.000001552647949 1
+force Ag  -0.000001820000909  -0.000004099903644   0.000001439009915 1
+force Ag  -0.000001737509193   0.000001713390238   0.000004069854360 1
+force Ag  -0.000001215819483  -0.000003987052911   0.000004031481427 1
+force Ag  -0.000001339146924   0.000001874890952   0.000001407643562 1
+force Ag   0.000001333593716   0.000004233831178   0.000004018838276 1
+force Ag  -0.000001733353590   0.000004181174300   0.000001499122825 1
+force Ag  -0.000001226497493   0.000004086978531   0.000004204490134 1
+force Ag   0.000001256406323  -0.000004183237734  -0.000003763088902 1
+force Ag  -0.000001873237794   0.000001778659223  -0.000003999842079 1
+force Ag  -0.000001158888262  -0.000004035392480  -0.000003954614205 1
+force Ag   0.000001266478616   0.000004276509897  -0.000003928839796 1
+force Ag  -0.000001179065977   0.000004113899595  -0.000004119100308 1
+force Ag   0.000001730185721  -0.000004178864614   0.000001491334105 1
+force Ag   0.000001632123737   0.000001693421217   0.000003859577992 1
+force Ag   0.000001344060145  -0.000001860097016   0.000001590012897 1
+force Ag  -0.000001868763476  -0.000001807623434   0.000004157862253 1
+force Ag  -0.000001252082250  -0.000001960728733   0.000001450358445 1
+force Ag   0.000001641978300   0.000004272365488   0.000001552981695 1
+force Ag   0.000001780935676  -0.000001786750922   0.000003964838106 1
+force Ag   0.000001240825486   0.000001608542434  -0.000001614664245 1
+force Ag  -0.000002020456328  -0.000004008574094  -0.000001515039306 1
+force Ag  -0.000001138037091   0.000001688085718  -0.000001477379975 1
+force Ag  -0.000001926159514   0.000004097113264  -0.000001569933295 1
+force Ag   0.000001913329333  -0.000004084442380  -0.000001570742454 1
+force Ag   0.000001773285179   0.000001752914274  -0.000003819753968 1
+force Ag   0.000001169003040  -0.000001691555651  -0.000001656393990 1
+force Ag  -0.000002025559362  -0.000001857726996  -0.000004089092626 1
+force Ag  -0.000001063439882  -0.000001786600484  -0.000001516209435 1
+force Ag   0.000001831962784   0.000004172541405  -0.000001627421535 1
+force Ag   0.000001925102968  -0.000001847530499  -0.000003892178360 1
+
+# Energy components:
+   Eewald =    -3682.0438540492741595
+       EH =     1002.3211494754004889
+     Eloc =    -2787.9582215623422599
+      Enl =      125.4545984051338365
+     EvdW =       -0.7631065623027287
+      Exc =     -466.1173044348400367
+ Exc_core =        6.6614475117010254
+       KE =     1078.9674561627334697
+-------------------------------------
+     Etot =    -4723.4778350537899314
+       TS =        0.0008206163678285
+-------------------------------------
+        F =    -4723.4786556701574227
+
+LatticeMinimize: Iter:   0  F: -4723.478655670157423  |grad|_K:  4.679e-01  t[s]:    253.96
+
+#--- Lowdin population analysis ---
+# oxidation-state Ag +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005
+# magnetic-moments Ag -0.000 +0.000 -0.000 -0.000 -0.000 -0.000 -0.000 +0.000 -0.000 -0.000 +0.000 -0.000 -0.000 +0.000 -0.000 -0.000 +0.000 -0.000 +0.000 +0.000 +0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 +0.000 -0.000 -0.000
+
+
+Computing DFT-D3 correction:
+# coordination-number Ag 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.311769
+EvdW_8 =   -0.400670
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.779395740  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.644079314070950  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.780903735  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00003  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.14
+ElecMinimize: Iter:   1  F: -4723.651006844869698  |grad|_K:       -nan  alpha:  2.297e-01  linmin: -1.982e-05  t[s]:    273.15
+	FillingsUpdate:  mu: +0.781324950  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00004  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.49
+ElecMinimize: Iter:   2  F: -4723.654161019137064  |grad|_K:       -nan  alpha:  4.766e-01  linmin:  1.034e-06  t[s]:    282.93
+	FillingsUpdate:  mu: +0.781530041  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00006  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.51
+ElecMinimize: Iter:   3  F: -4723.655293598127173  |grad|_K:       -nan  alpha:  4.033e-01  linmin:  6.965e-06  t[s]:    292.72
+	FillingsUpdate:  mu: +0.781420619  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00006  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.6
+ElecMinimize: Iter:   4  F: -4723.655475226780254  |grad|_K:       -nan  alpha:  4.008e-01  linmin:  1.551e-06  t[s]:    302.50
+	FillingsUpdate:  mu: +0.781414394  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00005  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.69
+ElecMinimize: Iter:   5  F: -4723.655506786969454  |grad|_K:       -nan  alpha:  3.532e-01  linmin:  1.576e-07  t[s]:    312.28
+	FillingsUpdate:  mu: +0.781392893  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00004  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.72
+ElecMinimize: Iter:   6  F: -4723.655515681913130  |grad|_K:       -nan  alpha:  3.456e-01  linmin:  4.429e-08  t[s]:    322.08
+	FillingsUpdate:  mu: +0.781401710  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00002  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.8
+ElecMinimize: Iter:   7  F: -4723.655518373238010  |grad|_K:       -nan  alpha:  3.746e-01  linmin: -1.191e-07  t[s]:    331.87
+	FillingsUpdate:  mu: +0.781399629  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.54
+ElecMinimize: Iter:   8  F: -4723.655519151995577  |grad|_K:       -nan  alpha:  3.492e-01  linmin: -9.425e-08  t[s]:    341.66
+	FillingsUpdate:  mu: +0.781400882  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.973
+ElecMinimize: Iter:   9  F: -4723.655519397098942  |grad|_K:       -nan  alpha:  1.954e-01  linmin:  9.147e-08  t[s]:    351.48
+	FillingsUpdate:  mu: +0.781403115  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.07
+ElecMinimize: Iter:  10  F: -4723.655519572750563  |grad|_K:       -nan  alpha:  2.813e-01  linmin: -1.047e-06  t[s]:    361.25
+	FillingsUpdate:  mu: +0.781401355  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.12
+ElecMinimize: Iter:  11  F: -4723.655519634996381  |grad|_K:       -nan  alpha:  3.503e-01  linmin:  6.941e-07  t[s]:    371.00
+	FillingsUpdate:  mu: +0.781401524  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.85
+ElecMinimize: Iter:  12  F: -4723.655519657128934  |grad|_K:       -nan  alpha:  2.856e-01  linmin:  1.526e-08  t[s]:    380.76
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 1.860e-05
+
+Computing DFT-D3 correction:
+# coordination-number Ag 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759 10.759
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.311769
+EvdW_8 =   -0.400670
+# Lattice vectors:
+R = 
+[      14.6546  4.38117e-09 -4.94462e-09  ]
+[  4.38117e-09      14.6546  -9.5214e-10  ]
+[ -4.94462e-09  -9.5214e-10      14.6546  ]
+unit cell volume = 3147.2
+
+# Strain tensor in Cartesian coordinates:
+[    0.0187793  3.04576e-10 -3.43747e-10  ]
+[  3.04576e-10    0.0187793 -6.61921e-11  ]
+[ -3.43747e-10 -6.61921e-11    0.0187793  ]
+
+# Stress tensor in Cartesian coordinates [Eh/a0^3]:
+[ -0.000794157  1.22556e-12 -2.69105e-12  ]
+[  1.22556e-12 -0.000794157 -6.39447e-12  ]
+[ -2.69105e-12 -6.39447e-12 -0.000794157  ]
+
+# Ionic positions in cartesian coordinates:
+ion Ag   0.000001334591167  -0.000004228586361   0.000003908799595 1
+ion Ag   0.000001451518010   3.663657545262970   3.663657300473768 1
+ion Ag   3.663653865371073  -0.000004176240365   3.663657183703570 1
+ion Ag   3.663653951743377   3.663657470067806   0.000004144398191 1
+ion Ag   7.327309184011018  -0.000004059937045   0.000004104306521 1
+ion Ag   7.327309058226714   3.663657635458651   3.663657150273988 1
+ion Ag   0.000001360959218   7.327314741572872   0.000004093422181 1
+ion Ag   3.663653955836159   7.327314688784392   3.663657244469289 1
+ion Ag   7.327309175323071   7.327314594153020   0.000004280088143 1
+ion Ag   0.000001277659401  -0.000004262472740   7.327306585686992 1
+ion Ag   3.663653810993578   3.663657536086428   7.327306343013563 1
+ion Ag   7.327309239539060  -0.000004109660467   7.327306388092665 1
+ion Ag   0.000001290111435   7.327314784576998   7.327306416347340 1
+ion Ag   7.327309221173011   7.327314621103572   7.327306220041557 1
+ion Ag  10.990967904759588  -0.000004254493580   3.663657234538060 1
+ion Ag  10.990967807187516   3.663657451914368   0.000003927700665 1
+ion Ag   0.000001371481337  10.990964256573434   3.663657338064334 1
+ion Ag   3.663653820214815  10.990964311365760   0.000004233582743 1
+ion Ag   7.327309149116989  10.990964156242507   3.663657193314958 1
+ion Ag  10.990967817086283   7.327314783878675   3.663657296867278 1
+ion Ag  10.990967960984628  10.990964334820832   0.000004034461423 1
+ion Ag   0.000001261645106   3.663657361441634  10.990964493536794 1
+ion Ag   3.663653658678928  -0.000004083671779  10.990964594034500 1
+ion Ag   7.327309260640940   3.663657444669274  10.990964630926856 1
+ion Ag   3.663653756937161   7.327314602668679  10.990964537633570 1
+ion Ag  10.990968088870201  -0.000004158774230  10.990964534812973 1
+ion Ag  10.990967948527565   3.663657512048595   7.327306524011292 1
+ion Ag   0.000001190664469  10.990964427803819  10.990964450547322 1
+ion Ag   3.663653658002102  10.990964259845219   7.327306251610882 1
+ion Ag   7.327309338829620  10.990964333164696  10.990964590892135 1
+ion Ag  10.990968008166234   7.327314681703895  10.990964476593426 1
+ion Ag  10.990968105386974  10.990964272423788   7.327306449750751 1
+
+# Forces in Cartesian coordinates:
+force Ag  -0.000009976573160   0.000032236839707  -0.000031495162905 1
+force Ag  -0.000010024716158  -0.000014127039796  -0.000012254320681 1
+force Ag   0.000014174086326   0.000032293421744  -0.000012329200173 1
+force Ag   0.000014076339582  -0.000014154834577  -0.000031408853363 1
+force Ag   0.000009984542804   0.000032095435367  -0.000031367181944 1
+force Ag   0.000010047118638  -0.000014162358595  -0.000012328887998 1
+force Ag  -0.000010045986842  -0.000032260716295  -0.000031508621121 1
+force Ag   0.000014104361484  -0.000032235544018  -0.000012244766084 1
+force Ag   0.000010066654487  -0.000032155191852  -0.000031391318043 1
+force Ag  -0.000010007353015   0.000032324531025   0.000031602916928 1
+force Ag   0.000014017856536  -0.000014116725206   0.000031551382257 1
+force Ag   0.000010024233925   0.000032188493848   0.000031499947290 1
+force Ag  -0.000010068097575  -0.000032298440539   0.000031567933914 1
+force Ag   0.000010106344416  -0.000032217157661   0.000031494498323 1
+force Ag  -0.000014210529741   0.000032303521751  -0.000012308082763 1
+force Ag  -0.000014080645837  -0.000014077683639  -0.000031474614163 1
+force Ag  -0.000009972536058   0.000014056413095  -0.000012257776114 1
+force Ag   0.000014185985689   0.000014178914006  -0.000031476020542 1
+force Ag   0.000010034453703   0.000014143817366  -0.000012354128838 1
+force Ag  -0.000014153303572  -0.000032282996218  -0.000012231991959 1
+force Ag  -0.000014221677714   0.000014123757749  -0.000031567242005 1
+force Ag  -0.000010093954351  -0.000014086424182   0.000012129158585 1
+force Ag   0.000014072146613   0.000032218605868   0.000012223445918 1
+force Ag   0.000010105143511  -0.000014140431000   0.000012194628422 1
+force Ag   0.000014028769027  -0.000032285881917   0.000012183764947 1
+force Ag  -0.000014081629499   0.000032211758256   0.000012185970933 1
+force Ag  -0.000014024963530  -0.000014028507086   0.000031617653418 1
+force Ag  -0.000010103486228   0.000014132615216   0.000012235659344 1
+force Ag   0.000014108461895   0.000014092703476   0.000031509104455 1
+force Ag   0.000010124050748   0.000014196965160   0.000012284990060 1
+force Ag  -0.000014038451716  -0.000032276685997   0.000012139941127 1
+force Ag  -0.000014155152972   0.000014045512997   0.000031630607537 1
+
+# Energy components:
+   Eewald =    -3614.1721816013719035
+       EH =     1040.2868414304259659
+     Eloc =    -2893.0188609412089136
+      Enl =      125.7268021738725565
+     EvdW =       -0.7124384397705049
+      Exc =     -465.4151946479529443
+ Exc_core =        6.6614500381550146
+       KE =     1076.9886699456628776
+-------------------------------------
+     Etot =    -4723.6549120421877888
+       TS =        0.0006076149414444
+-------------------------------------
+        F =    -4723.6555196571289343
+
+LatticeMinimize: Iter:   1  F: -4723.655519657128934  |grad|_K:  3.010e-01  alpha:  1.000e+00  linmin: -1.000e+00  t[s]:    408.96
+
+#--- Lowdin population analysis ---
+# oxidation-state Ag +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005 +0.005
+# magnetic-moments Ag +0.000 +0.000 +0.000 -0.000 -0.000 -0.000 -0.000 -0.000 -0.000 -0.000 +0.000 -0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 +0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.683 9.681 9.682 9.682 9.682 9.682 9.682 9.682 9.683 9.682 9.683 9.682 9.682 9.682 9.682 9.682 9.682
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.280311
+EvdW_8 =   -0.349752
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.684823111  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.775230476278011  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.688513471  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00006  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.3
+ElecMinimize: Iter:   1  F: -4723.795098671253072  |grad|_K:       -nan  alpha:  2.285e-01  linmin: -1.603e-04  t[s]:    428.20
+	FillingsUpdate:  mu: +0.689815304  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00015  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.51
+ElecMinimize: Iter:   2  F: -4723.804746616419834  |grad|_K:       -nan  alpha:  4.992e-01  linmin:  1.136e-04  t[s]:    438.00
+	FillingsUpdate:  mu: +0.689855450  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00020  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.51
+ElecMinimize: Iter:   3  F: -4723.807298102950881  |grad|_K:       -nan  alpha:  3.580e-01  linmin:  1.700e-06  t[s]:    447.75
+	FillingsUpdate:  mu: +0.689605957  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00017  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.74
+ElecMinimize: Iter:   4  F: -4723.807798057688160  |grad|_K:       -nan  alpha:  3.844e-01  linmin:  3.057e-06  t[s]:    457.54
+	FillingsUpdate:  mu: +0.689509179  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00013  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.75
+ElecMinimize: Iter:   5  F: -4723.807901030916582  |grad|_K:       -nan  alpha:  3.324e-01  linmin:  2.184e-06  t[s]:    467.32
+	FillingsUpdate:  mu: +0.689564114  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00009  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.84
+ElecMinimize: Iter:   6  F: -4723.807935315465329  |grad|_K:       -nan  alpha:  3.756e-01  linmin: -1.993e-07  t[s]:    477.07
+	FillingsUpdate:  mu: +0.689534210  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00006  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.72
+ElecMinimize: Iter:   7  F: -4723.807946556633397  |grad|_K:       -nan  alpha:  3.416e-01  linmin: -1.275e-07  t[s]:    486.83
+	FillingsUpdate:  mu: +0.689554498  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00003  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.67
+ElecMinimize: Iter:   8  F: -4723.807951080896601  |grad|_K:       -nan  alpha:  4.148e-01  linmin: -3.368e-07  t[s]:    496.60
+	FillingsUpdate:  mu: +0.689556349  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00002  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.44
+ElecMinimize: Iter:   9  F: -4723.807952576926255  |grad|_K:       -nan  alpha:  3.460e-01  linmin:  7.407e-08  t[s]:    506.37
+	FillingsUpdate:  mu: +0.689555005  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.953
+ElecMinimize: Iter:  10  F: -4723.807953104618718  |grad|_K:       -nan  alpha:  1.909e-01  linmin: -1.856e-07  t[s]:    516.15
+	FillingsUpdate:  mu: +0.689553921  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.11
+ElecMinimize: Iter:  11  F: -4723.807953438974437  |grad|_K:       -nan  alpha:  3.050e-01  linmin:  2.451e-07  t[s]:    525.90
+	FillingsUpdate:  mu: +0.689553614  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.02
+ElecMinimize: Iter:  12  F: -4723.807953534431363  |grad|_K:       -nan  alpha:  3.452e-01  linmin:  3.504e-08  t[s]:    535.65
+	FillingsUpdate:  mu: +0.689553790  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.762
+ElecMinimize: Iter:  13  F: -4723.807953566037213  |grad|_K:       -nan  alpha:  2.694e-01  linmin:  2.740e-06  t[s]:    545.42
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 1.300e-04
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.682 9.683 9.681 9.682 9.682 9.682 9.682 9.682 9.682 9.683 9.682 9.683 9.682 9.682 9.682 9.682 9.682 9.682
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.280311
+EvdW_8 =   -0.349752
+# Lattice vectors:
+R = 
+[      15.1484  3.64763e-09 -3.29252e-09  ]
+[  3.64763e-09      15.1484  3.06923e-09  ]
+[ -3.29252e-09  3.06923e-09      15.1484  ]
+unit cell volume = 3476.16
+
+# Strain tensor in Cartesian coordinates:
+[    0.0531059  2.53581e-10 -2.28894e-10  ]
+[  2.53581e-10    0.0531059  2.13371e-10  ]
+[ -2.28894e-10  2.13371e-10    0.0531059  ]
+
+# Stress tensor in Cartesian coordinates [Eh/a0^3]:
+[ -0.000199077  4.31087e-12 -5.77412e-12  ]
+[  4.31087e-12 -0.000199077  8.58624e-12  ]
+[ -5.77412e-12  8.58624e-12 -0.000199077  ]
+
+# Ionic positions in cartesian coordinates:
+ion Ag  -0.000027810634707   0.000089953127201  -0.000088107288678 1
+ion Ag  -0.000027833129763   3.787058912271931   3.787064137956951 1
+ion Ag   3.787137929979840   0.000090172120360   3.787063800718114 1
+ion Ag   3.787137730838794   3.787058753970723  -0.000087615903716 1
+ion Ag   7.574223631687886   0.000089709639635  -0.000087535151055 1
+ion Ag   7.574223687888663   3.787058899668288   3.787063769332920 1
+ion Ag  -0.000027987281849   7.574105729866990  -0.000087958329461 1
+ion Ag   3.787137817094603   7.574105750987128   3.787064110806093 1
+ion Ag   7.574223862511319   7.574105889140578  -0.000087426318671 1
+ion Ag  -0.000027957184010   0.000090177234598   7.574284155414200 1
+ion Ag   3.787137418756528   3.787058933972399   7.574283761385465 1
+ion Ag   7.574223804560970   0.000089933453915   7.574283655963766 1
+ion Ag  -0.000028122535893   7.574105665020358   7.574283884332666 1
+ion Ag   7.574224025616109   7.574105737249331   7.574283472497085 1
+ion Ag  11.361254324847948   0.000090122297463   3.787063914572941 1
+ion Ag  11.361254605376786   3.787058960745824  -0.000088025883777 1
+ion Ag  -0.000027761770877  11.361333185331555   3.787064167800590 1
+ion Ag   3.787137918191821  11.361333597429267  -0.000087720204701 1
+ion Ag   7.574223742192915  11.361333339158813   3.787063741006824 1
+ion Ag  11.361254403249195   7.574105707865496   3.787064201854751 1
+ion Ag  11.361254347992494  11.361333459511100  -0.000088186861179 1
+ion Ag  -0.000028226207718   3.787058847519901  11.361327811892385 1
+ion Ag   3.787137424360089   0.000090048880016  11.361328188266691 1
+ion Ag   7.574224062545223   3.787058773269096  11.361328142700506 1
+ion Ag   3.787137396339026   7.574105518999774  11.361328017405691 1
+ion Ag  11.361254888173804   0.000089952705825  11.361328019840224 1
+ion Ag  11.361254911565737   3.787059167154792   7.574284138533831 1
+ion Ag  -0.000028326068077  11.361333582815584  11.361328081786663 1
+ion Ag   3.787137528806786  11.361333295507457   7.574283547619825 1
+ion Ag   7.574224196305371  11.361333675008188  11.361328368408598 1
+ion Ag  11.361254932549699   7.574105625232233  11.361327828589515 1
+ion Ag  11.361254688958750  11.361333169895733   7.574284103482031 1
+
+# Forces in Cartesian coordinates:
+force Ag  -0.000006891505738   0.000021525921970  -0.000021405896105 1
+force Ag  -0.000006931923604  -0.000009926653957  -0.000008424856926 1
+force Ag   0.000008692213851   0.000021675835375  -0.000008147030704 1
+force Ag   0.000008982386565  -0.000009474772740  -0.000021738945380 1
+force Ag   0.000006931594846   0.000021587308786  -0.000021672316333 1
+force Ag   0.000006994183284  -0.000009631363201  -0.000008305228763 1
+force Ag  -0.000006732284934  -0.000021344373842  -0.000021544591925 1
+force Ag   0.000008996852643  -0.000021520339660  -0.000008357523154 1
+force Ag   0.000006790639246  -0.000021469937392  -0.000021875278910 1
+force Ag  -0.000006779049319   0.000021436155931   0.000021254019688 1
+force Ag   0.000009129778902  -0.000009714342822   0.000021649988799 1
+force Ag   0.000006838098318   0.000021561100980   0.000021572627378 1
+force Ag  -0.000006619748922  -0.000021256361916   0.000021423534878 1
+force Ag   0.000006677754610  -0.000021377604815   0.000021740600520 1
+force Ag  -0.000008754491577   0.000021648784773  -0.000008257856564 1
+force Ag  -0.000009004640810  -0.000009599741045  -0.000021308602602 1
+force Ag  -0.000006993038211   0.000009776212031  -0.000008366583855 1
+force Ag   0.000008877273316   0.000009313416941  -0.000021938584177 1
+force Ag   0.000007027979793   0.000009452469405  -0.000008220988935 1
+force Ag  -0.000009046429706  -0.000021455575298  -0.000008456213994 1
+force Ag  -0.000008937081831   0.000009479154697  -0.000021602290231 1
+force Ag  -0.000006555308318  -0.000009723651580   0.000008530946159 1
+force Ag   0.000008995755055   0.000021473986665   0.000008254056930 1
+force Ag   0.000006569811668  -0.000009362845011   0.000008345746031 1
+force Ag   0.000009316987039  -0.000021353702695   0.000008503796976 1
+force Ag  -0.000009015958957   0.000021352625546   0.000008340095364 1
+force Ag  -0.000009174819866  -0.000009860167348   0.000021278964850 1
+force Ag  -0.000006630273112   0.000009598627577   0.000008478696754 1
+force Ag   0.000009009226823   0.000009536237944   0.000021807242408 1
+force Ag   0.000006685523613   0.000009299064105   0.000008347894404 1
+force Ag  -0.000009363835711  -0.000021283660151   0.000008610892608 1
+force Ag  -0.000009058760101   0.000009688766418   0.000021451007370 1
+
+# Energy components:
+   Eewald =    -3496.3661609989540011
+       EH =     1108.7833679513812513
+     Eloc =    -3078.3748038456265022
+      Enl =      126.2959544359069639
+     EvdW =       -0.6300620266499227
+      Exc =     -464.3806112659418091
+ Exc_core =        6.6614515547777318
+       KE =     1074.2037177376967065
+-------------------------------------
+     Etot =    -4723.8071464574086349
+       TS =        0.0008071086283849
+-------------------------------------
+        F =    -4723.8079535660372130
+
+LatticeMinimize: Iter:   2  F: -4723.807953566037213  |grad|_K:  8.333e-02  alpha:  1.000e+00  linmin: -1.000e+00  t[s]:    571.70
+
+#--- Lowdin population analysis ---
+# oxidation-state Ag +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004
+# magnetic-moments Ag +0.000 +0.000 +0.000 -0.000 -0.000 +0.000 +0.000 -0.000 +0.000 +0.000 -0.000 +0.000 -0.000 +0.000 -0.000 -0.000 -0.000 +0.000 -0.000 +0.000 -0.000 -0.000 +0.000 -0.000 -0.000 -0.000 +0.000 +0.000 -0.000 +0.000 +0.000 -0.000
+
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.189 9.188 9.188 9.189 9.189 9.189 9.188 9.188 9.189 9.188 9.189 9.189 9.188 9.188 9.189 9.190 9.187 9.188 9.188 9.188 9.188 9.190 9.189 9.190 9.189 9.190 9.189 9.188 9.188 9.189 9.189 9.188
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.268442
+EvdW_8 =   -0.333202
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.654361192  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.819790026793271  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.655841813  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00002  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.28
+ElecMinimize: Iter:   1  F: -4723.822315517788411  |grad|_K:       -nan  alpha:  2.403e-01  linmin: -1.528e-05  t[s]:    590.90
+	FillingsUpdate:  mu: +0.656231755  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00004  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.62
+ElecMinimize: Iter:   2  F: -4723.823607871458080  |grad|_K:       -nan  alpha:  4.727e-01  linmin:  4.665e-06  t[s]:    600.71
+	FillingsUpdate:  mu: +0.656323413  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00007  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.61
+ElecMinimize: Iter:   3  F: -4723.823978504085972  |grad|_K:       -nan  alpha:  3.825e-01  linmin:  8.030e-07  t[s]:    610.50
+	FillingsUpdate:  mu: +0.656215074  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00006  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.61
+ElecMinimize: Iter:   4  F: -4723.824041242038220  |grad|_K:       -nan  alpha:  4.102e-01  linmin:  9.052e-07  t[s]:    620.27
+	FillingsUpdate:  mu: +0.656225538  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00005  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.61
+ElecMinimize: Iter:   5  F: -4723.824051951393812  |grad|_K:       -nan  alpha:  3.467e-01  linmin:  4.537e-08  t[s]:    630.07
+	FillingsUpdate:  mu: +0.656208892  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00003  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.27
+ElecMinimize: Iter:   6  F: -4723.824055572582438  |grad|_K:       -nan  alpha:  3.145e-01  linmin: -1.608e-07  t[s]:    639.85
+	FillingsUpdate:  mu: +0.656207977  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00003  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.824
+ElecMinimize: Iter:   7  F: -4723.824056855089111  |grad|_K:       -nan  alpha:  2.018e-01  linmin:  3.387e-08  t[s]:    649.63
+	FillingsUpdate:  mu: +0.656217425  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00002  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.939
+ElecMinimize: Iter:   8  F: -4723.824057713602997  |grad|_K:       -nan  alpha:  3.396e-01  linmin: -1.822e-07  t[s]:    659.41
+	FillingsUpdate:  mu: +0.656214991  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.857
+ElecMinimize: Iter:   9  F: -4723.824058047630388  |grad|_K:       -nan  alpha:  3.573e-01  linmin:  1.445e-08  t[s]:    669.19
+	FillingsUpdate:  mu: +0.656216882  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.697
+ElecMinimize: Iter:  10  F: -4723.824058179410713  |grad|_K:       -nan  alpha:  3.129e-01  linmin: -3.609e-07  t[s]:    678.96
+	FillingsUpdate:  mu: +0.656218092  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.792
+ElecMinimize: Iter:  11  F: -4723.824058230811715  |grad|_K:       -nan  alpha:  3.237e-01  linmin:  4.332e-07  t[s]:    688.72
+	FillingsUpdate:  mu: +0.656216628  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.855
+ElecMinimize: Iter:  12  F: -4723.824058250466805  |grad|_K:       -nan  alpha:  3.307e-01  linmin: -1.159e-06  t[s]:    698.50
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 1.537e-06
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.189 9.188 9.188 9.189 9.189 9.189 9.188 9.188 9.189 9.188 9.189 9.189 9.188 9.188 9.189 9.190 9.187 9.188 9.188 9.188 9.188 9.190 9.189 9.190 9.189 9.190 9.189 9.188 9.188 9.189 9.189 9.188
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.268442
+EvdW_8 =   -0.333202
+# Lattice vectors:
+R = 
+[      15.3417 -5.93036e-10  2.39856e-09  ]
+[ -5.93036e-10      15.3417 -5.32287e-09  ]
+[  2.39856e-09 -5.32287e-09      15.3417  ]
+unit cell volume = 3610.94
+
+# Strain tensor in Cartesian coordinates:
+[    0.0665444 -4.12274e-11  1.66746e-10  ]
+[ -4.12274e-11    0.0665444 -3.70042e-10  ]
+[  1.66746e-10 -3.70042e-10    0.0665444  ]
+
+# Stress tensor in Cartesian coordinates [Eh/a0^3]:
+[  -4.5664e-05  3.31521e-12 -3.48365e-13  ]
+[  3.31521e-12 -4.56642e-05 -5.26028e-12  ]
+[ -3.48365e-13 -5.26028e-12 -4.56642e-05  ]
+
+# Ionic positions in cartesian coordinates:
+ion Ag  -0.000055176861548   0.000175458633062  -0.000173116799479 1
+ion Ag  -0.000055358760140   3.835346038850137   3.835357246707590 1
+ion Ag   3.835498945778738   0.000176263590609   3.835357997089252 1
+ion Ag   3.835499876231125   3.835347648887430  -0.000173925536473 1
+ion Ag   7.670904020599559   0.000175448164671  -0.000173578947554 1
+ion Ag   7.670904324248606   3.835347178710934   3.835357345782888 1
+ion Ag  -0.000054735131238   7.670673987626119  -0.000173514891406 1
+ion Ag   3.835500020586881   7.670673317722449   3.835357482643725 1
+ion Ag   7.670903700831660   7.670673657089018  -0.000174269145559 1
+ion Ag  -0.000054881791164   0.000175330580846   7.671021690387263 1
+ion Ag   3.835500141175788   3.835346888733439   7.671022842753593 1
+ion Ag   7.670903832113034   0.000175568746914   7.671022436165438 1
+ion Ag  -0.000054428150439   7.670674261683038   7.671022076720480 1
+ion Ag   7.670903426666959   7.670673860009545   7.671022905248322 1
+ion Ag  11.506198816873498   0.000176105949110   3.835357681012471 1
+ion Ag  11.506198120715675   3.835347367421255  -0.000172651553016 1
+ion Ag  -0.000055526885372  11.506351595231141   3.835357500398935 1
+ion Ag   3.835499654020734  11.506350202027098  -0.000174817800422 1
+ion Ag   7.670904508455200  11.506350483012776   3.835357642090094 1
+ion Ag  11.506197752551703   7.670673524345514   3.835357190930662 1
+ion Ag  11.506198120480999  11.506350708548007  -0.000173969546579 1
+ion Ag  -0.000054278220401   3.835346765523479  11.506341345471776 1
+ion Ag   3.835499626434385   0.000175343445271  11.506340645661098 1
+ion Ag   7.670903043671600   3.835348099400971  11.506340957249197 1
+ion Ag   3.835500852113038   7.670673731510027  11.506341446335149 1
+ion Ag  11.506198365303105   0.000174769671136  11.506340815186292 1
+ion Ag  11.506197766289199   3.835346552466429   7.671021773731004 1
+ion Ag  -0.000054674185360  11.506351296962372  11.506341410760010 1
+ion Ag   3.835499780424839  11.506350764457517   7.671023238341128 1
+ion Ag   7.670903629153536  11.506350216849029  11.506341190628715 1
+ion Ag  11.506197047483029   7.670674110338264  11.506341677630266 1
+ion Ag  11.506197991095226  11.506351231869569   7.671022408143997 1
+
+# Forces in Cartesian coordinates:
+force Ag  -0.000001835518781   0.000005802010599  -0.000006241335951 1
+force Ag  -0.000001860463809  -0.000002784182515  -0.000002476775029 1
+force Ag   0.000002687547700   0.000005835084046  -0.000002568353176 1
+force Ag   0.000002569513414  -0.000002901211364  -0.000006239162610 1
+force Ag   0.000001829255942   0.000005778472092  -0.000006185063499 1
+force Ag   0.000001848455871  -0.000002893680950  -0.000002485518379 1
+force Ag  -0.000001882924937  -0.000005859407378  -0.000006190936640 1
+force Ag   0.000002582766258  -0.000005903002232  -0.000002493150457 1
+force Ag   0.000001869119370  -0.000005815092423  -0.000006108789018 1
+force Ag  -0.000001870107833   0.000005833056756   0.000006278334940 1
+force Ag   0.000002564311215  -0.000002841026020   0.000006275266632 1
+force Ag   0.000001855890987   0.000005788338642   0.000006181125789 1
+force Ag  -0.000001917937179  -0.000005900846451   0.000006295769191 1
+force Ag   0.000001900888354  -0.000005847270440   0.000006186423734 1
+force Ag  -0.000002671377737   0.000005833567870  -0.000002520373731 1
+force Ag  -0.000002564696054  -0.000002864344503  -0.000006325830525 1
+force Ag  -0.000001861420002   0.000002851667854  -0.000002536092726 1
+force Ag   0.000002606703491   0.000002950135047  -0.000006223221712 1
+force Ag   0.000001844913782   0.000002955048793  -0.000002536775963 1
+force Ag  -0.000002566202422  -0.000005903535248  -0.000002445563439 1
+force Ag  -0.000002591209491   0.000002903172603  -0.000006268417981 1
+force Ag  -0.000001950883368  -0.000002822494379   0.000002464477921 1
+force Ag   0.000002606023399   0.000005870015184   0.000002479999477 1
+force Ag   0.000001951746408  -0.000002953289883   0.000002470325439 1
+force Ag   0.000002487322989  -0.000005904255542   0.000002446209539 1
+force Ag  -0.000002603073449   0.000005910824248   0.000002469696407 1
+force Ag  -0.000002553780742  -0.000002798884596   0.000006374941679 1
+force Ag  -0.000001922083779   0.000002856738240   0.000002466371908 1
+force Ag   0.000002614284574   0.000002903417111   0.000006265849231 1
+force Ag   0.000001909991852   0.000002970635746   0.000002454516010 1
+force Ag  -0.000002478084124  -0.000005933172799   0.000002431190297 1
+force Ag  -0.000002597567926   0.000002857044406   0.000006334270371 1
+
+# Energy components:
+   Eewald =    -3452.3117849088971525
+       EH =     1135.1993269496192625
+     Eloc =    -3148.5896252077168356
+      Enl =      126.5080907687959524
+     EvdW =       -0.6016440142266393
+      Exc =     -464.0468907291462983
+ Exc_core =        6.6614516412659412
+       KE =     1073.3577196872540753
+-------------------------------------
+     Etot =    -4723.8233558130514211
+       TS =        0.0007024374157568
+-------------------------------------
+        F =    -4723.8240582504668055
+
+LatticeMinimize: Iter:   3  F: -4723.824058250466805  |grad|_K:  1.985e-02  alpha:  1.000e+00  linmin: -9.997e-01  t[s]:    721.64
+
+#--- Lowdin population analysis ---
+# oxidation-state Ag +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004
+# magnetic-moments Ag +0.000 +0.000 +0.000 +0.000 -0.000 +0.000 -0.000 -0.000 +0.000 +0.000 +0.000 -0.000 -0.000 +0.000 +0.000 -0.000 -0.000 +0.000 -0.000 -0.000 -0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 +0.000 -0.000 +0.000 +0.000 -0.000
+
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.028 9.027 9.027 9.028 9.029 9.028 9.027 9.026 9.028 9.027 9.028 9.028 9.027 9.027 9.027 9.029 9.026 9.027 9.027 9.027 9.027 9.029 9.028 9.029 9.028 9.029 9.028 9.027 9.026 9.028 9.028 9.027
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264813
+EvdW_8 =   -0.328451
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.645523067  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: +0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.824726726375957  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.645990499  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.48
+ElecMinimize: Iter:   1  F: -4723.824961356925087  |grad|_K:       -nan  alpha:  2.390e-01  linmin: -3.660e-06  t[s]:    740.79
+	FillingsUpdate:  mu: +0.646098461  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00002  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.86
+ElecMinimize: Iter:   2  F: -4723.825073437874380  |grad|_K:       -nan  alpha:  4.493e-01  linmin:  5.746e-07  t[s]:    750.55
+	FillingsUpdate:  mu: +0.646119030  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00003  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.78
+ElecMinimize: Iter:   3  F: -4723.825102074977622  |grad|_K:       -nan  alpha:  3.740e-01  linmin:  2.910e-07  t[s]:    760.32
+	FillingsUpdate:  mu: +0.646084169  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00002  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.64
+ElecMinimize: Iter:   4  F: -4723.825106905986104  |grad|_K:       -nan  alpha:  4.070e-01  linmin:  4.249e-07  t[s]:    770.10
+	FillingsUpdate:  mu: +0.646091785  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00002  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.56
+ElecMinimize: Iter:   5  F: -4723.825107835637937  |grad|_K:       -nan  alpha:  3.329e-01  linmin:  1.991e-08  t[s]:    779.88
+	FillingsUpdate:  mu: +0.646088555  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.12
+ElecMinimize: Iter:   6  F: -4723.825108197520422  |grad|_K:       -nan  alpha:  2.672e-01  linmin: -8.110e-08  t[s]:    789.67
+	FillingsUpdate:  mu: +0.646086062  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.806
+ElecMinimize: Iter:   7  F: -4723.825108390188689  |grad|_K:       -nan  alpha:  2.233e-01  linmin: -4.697e-08  t[s]:    799.49
+	FillingsUpdate:  mu: +0.646089891  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00001  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.92
+ElecMinimize: Iter:   8  F: -4723.825108486469617  |grad|_K:       -nan  alpha:  3.670e-01  linmin:  5.686e-07  t[s]:    809.29
+	FillingsUpdate:  mu: +0.646089545  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.765
+ElecMinimize: Iter:   9  F: -4723.825108521160473  |grad|_K:       -nan  alpha:  3.334e-01  linmin: -5.050e-08  t[s]:    819.04
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 1.115e-07
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.028 9.027 9.027 9.028 9.029 9.028 9.027 9.026 9.028 9.027 9.028 9.028 9.027 9.027 9.027 9.029 9.026 9.027 9.027 9.027 9.027 9.029 9.028 9.029 9.028 9.029 9.028 9.027 9.026 9.028 9.028 9.027
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264813
+EvdW_8 =   -0.328451
+# Lattice vectors:
+R = 
+[      15.4019 -5.05763e-09  2.88555e-09  ]
+[ -5.05763e-09      15.4019  1.73684e-09  ]
+[  2.88555e-09  1.73684e-09      15.4019  ]
+unit cell volume = 3653.59
+
+# Strain tensor in Cartesian coordinates:
+[    0.0707273 -3.51603e-10  2.00602e-10  ]
+[ -3.51603e-10    0.0707273  1.20744e-10  ]
+[  2.00602e-10  1.20744e-10    0.0707273  ]
+
+# Stress tensor in Cartesian coordinates [Eh/a0^3]:
+[ -3.91349e-06  2.87849e-12  2.42627e-12  ]
+[  2.87849e-12 -3.91515e-06  1.06704e-12  ]
+[  2.42627e-12  1.06704e-12 -3.91505e-06  ]
+
+# Ionic positions in cartesian coordinates:
+ion Ag  -0.000064608400924   0.000205280607197  -0.000205141962912 1
+ion Ag  -0.000064917817843   3.850373939925781   3.850386731527454 1
+ion Ag   3.850554853179406   0.000206254997566   3.850387020874778 1
+ion Ag   3.850555189760043   3.850374961854674  -0.000205940015475 1
+ion Ag   7.700997651391100   0.000205148413574  -0.000205321476294 1
+ion Ag   7.700998052024958   3.850374528707206   3.850386787019537 1
+ion Ag  -0.000064406859932   7.700728249874922  -0.000205284123674 1
+ion Ag   3.850555400348202   7.700727359558896   3.850386887631205 1
+ion Ag   7.700997529705928   7.700728140172536  -0.000205626209798 1
+ion Ag  -0.000064486560995   0.000205312558978   7.701138270035086 1
+ion Ag   3.850555429433204   3.850374506431496   7.701139412026865 1
+ion Ag   7.700997596863294   0.000205323026068   7.701138528324120 1
+ion Ag  -0.000064275146819   7.700728319232154   7.701138748865479 1
+ion Ag   7.700997415153662   7.700728184776954   7.701139029120530 1
+ion Ag  11.551311455119366   0.000206087278174   3.850386945852817 1
+ion Ag  11.551311293957362   3.850374863474506  -0.000205098880220 1
+ion Ag  -0.000065093043021  11.551492774353951   3.850386690583890 1
+ion Ag   3.850555152768119  11.551491871017786  -0.000206751210201 1
+ion Ag   7.700998216413524  11.551492178265528   3.850386829289664 1
+ion Ag  11.551310915933739   7.700727561418109   3.850386835020290 1
+ion Ag  11.551311157070760  11.551492139817297  -0.000206128180387 1
+ion Ag  -0.000064289582549   3.850374479574056  11.551480551912437 1
+ion Ag   3.850555125192509   0.000205511449559  11.551479927042600 1
+ion Ag   7.700997288459420   3.850375155546234  11.551480192402689 1
+ion Ag   3.850555753619318   7.700727771577570  11.551480563069813 1
+ion Ag  11.551311346831151   0.000205139608985  11.551480045299861 1
+ion Ag  11.551310993803469   3.850374379732347   7.701138842426382 1
+ion Ag  -0.000064543659012  11.551492504398189  11.551480630982541 1
+ion Ag   3.850555317882441  11.551492202871785   7.701139764727247 1
+ion Ag   7.700997662867497  11.551491993350936  11.551480350762377 1
+ion Ag  11.551310653210235   7.700728003409282  11.551480719480004 1
+ion Ag  11.551310995582186  11.551492435486768   7.701139277370074 1
+
+# Forces in Cartesian coordinates:
+force Ag   0.000017617766558  -0.000055918952702   0.000055351872658 1
+force Ag   0.000017804787969   0.000024711198413   0.000021653144091 1
+force Ag  -0.000023523232636  -0.000056415044813   0.000021507679957 1
+force Ag  -0.000023295336824   0.000024266869638   0.000055167753212 1
+force Ag  -0.000017478053001  -0.000055570534184   0.000055012247068 1
+force Ag  -0.000017692036518   0.000024524563552   0.000021539891359 1
+force Ag   0.000017682115994   0.000056258366633   0.000055682667208 1
+force Ag  -0.000023530994728   0.000056345162491   0.000021523635532 1
+force Ag  -0.000017575389152   0.000056013474511   0.000055422970292 1
+force Ag   0.000017679172020  -0.000056172664554  -0.000055683584048 1
+force Ag  -0.000023438526895   0.000024442229839  -0.000055581472861 1
+force Ag  -0.000017566350176  -0.000055883692951  -0.000055448575220 1
+force Ag   0.000017686258092   0.000056293672641  -0.000055734230436 1
+force Ag  -0.000017644526106   0.000056234691994  -0.000055702343367 1
+force Ag   0.000023467303944  -0.000056287041719   0.000021506716246 1
+force Ag   0.000023149585613   0.000024161471698   0.000054878325536 1
+force Ag   0.000017729561298  -0.000024602047751   0.000021498329761 1
+force Ag  -0.000023551286901  -0.000024607051262   0.000055863452509 1
+force Ag  -0.000017809649759  -0.000024674127784   0.000021586134422 1
+force Ag   0.000023559508744   0.000056417759022   0.000021587767860 1
+force Ag   0.000023500660016  -0.000024599371009   0.000055747971242 1
+force Ag   0.000017501427310   0.000024282729992  -0.000021224208549 1
+force Ag  -0.000023276466342  -0.000055674557798  -0.000021247171202 1
+force Ag  -0.000017362496321   0.000024087792511  -0.000021098009969 1
+force Ag  -0.000023479521893   0.000056144963466  -0.000021382629145 1
+force Ag   0.000023132046017  -0.000055388334836  -0.000021141625253 1
+force Ag   0.000023293201336   0.000024331174680  -0.000055259058415 1
+force Ag   0.000017789237539  -0.000024743906060  -0.000021593150663 1
+force Ag  -0.000023521831826  -0.000024583044520  -0.000055835174665 1
+force Ag  -0.000017674051624  -0.000024585763057  -0.000021474460350 1
+force Ag   0.000023336150718   0.000055857427083  -0.000021271776739 1
+force Ag   0.000023545473172  -0.000024639278899  -0.000055862586980 1
+
+# Energy components:
+   Eewald =    -3438.8250386778458960
+       EH =     1143.3678924620478483
+     Eloc =    -3170.1741977450237755
+      Enl =      126.5699015544556971
+     EvdW =       -0.5932640647496410
+      Exc =     -463.9497895137374144
+ Exc_core =        6.6614516030157418
+       KE =     1073.1186146935801844
+-------------------------------------
+     Etot =    -4723.8244296882567141
+       TS =        0.0006788329040543
+-------------------------------------
+        F =    -4723.8251085211604732
+
+LatticeMinimize: Iter:   4  F: -4723.825108521160473  |grad|_K:  1.760e-03  alpha:  1.000e+00  linmin: -9.990e-01  t[s]:    838.26
+
+#--- Lowdin population analysis ---
+# oxidation-state Ag +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004
+# magnetic-moments Ag +0.000 -0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 +0.000 +0.000 +0.000 -0.000 -0.000 +0.000 +0.000 -0.000 -0.000 -0.000 -0.000 -0.000 +0.000 -0.000 -0.000 -0.000 +0.000 -0.000 -0.000 +0.000 -0.000 -0.000 -0.000 +0.000
+
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.012 9.013 9.013 9.012 9.012 9.012 9.013 9.013 9.012 9.013 9.012 9.012 9.013 9.013 9.012 9.012 9.013 9.013 9.013 9.013 9.013 9.012 9.012 9.012 9.012 9.012 9.012 9.013 9.013 9.012 9.012 9.013
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264475
+EvdW_8 =   -0.328017
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.645096458  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: +0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.825113303018043  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.645137503  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.18
+ElecMinimize: Iter:   1  F: -4723.825115415008440  |grad|_K:       -nan  alpha:  2.367e-01  linmin: -5.999e-07  t[s]:    857.36
+	FillingsUpdate:  mu: +0.645148204  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.53
+ElecMinimize: Iter:   2  F: -4723.825116434909432  |grad|_K:       -nan  alpha:  4.722e-01  linmin:  1.844e-07  t[s]:    867.12
+	FillingsUpdate:  mu: +0.645151686  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.41
+ElecMinimize: Iter:   3  F: -4723.825116722511666  |grad|_K:       -nan  alpha:  3.563e-01  linmin:  4.572e-08  t[s]:    876.89
+	FillingsUpdate:  mu: +0.645149978  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.942
+ElecMinimize: Iter:   4  F: -4723.825116772322872  |grad|_K:       -nan  alpha:  2.545e-01  linmin: -5.449e-08  t[s]:    886.65
+	FillingsUpdate:  mu: +0.645148738  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.692
+ElecMinimize: Iter:   5  F: -4723.825116790852917  |grad|_K:       -nan  alpha:  2.188e-01  linmin: -4.815e-07  t[s]:    896.42
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 2.134e-08
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.012 9.013 9.013 9.012 9.012 9.012 9.013 9.013 9.012 9.013 9.012 9.012 9.013 9.013 9.012 9.012 9.013 9.013 9.013 9.013 9.013 9.012 9.012 9.012 9.012 9.012 9.012 9.013 9.013 9.012 9.012 9.013
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264475
+EvdW_8 =   -0.328017
+# Lattice vectors:
+R = 
+[      15.4075  -9.2793e-09 -6.68095e-10  ]
+[  -9.2793e-09      15.4075   1.7579e-10  ]
+[ -6.68095e-10   1.7579e-10      15.4075  ]
+unit cell volume = 3657.6
+
+# Strain tensor in Cartesian coordinates:
+[    0.0711186  -6.4509e-10 -4.64455e-11  ]
+[  -6.4509e-10    0.0711188  1.22208e-11  ]
+[ -4.64455e-11  1.22208e-11    0.0711188  ]
+
+# Stress tensor in Cartesian coordinates [Eh/a0^3]:
+[ -1.06177e-07 -3.21927e-11  3.25924e-11  ]
+[ -3.21927e-11 -1.06158e-07  -8.3723e-12  ]
+[  3.25924e-11  -8.3723e-12 -1.06136e-07  ]
+
+# Ionic positions in cartesian coordinates:
+ion Ag   0.000030332172067  -0.000096095290493   0.000093173766576 1
+ion Ag   0.000031028839386   3.851914965853747   3.851911245975889 1
+ion Ag   3.851835313174203  -0.000097796329803   3.851910750639985 1
+ion Ag   3.851836877999716   3.851913592013811   0.000091381706736 1
+ion Ag   7.703717937100251  -0.000094351529241   0.000091161697136 1
+ion Ag   7.703717182441847   3.851914546433007   3.851910689185134 1
+ion Ag   0.000030878455387   7.703847150802063   0.000094814008875 1
+ion Ag   3.851835816366019   7.703846726685722   3.851910702697072 1
+ion Ag   7.703717288645509   7.703845718947409   0.000093070221570 1
+ion Ag   0.000030783241776  -0.000097431714338   7.703653800118778 1
+ion Ag   3.851836344060830   3.851914081075581   7.703655491577334 1
+ion Ag   7.703717404834693  -0.000095865734132   7.703655323439638 1
+ion Ag   0.000031030718420   7.703847409650987   7.703654005302971 1
+ion Ag   7.703716799634673   7.703846955228182   7.703654455631313 1
+ion Ag  11.555659656732763  -0.000097276160407   3.851910668677471 1
+ion Ag  11.555657782835203   3.851912923407819   0.000090660980839 1
+ion Ag   0.000030445974354  11.555583736518471   3.851910369616728 1
+ion Ag   3.851835459254593  11.555582805470292   0.000094319793460 1
+ion Ag   7.703716710720735  11.555582749780244   3.851910979892775 1
+ion Ag  11.555659612503945   7.703847317790948   3.851910994058248 1
+ion Ag  11.555659536218787  11.555583113550352   0.000094318628055 1
+ion Ag   0.000030020043634   3.851913195129562  11.555589613849060 1
+ion Ag   3.851836913621766  -0.000094549127426  11.555588864580345 1
+ion Ag   7.703718193451629   3.851912818135120  11.555589932775744 1
+ion Ag   3.851836445322967   7.703846058811643  11.555588769730520 1
+ion Ag  11.555657739466058  -0.000093380179506  11.555589550037153 1
+ion Ag  11.555658255022990   3.851913353658659   7.703656658190066 1
+ion Ag   0.000031315325745  11.555582701008721  11.555587703364534 1
+ion Ag   3.851835781421777  11.555583265961889   7.703654475950212 1
+ion Ag   7.703716886297301  11.555583040389656  11.555588061099538 1
+ion Ag  11.555658143994259   7.703844738534026  11.555589521947637 1
+ion Ag  11.555659614478756  11.555583193311806   7.703653839010822 1
+
+# Forces in Cartesian coordinates:
+force Ag  -0.000004079742671   0.000012978493002  -0.000012581314474 1
+force Ag  -0.000004172943023  -0.000005386138746  -0.000004906291433 1
+force Ag   0.000005217460884   0.000013031516820  -0.000004852906241 1
+force Ag   0.000005039630075  -0.000005248447402  -0.000012302640378 1
+force Ag   0.000003956296874   0.000012636293063  -0.000012218280577 1
+force Ag   0.000004091209569  -0.000005378357573  -0.000004861900181 1
+force Ag  -0.000004138115335  -0.000013189179232  -0.000012697638731 1
+force Ag   0.000005084164784  -0.000012917734350  -0.000004776833111 1
+force Ag   0.000004062627298  -0.000013045908612  -0.000012546402769 1
+force Ag  -0.000004128440759   0.000013081696137   0.000012802794381 1
+force Ag   0.000005124422575  -0.000005321953027   0.000012656304038 1
+force Ag   0.000004053824289   0.000012935954333   0.000012636250624 1
+force Ag  -0.000004123405343  -0.000013099015121   0.000012663058731 1
+force Ag   0.000004117360272  -0.000013163286215   0.000012719595175 1
+force Ag  -0.000005197966012   0.000013081424911  -0.000004844558573 1
+force Ag  -0.000004872143624  -0.000005085930406  -0.000011996714982 1
+force Ag  -0.000003984730813   0.000005280138967  -0.000004708774395 1
+force Ag   0.000005193790709   0.000005484126611  -0.000012580599012 1
+force Ag   0.000004044531845   0.000005449224659  -0.000004832458809 1
+force Ag  -0.000005123629811  -0.000013125065279  -0.000004838064783 1
+force Ag  -0.000005184421539   0.000005468285329  -0.000012685126923 1
+force Ag  -0.000003969497432  -0.000005134664203   0.000004543323165 1
+force Ag   0.000005024425361   0.000012702401031   0.000004673080642 1
+force Ag   0.000003812469782  -0.000004997258302   0.000004425008934 1
+force Ag   0.000005113172640  -0.000013099377121   0.000004713646231 1
+force Ag  -0.000004857733941   0.000012352041996   0.000004522446774 1
+force Ag  -0.000005016050896  -0.000005225640922   0.000012473853438 1
+force Ag  -0.000004197712230   0.000005517953437   0.000004798190981 1
+force Ag   0.000005089465748   0.000005371778885   0.000012509676649 1
+force Ag   0.000004119488782   0.000005490449885   0.000004790744926 1
+force Ag  -0.000005015208242  -0.000012917646050   0.000004626752682 1
+force Ag  -0.000005127825398   0.000005424584398   0.000012721723547 1
+
+# Energy components:
+   Eewald =    -3437.5683701020657281
+       EH =     1144.1314058356285841
+     Eloc =    -3172.1880601819275398
+      Enl =      126.5753317882978024
+     EvdW =       -0.5924913755064501
+      Exc =     -463.9408951631662603
+ Exc_core =        6.6614515989851375
+       KE =     1073.0971881122195555
+-------------------------------------
+     Etot =    -4723.8244394875346188
+       TS =        0.0006773033181064
+-------------------------------------
+        F =    -4723.8251167908529169
+
+LatticeMinimize: Iter:   5  F: -4723.825116790852917  |grad|_K:  9.426e-05  alpha:  1.000e+00  linmin: -1.924e-01  t[s]:    915.62
+
+#--- Lowdin population analysis ---
+# oxidation-state Ag +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004
+# magnetic-moments Ag +0.000 -0.000 -0.000 +0.000 -0.000 +0.000 -0.000 -0.000 +0.000 +0.000 +0.000 -0.000 -0.000 +0.000 +0.000 -0.000 -0.000 -0.000 -0.000 -0.000 +0.000 -0.000 -0.000 -0.000 +0.000 +0.000 -0.000 +0.000 -0.000 -0.000 -0.000 +0.000
+
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264462
+EvdW_8 =   -0.328001
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.645112413  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.825116802663615  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.645113342  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.12
+ElecMinimize: Iter:   1  F: -4723.825116821817574  |grad|_K:       -nan  alpha:  1.932e-01  linmin: -1.823e-07  t[s]:    934.73
+	FillingsUpdate:  mu: +0.645113731  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.42
+ElecMinimize: Iter:   2  F: -4723.825116824566066  |grad|_K:       -nan  alpha:  3.820e-01  linmin:  4.170e-05  t[s]:    944.53
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 4.847e-09
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264462
+EvdW_8 =   -0.328001
+LatticeMinimize: 	Wolfe criterion not satisfied: alpha: 1  (E-E0)/|gdotd0|: -0.681107  gdotd/gdotd0: 0.95226 (taking cubic step)
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.011 9.011 9.010 9.011 9.011 9.011 9.011 9.010 9.011 9.011 9.011 9.011 9.010 9.011 9.011 9.011 9.010 9.010 9.010 9.010 9.011 9.011 9.011 9.012 9.011 9.011 9.011 9.011 9.010 9.011 9.011 9.010
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264437
+EvdW_8 =   -0.327969
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.645041278  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.825116728816283  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.645043586  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.05
+ElecMinimize: Iter:   1  F: -4723.825116762383004  |grad|_K:       -nan  alpha:  1.569e-01  linmin: -9.645e-07  t[s]:    982.35
+	FillingsUpdate:  mu: +0.645045133  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.939
+ElecMinimize: Iter:   2  F: -4723.825116773447007  |grad|_K:       -nan  alpha:  2.687e-01  linmin: -1.121e-06  t[s]:    992.13
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 3.492e-09
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.011 9.011 9.010 9.011 9.011 9.011 9.011 9.010 9.011 9.011 9.011 9.011 9.010 9.011 9.011 9.011 9.010 9.010 9.010 9.010 9.011 9.011 9.011 9.012 9.011 9.011 9.011 9.011 9.010 9.011 9.011 9.010
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264437
+EvdW_8 =   -0.327969
+LatticeMinimize: 	Wolfe criterion not satisfied: alpha: 3  (E-E0)/|gdotd0|: 0.351652  gdotd/gdotd0: -0.736776 (taking cubic step)
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264457
+EvdW_8 =   -0.327994
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.645102025  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.825116796545444  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.645100857  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.861
+ElecMinimize: Iter:   1  F: -4723.825116817933122  |grad|_K:       -nan  alpha:  1.767e-01  linmin:  2.880e-07  t[s]:   1029.94
+	FillingsUpdate:  mu: +0.645099821  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.13
+ElecMinimize: Iter:   2  F: -4723.825116824624274  |grad|_K:       -nan  alpha:  4.704e-01  linmin:  3.192e-05  t[s]:   1039.69
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 1.701e-09
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264457
+EvdW_8 =   -0.327994
+# Lattice vectors:
+R = 
+[      15.4078  5.62691e-08  -6.7154e-08  ]
+[  5.62691e-08      15.4078  1.72144e-08  ]
+[  -6.7154e-08  1.72144e-08      15.4078  ]
+unit cell volume = 3657.81
+
+# Strain tensor in Cartesian coordinates:
+[    0.0711389  3.91179e-09  -4.6685e-09  ]
+[  3.91179e-09    0.0711391  1.19673e-09  ]
+[  -4.6685e-09  1.19673e-09    0.0711391  ]
+
+# Stress tensor in Cartesian coordinates [Eh/a0^3]:
+[  5.47733e-08  5.63868e-11  -5.2073e-11  ]
+[  5.63868e-11  5.47442e-08  4.29786e-11  ]
+[  -5.2073e-11  4.29786e-11  5.48049e-08  ]
+
+# Ionic positions in cartesian coordinates:
+ion Ag   0.000001315352060  -0.000003731367685   0.000003734990985 1
+ion Ag   0.000001330251110   3.851949759575880   3.851949335569830 1
+ion Ag   3.851945320351756  -0.000005057339676   3.851949206528046 1
+ion Ag   3.851945606820470   3.851949390482084   0.000004000485305 1
+ion Ag   7.703892015345769  -0.000004486141599   0.000004377639182 1
+ion Ag   7.703892251870098   3.851949415289638   3.851949068093377 1
+ion Ag   0.000001463066837   7.703899213911230   0.000004541396066 1
+ion Ag   3.851944858107738   7.703900849443237   3.851949737767104 1
+ion Ag   7.703892187119386   7.703898866139459   0.000003873993948 1
+ion Ag   0.000001373983155  -0.000004308582789   7.703890775026854 1
+ion Ag   3.851945662008009   3.851949352876817   7.703891366494844 1
+ion Ag   7.703892172188453  -0.000003775864525   7.703891038808309 1
+ion Ag   0.000001692557730   7.703900159135265   7.703889938577280 1
+ion Ag   7.703892068566979   7.703899251389891   7.703890781596272 1
+ion Ag  11.555841683320137  -0.000004119929609   3.851949153683437 1
+ion Ag  11.555842253731322   3.851949961931660   0.000005511457813 1
+ion Ag   0.000002182355571  11.555840094006008   3.851949932799775 1
+ion Ag   3.851945352722054  11.555840701278001   0.000004926236791 1
+ion Ag   7.703891453525139  11.555840399284717   3.851949591654491 1
+ion Ag  11.555842236021867   7.703899927814899   3.851949543063018 1
+ion Ag  11.555841732752503  11.555840924261281   0.000004099679151 1
+ion Ag   0.000001784979308   3.851949842870067  11.555840688174261 1
+ion Ag   3.851945463983708  -0.000004201528734  11.555840887183487 1
+ion Ag   7.703891171577292   3.851950510457321  11.555840099148835 1
+ion Ag   3.851945675390155   7.703898813519531  11.555841092902718 1
+ion Ag  11.555842250482515  -0.000005597539599  11.555840421048195 1
+ion Ag  11.555841627907567   3.851949369535212   7.703891161852168 1
+ion Ag   0.000001429604730  11.555840834744307  11.555840662162973 1
+ion Ag   3.851944863364917  11.555840331536855   7.703889240313071 1
+ion Ag   7.703892168398536  11.555841014495748  11.555840941079996 1
+ion Ag  11.555841526567274   7.703898861575103  11.555841171032423 1
+ion Ag  11.555842205182895  11.555840682094537   7.703890154748874 1
+
+# Forces in Cartesian coordinates:
+force Ag   0.000003165975280  -0.000010054296289   0.000009667939509 1
+force Ag   0.000003663047222   0.000004446878093   0.000004262983122 1
+force Ag  -0.000004419944602  -0.000010839576214   0.000004091406440 1
+force Ag  -0.000003883533585   0.000003727887512   0.000009248546144 1
+force Ag  -0.000002817622588  -0.000009218549734   0.000008831240230 1
+force Ag  -0.000003343456301   0.000004225293501   0.000004007535864 1
+force Ag   0.000003426913248   0.000011132167638   0.000010401815166 1
+force Ag  -0.000004147964949   0.000010669218340   0.000003912316256 1
+force Ag  -0.000003130426577   0.000010488678507   0.000009890425994 1
+force Ag   0.000003411107807  -0.000010798611354  -0.000010676949526 1
+force Ag  -0.000004275797644   0.000004046087147  -0.000010400366773 1
+force Ag  -0.000003088244869  -0.000010142720807  -0.000009931132710 1
+force Ag   0.000003360795586   0.000010986059150  -0.000010517811523 1
+force Ag  -0.000003368729378   0.000011250210551  -0.000010792542348 1
+force Ag   0.000004344543482  -0.000011086047026   0.000004047999313 1
+force Ag   0.000003593628123   0.000003487391240   0.000008737011423 1
+force Ag   0.000003055105526  -0.000004201748351   0.000003758657928 1
+force Ag  -0.000004401867479  -0.000004600534551   0.000010384699888 1
+force Ag  -0.000003203342465  -0.000004620406939   0.000004110412383 1
+force Ag   0.000004221382153   0.000011283780704   0.000004068448485 1
+force Ag   0.000004349835162  -0.000004566894360   0.000010700722051 1
+force Ag   0.000003064787619   0.000003674650316  -0.000003257971335 1
+force Ag  -0.000003851581955  -0.000009597198164  -0.000003313408879 1
+force Ag  -0.000002720012118   0.000003297555052  -0.000002951323076 1
+force Ag  -0.000004319168253   0.000010953651421  -0.000003636522820 1
+force Ag   0.000003565890732  -0.000009061517219  -0.000003105752511 1
+force Ag   0.000003928300677   0.000003802910058  -0.000009659827950 1
+force Ag   0.000003676402856  -0.000004788301464  -0.000003964669943 1
+force Ag  -0.000004163759177  -0.000004396984859  -0.000010248371965 1
+force Ag  -0.000003394353929  -0.000004530633057  -0.000003802150074 1
+force Ag   0.000003986848134   0.000010185335195  -0.000003425317241 1
+force Ag   0.000004235674568  -0.000004561601106  -0.000010850993327 1
+
+# Energy components:
+   Eewald =    -3437.5032542867761549
+       EH =     1144.1707982741861542
+     Eloc =    -3172.2922229397004230
+      Enl =      126.5757279186568240
+     EvdW =       -0.5924513734428745
+      Exc =     -463.9404218355090279
+ Exc_core =        6.6614515987997871
+       KE =     1073.0959330495797985
+-------------------------------------
+     Etot =    -4723.8244395942065239
+       TS =        0.0006772304175851
+-------------------------------------
+        F =    -4723.8251168246242742
+
+LatticeMinimize: Iter:   6  F: -4723.825116824624274  |grad|_K:  7.016e-05  alpha:  1.408e+00  linmin:  2.413e-01  t[s]:   1058.89
+
+#--- Lowdin population analysis ---
+# oxidation-state Ag +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004
+# magnetic-moments Ag -0.000 +0.000 +0.000 +0.000 -0.000 -0.000 +0.000 -0.000 -0.000 -0.000 -0.000 +0.000 +0.000 -0.000 -0.000 +0.000 +0.000 +0.000 -0.000 +0.000 -0.000 +0.000 +0.000 +0.000 -0.000 +0.000 +0.000 -0.000 +0.000 +0.000 -0.000 -0.000
+
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264462
+EvdW_8 =   -0.328000
+
+-------- Electronic minimization -----------
+	FillingsUpdate:  mu: +0.645113976  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+ElecMinimize: Iter:   0  F: -4723.825116820477888  |grad|_K:       -nan  alpha:  1.000e+00
+	FillingsUpdate:  mu: +0.645113121  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: -0.00000 ]
+	SubspaceRotationAdjust: set factor to 1.1
+ElecMinimize: Iter:   1  F: -4723.825116824752513  |grad|_K:       -nan  alpha:  1.937e-01  linmin:  7.028e-07  t[s]:   1078.05
+	FillingsUpdate:  mu: +0.645112935  nElectrons: 608.000000  magneticMoment: [ Abs: 0.00000  Tot: +0.00000 ]
+	SubspaceRotationAdjust: set factor to 0.917
+ElecMinimize: Iter:   2  F: -4723.825116825570149  |grad|_K:       -nan  alpha:  3.291e-01  linmin: -3.603e-05  t[s]:   1087.82
+ElecMinimize: Converged (|Delta F|<1.000000e-07 for 2 iters).
+Setting wave functions to eigenvectors of Hamiltonian
+Converging empty states (this may take a while): |deigs|: 3.234e-09
+
+Computing DFT-D3 correction:
+# coordination-number Ag 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012 9.012
+# diagonal-C6 Ag 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61 268.61
+EvdW_6 =   -0.264462
+EvdW_8 =   -0.328000
+# Lattice vectors:
+R = 
+[      15.4077  7.77755e-09 -2.21423e-08  ]
+[  7.77755e-09      15.4077 -1.86781e-08  ]
+[ -2.21423e-08 -1.86781e-08      15.4077  ]
+unit cell volume = 3657.75
+
+# Strain tensor in Cartesian coordinates:
+[    0.0711335   5.4069e-10 -1.53932e-09  ]
+[   5.4069e-10    0.0711337 -1.29849e-09  ]
+[ -1.53932e-09 -1.29849e-09    0.0711337  ]
+
+# Stress tensor in Cartesian coordinates [Eh/a0^3]:
+[ -4.49705e-09  1.03735e-11 -1.61309e-11  ]
+[  1.03735e-11 -4.23289e-09  4.92113e-12  ]
+[ -1.61309e-11  4.92113e-12 -4.23904e-09  ]
+
+# Ionic positions in cartesian coordinates:
+ion Ag   0.000011319168685  -0.000035720260332   0.000034459453830 1
+ion Ag   0.000012851371075   3.851944316750057   3.851943391080045 1
+ion Ag   3.851911915412916  -0.000039436994598   3.851942755326489 1
+ion Ag   3.851913834954623   3.851941752759706   0.000033398134888 1
+ion Ag   7.703844154471095  -0.000033902319565   0.000032519434274 1
+ion Ag   7.703842775683752   3.851943282621357   3.851942367255974 1
+ion Ag   0.000012242869577   7.703895556448348   0.000037482596456 1
+ion Ag   3.851912282855890   7.703895704317969   3.851942708882611 1
+ion Ag   7.703843334388199   7.703893213617373   0.000035264197562 1
+ion Ag   0.000012150539999  -0.000038580595101   7.703818184320336 1
+ion Ag   3.851912711701951   3.851942670880006   7.703819646012431 1
+ion Ag   7.703843495452763  -0.000036064520651   7.703820756321456 1
+ion Ag   0.000012291524639   7.703896019540678   7.703817846001185 1
+ion Ag   7.703842507470793   7.703895902468304   7.703817867317230 1
+ion Ag  11.555797108788420  -0.000039283814181   3.851942591933801 1
+ion Ag  11.555795318129032   3.851941537148877   0.000033320651219 1
+ion Ag   0.000011799897501  11.555768509400394   3.851942403844871 1
+ion Ag   3.851911961307384  11.555767859820909   0.000037784260216 1
+ion Ag   7.703842390883966  11.555767487183811   3.851943174937331 1
+ion Ag  11.555797244621214   7.703896662514552   3.851943021222473 1
+ion Ag  11.555797122331436  11.555768163765688   0.000037963164390 1
+ion Ag   0.000011481266489   3.851942001363938  11.555772096429781 1
+ion Ag   3.851913837654029  -0.000034788868758  11.555772117221201 1
+ion Ag   7.703843658939352   3.851941478136032  11.555772481053358 1
+ion Ag   3.851912597174267   7.703894559317699  11.555771323407891 1
+ion Ag  11.555795273986869  -0.000034514317240  11.555772334354359 1
+ion Ag  11.555795756325695   3.851941908736331   7.703821735097906 1
+ion Ag   0.000012995792875  11.555767407208338  11.555769867060965 1
+ion Ag   3.851912238008117  11.555768113453203   7.703818003868198 1
+ion Ag   7.703842529392364  11.555768342888918  11.555770657583691 1
+ion Ag  11.555795829465088   7.703892227239485  11.555772079782255 1
+ion Ag  11.555797257481901  11.555767931448054   7.703817070364407 1
+
+# Forces in Cartesian coordinates:
+force Ag  -0.000001278234710   0.000004075608907  -0.000003820801804 1
+force Ag  -0.000001032808017  -0.000001578227714  -0.000001201746416 1
+force Ag   0.000001353271815   0.000004231772354  -0.000001209521305 1
+force Ag   0.000001575384602  -0.000001410022636  -0.000003773325475 1
+force Ag   0.000001287625795   0.000004231990620  -0.000004003276844 1
+force Ag   0.000001101956794  -0.000001387862604  -0.000001381366086 1
+force Ag  -0.000001205731640  -0.000003988607467  -0.000003958578332 1
+force Ag   0.000001572216596  -0.000004158538296  -0.000001305612658 1
+force Ag   0.000001221860350  -0.000004240791645  -0.000003817891119 1
+force Ag  -0.000001209858609   0.000004187454433   0.000003759797839 1
+force Ag   0.000001487028635  -0.000001497057185   0.000003793491714 1
+force Ag   0.000001219640886   0.000004065036552   0.000004019809833 1
+force Ag  -0.000001230363125  -0.000004080449190   0.000003856514166 1
+force Ag   0.000001244991661  -0.000003992914831   0.000003734006585 1
+force Ag  -0.000001397838886   0.000003909639522  -0.000001301342222 1
+force Ag  -0.000001635204028  -0.000001524757983  -0.000004141545065 1
+force Ag  -0.000001446709339   0.000001472688829  -0.000001344225796 1
+force Ag   0.000001360636260   0.000001339403049  -0.000003973977478 1
+force Ag   0.000001457355716   0.000001253061968  -0.000001140898908 1
+force Ag  -0.000001597475895  -0.000003742257158  -0.000001260769978 1
+force Ag  -0.000001403284726   0.000001421943359  -0.000003637025798 1
+force Ag  -0.000001322269259  -0.000001422821708   0.000001296565377 1
+force Ag   0.000001591901028   0.000004023047768   0.000001290080132 1
+force Ag   0.000001406522515  -0.000001654137381   0.000001495465751 1
+force Ag   0.000001468206426  -0.000004034036656   0.000001361438477 1
+force Ag  -0.000001651581703   0.000004391820604   0.000001395269006 1
+force Ag  -0.000001467310576  -0.000001457459060   0.000003963283280 1
+force Ag  -0.000001030667917   0.000001295620792   0.000001427412911 1
+force Ag   0.000001557931049   0.000001423069286   0.000003923783006 1
+force Ag   0.000001105926148   0.000001529774603   0.000001269737105 1
+force Ag  -0.000001450788619  -0.000004210008467   0.000001318539376 1
+force Ag  -0.000001579604373   0.000001370739299   0.000003498567702 1
+
+# Energy components:
+   Eewald =    -3437.5205839802920309
+       EH =     1144.1605601112496515
+     Eloc =    -3172.2649150900124368
+      Enl =      126.5758399357161466
+     EvdW =       -0.5924620185416256
+      Exc =     -463.9405880475239883
+ Exc_core =        6.6614515988489060
+       KE =     1073.0962579279969304
+-------------------------------------
+     Etot =    -4723.8244395625588368
+       TS =        0.0006772630111458
+-------------------------------------
+        F =    -4723.8251168255701486
+
+LatticeMinimize: Iter:   7  F: -4723.825116825570149  |grad|_K:  2.516e-05  alpha:  1.000e+00  linmin:  7.014e-01  t[s]:   1107.04
+LatticeMinimize: Converged (|Delta F|<1.000000e-06 for 2 iters).
+
+#--- Lowdin population analysis ---
+# oxidation-state Ag +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004 +0.004
+# magnetic-moments Ag -0.000 +0.000 +0.000 +0.000 +0.000 +0.000 +0.000 -0.000 -0.000 -0.000 -0.000 +0.000 +0.000 -0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 -0.000 +0.000 +0.000 +0.000 -0.000 +0.000 +0.000 -0.000 -0.000 -0.000 -0.000 -0.000
+
+
+Dumping 'fillings' ... done
+Dumping 'wfns' ... done
+Dumping 'ionpos' ... done
+Dumping 'force' ... done
+Dumping 'lattice' ... done
+Dumping 'n_up' ... done
+Dumping 'n_dn' ... done
+Dumping 'd_tot' ... done
+Dumping 'eigenvals' ... done
+Dumping 'bandProjections' ... done
+Dumping 'Ecomponents' ... done
+Dumping 'kPts' ... done
+Dumping 'Gvectors' ... done
+End date and time: Tue Nov  7 17:51:45 2023  (Duration: 0-0:19:02.88)
+Done!
+
+PROFILER:             augmentDensityGrid     0.010690 +/-     0.004002 s,  169 calls,      1.806579 s total
+PROFILER:         augmentDensityGridGrad     0.226833 +/-     0.015417 s,  101 calls,     22.910162 s total
+PROFILER:        augmentDensitySpherical     0.003107 +/-     0.000048 s, 10478 calls,     32.558151 s total
+PROFILER:    augmentDensitySphericalGrad     0.002967 +/-     0.000070 s, 8004 calls,     23.749245 s total
+PROFILER:                 augmentOverlap     0.003140 +/-     0.000331 s, 24192 calls,     75.966352 s total
+PROFILER:                     changeGrid     0.000022 +/-     0.000001 s, 25246 calls,      0.563166 s total
+PROFILER:        ColumnBundle::randomize     0.003961 +/-     0.000252 s,   62 calls,      0.245612 s total
+PROFILER:                     diagouterI     0.012667 +/-     0.000487 s, 10478 calls,    132.722879 s total
+PROFILER:              EdensityAndVscloc     0.012224 +/-     0.004282 s,  170 calls,      2.078098 s total
+PROFILER:                     EnlAndGrad     0.005631 +/-     0.000072 s, 12096 calls,     68.115354 s total
+PROFILER:            ExCorrCommunication     0.001981 +/-     0.002992 s, 1212 calls,      2.400414 s total
+PROFILER:               ExCorrFunctional     0.000054 +/-     0.000009 s,  221 calls,      0.012023 s total
+PROFILER:                    ExCorrTotal     0.011219 +/-     0.005033 s,  221 calls,      2.479353 s total
+PROFILER:                   Idag_DiagV_I     0.022996 +/-     0.005161 s, 7384 calls,    169.800401 s total
+PROFILER:                    inv(matrix)     0.002534 +/-     0.000122 s, 10230 calls,     25.920506 s total
+PROFILER:            matrix::diagonalize     0.006899 +/-     0.001580 s, 17907 calls,    123.535360 s total
+PROFILER:                    matrix::set     0.000010 +/-     0.000020 s, 652307 calls,      6.660985 s total
+PROFILER:            orthoMatrix(matrix)     0.001629 +/-     0.000730 s, 11476 calls,     18.692497 s total
+PROFILER:     RadialFunctionR::transform     0.003752 +/-     0.005702 s,   55 calls,      0.206382 s total
+PROFILER:                    reduceKmesh     0.000004 +/-     0.000000 s,    1 calls,      0.000004 s total
+PROFILER:   VanDerWaalsD3::energyAndGrad     0.408349 +/-     0.022755 s,   31 calls,     12.658804 s total
+PROFILER:               WavefunctionDrag     1.581500 +/-     0.297108 s,   10 calls,     15.815000 s total
+PROFILER:                            Y*M     0.000965 +/-     0.000235 s, 79888 calls,     77.052125 s total
+PROFILER:                          Y1^Y2     0.001157 +/-     0.000251 s, 58750 calls,     67.990510 s total
+
+MEMUSAGE:                   ColumnBundle    17.289046 GB
+MEMUSAGE:        complexScalarFieldTilde     0.003219 GB
+MEMUSAGE:                    IndexArrays     0.047372 GB
+MEMUSAGE:                         matrix     1.525798 GB
+MEMUSAGE:                           misc     0.016858 GB
+MEMUSAGE:                    ScalarField     0.053667 GB
+MEMUSAGE:               ScalarFieldTilde     0.039428 GB
+MEMUSAGE:                          Total    18.789866 GB
