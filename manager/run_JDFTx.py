@@ -478,8 +478,8 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
 
     ctype = calc_type(cmds, script_cmds)
     conv_logger('ctype: '+ctype)
-    traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
-    dyn.attach(traj.write, interval=1)
+    # traj = Trajectory('opt.traj', 'w', atoms, properties=['energy', 'forces'])
+    # dyn.attach(traj.write, interval=1)
 #    psuedos = script_cmds['pseudos']
 #    max_steps = int(script_cmds['max_steps'])
 #    fmax = float(script_cmds['fmax'])
@@ -645,7 +645,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
         restart = True if ('restart' in script_cmds and script_cmds['restart'] == 'True') else False
         atoms = read_atoms(restart, script_cmds)
         
-        calculator = set_calc(cmds, script_cmds, interactive=interactive)
+        calculator = set_calc(cmds, script_cmds, interactive=False) #TODO change back to interactive
         atoms.set_calculator(calculator)
         
         opt = MinimaHopping(atoms=atoms)
@@ -720,7 +720,7 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             jdftx_ionic = True if ('use_jdftx_ionic' in script_cmds and script_cmds['use_jdftx_ionic'] == 'True') else False
             
             # set calculator
-            calculator = set_calc(cmds, script_cmds, jdftx_ionic = jdftx_ionic, interactive=interactive)
+            calculator = set_calc(cmds, script_cmds, jdftx_ionic = jdftx_ionic, interactive=False) #TODO change back to interactive
             atoms.set_calculator(calculator)
     
             #Structure optimization                
