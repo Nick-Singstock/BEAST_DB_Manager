@@ -247,7 +247,7 @@ class OutParser:
 
     def write_trajectory(self):
         atoms_list = self.build_atoms()
-        writer = TrajectoryWriter('sample.traj', mode='a')
+        writer = TrajectoryWriter('opt.traj', mode='a')
         for atoms in atoms_list:
             writer.write(atoms=atoms)
         writer.close()
