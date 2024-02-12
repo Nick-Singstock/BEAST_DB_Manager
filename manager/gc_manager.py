@@ -22,7 +22,8 @@ from adsorbate_helper import (save_structures, add_adsorbates, write_parallel,
                               minimum_movement_strs, assign_selective_dynamics,
                               write_parallel_bundle)
 from parallel_manager import sub_parallel
-from jdft_helper import helper 
+from jdft_helper import helper
+from defaults import DefaultArgs
 h = helper()
 opj = os.path.join
 ope = os.path.exists
@@ -102,6 +103,13 @@ class jdft_manager():
             self.run('cp ' + os.path.join(defaults_folder, 'manager_control.txt') + ' ./manager_control.txt')
         if overwrite or not os.path.exists('./readme.txt'):
             self.run('cp ' + os.path.join(defaults_folder, 'readme.txt') + ' ./readme.txt')
+        # Cooper added. Writes a config file that can be used to set default arguments to the manager.
+        # add arguments and values to the file to automatically pass them to the argparse when the config is read.
+        # arguments in the config file will always override the defaults.
+        if overwrite or not os.path.exists('./config.txt'):
+            with open("config.txt", "x") as f:
+                pass
+
         print('\nSuccessfully setup directory! Please see manager_control.txt for help.\n')
     
     def check_setup(self):
@@ -124,98 +132,117 @@ class jdft_manager():
     def __get_user_inputs__(self):
         # get all user inputs from command line
         parser = argparse.ArgumentParser()
-        
+        # The argparse.SUPPRESS argument is used to suppress the default value of the argument
+        # This is used to allow the default values to be set in the defaults class
+        # and then to be overridden by the config file. If explicit arguments are specified,
+        # they will override the config file.
+        # https://stackoverflow.com/questions/30487767/check-if-argparse-optional-argument-is-set-or-not
         parser.add_argument('-s', '--setup', help='Setup downstream folders for management. (-s True)',
-                            type=str, default='False')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-t', '--run_time', help='Time to run jobs. Default 12 (hours).',
-                            type=int, default=12)
+                            type=int, default=argparse.SUPPRESS)
         parser.add_argument('-u', '--rerun_unconverged', help='Rerun all unconverged calculations being managed, '+
-                            'requires "check_calcs". Default True.',type=str, default='True')
+                            'requires "check_calcs". Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-g', '--gpu', help='If True, run all calculations on gpu nodes. Default False.',
-                            type=str, default='False')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-m', '--make_new', help='Make new calculations based on requested calcs.'+
-                            ' Default True.',type=str, default='True')
+                            ' Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-b', '--backup', help='Whether to backup calcs folder. Default False.',
-                            type=str, default='False')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-sdos', '--save_dos', help='Whether to save DOS data to json files (these are large!). Default False.',
-                            type=str, default='False')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-ados', '--analyze_dos', help='Whether to analyze DOS data and add analysis to all_data. Default False.',
-                            type=str, default='False')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-ra', '--read_all', help='Read all folders for new data. Does not use convergence '+
-                            'file to speed up reading. Default False.', type=str, default='False')
+                            'file to speed up reading. Default False.', type=str, default=argparse.SUPPRESS)
         parser.add_argument('-a', '--analyze', help='Runs analysis on converged calcs, requires "save".'+
-                            ' Default False. INCOMPLETE.',type=str, default='False')
+                            ' Default False. INCOMPLETE.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-cc', '--check_calcs', help='Check convergence of all managed calculations. '+
-                            'Default True.',type=str, default='True')
+                            'Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-sd', '--selective_dynamics', 
                             help='Whether to add selective dynamics to surface / adsorbate calcs. '+
-                            'Set to False for 2D materials. Default True.',type=str, default='True')
+                            'Set to False for 2D materials. Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-v', '--save', help='Save all newly processed data, requires "check_calcs".'+
-                            ' Default True.',type=str, default='True')
+                            ' Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-rn', '--run_new', help='Run all newly setup calculations, requires "make_new".'+
-                            ' Default True.',type=str, default='True')
+                            ' Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-ads', '--add_adsorbed', help='Add all requested adsorbates to converged surfs, '
-                            +'requires "make_new". Default True.',type=str, default='True')
+                            +'requires "make_new". Default True.',type=str, default=argparse.SUPPRESS)
 #        parser.add_argument('-dist', '--adsorbate_distance', help='Standard distance from surface to adsorbate,'
-#                            +' requires "add_adsorbed". Default 2.0',type=float, default=2.0)
+#                            +' requires "add_adsorbed". Default 2.0',type=float, default=argparse.SUPPRESS)
         parser.add_argument('-des', '--add_desorbed', help='Add all requested desorbed calcs to converged surfs, '
                             +'requires "make_new" and "add_adsorbed". Needed for NEB. Default True.',
-                            type=str, default='True')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-mol', '--add_molecules', help='Add all requested molecules, requires "make_new".'+
-                            ' Default True.',type=str, default='True')
+                            ' Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-neb', '--make_neb', help='Makes NEB calculations from manager_control file, '+
-                            'requires "make_new". Default True.',type=str, default='True')
+                            'requires "make_new". Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-nebc', '--neb_climbing', help='If True, uses NEB climbing image. Requires'+
-                            ' "make_neb". Default True.',type=str, default='True')
+                            ' "make_neb". Default True.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-cf', '--current_force', help='If True, displays calc forces. Default True.',
-                            type=str, default='True')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-n', '--nodes', help='Nodes per job (total nodes for parallel). Default 1.',
-                            type=int, default=1)
+                            type=int, default=argparse.SUPPRESS)
         parser.add_argument('-c', '--cores', help='Cores per node.',
-                            type=int, default=core_architecture)
+                            type=int, default=argparse.SUPPRESS)
         parser.add_argument('-r', '--short_recursive', help='Run jobs recursively on short queue until complete.'+
-                            ' Very helpful when queue is busy. Default False.',type=str, default='False')
+                            ' Very helpful when queue is busy. Default False.',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-rhe', '--rhe_zeroed', help='If True, converts all biases to be zeroed '+
-                            'at 0V vs. RHE rather than 0V vs. SHE (if False).', type=str, default='False')
+                            'at 0V vs. RHE rather than 0V vs. SHE (if False).', type=str, default=argparse.SUPPRESS)
         parser.add_argument('-q', '--qos', help='Whether qos should be high (True) or standard. Default False.',
-                            type=str, default='False')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-p', '--parallel', help='Runs multiple calcs together on a single node. Input'+
                             ' should be max number (int) of calcs to run together per node. Default 1.',
-                            type=int, default=1)
+                            type=int, default=argparse.SUPPRESS)
         parser.add_argument('-conv', '--use_convergence', help='If True (default), copy convergence '+
                            'file to new calc folders and update.',
-                            type=str, default='True')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-kptd', '--kpoint_density', help='Kpoint grid density (default 1000)',
-                            type=int, default=1000)
+                            type=int, default=argparse.SUPPRESS)
         parser.add_argument('-kptdb', '--kpoint_density_bulk', help='Bulk Kpoint grid density (default 1000)',
-                            type=int, default=1000)
+                            type=int, default=argparse.SUPPRESS)
         parser.add_argument('-elec', '--copy_electronic', help='If True, copy electronic state files '+
                            ' to new bias folders based on converged biases (default False).',
-                            type=str, default='False')
+                            type=str, default=argparse.SUPPRESS)
         parser.add_argument('-sp', '--smart_procs', help='Whether to use smart system for setting number '+
-                            'of processes (default True)',type=str, default='True')
+                            'of processes (default True)',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-fix', '--calc_fixer', help='Whether to use the smart error fixer for '+
-                            'failed calcs (default False)',type=str, default='False')
+                            'failed calcs (default False)',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-skipfix', '--skip_fixer', help='Whether to skip the smart error fixer for '+
-                            'failed calcs (default False)',type=str, default='False')
+                            'failed calcs (default False)',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-fr', '--full_rerun', help='Rerun ALL calculations. Be careful '+
-                            'with this. Calcs start at current state. (default False)',type=str, default='False')
+                            'with this. Calcs start at current state. (default False)',type=str, default=argparse.SUPPRESS)
         parser.add_argument('--clean_wfns', help='Delete converged wfns  to reduce mem. Be careful '+
-                            'with this. (default False)',type=str, default='False')
+                            'with this. (default False)',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-bundle', '--bundle_jobs', help='Bundle all jobs together. Useful for Cori / Perl.'+
-                            ' (default False)',type=str, default='False')
+                            ' (default False)',type=str, default=argparse.SUPPRESS)
         parser.add_argument('-use_nb', '--use_no_bias_structure', help='Whether surface and ads calcs should'+
                             ' be upgraded from no_bias or 0V converged calcs (default True).'+
                             ' False = calcs are independently setup and run. Can be used with -elec tag.',
-                            type=str, default='True')
+                            type=str, default=argparse.SUPPRESS)
         # Cooper added arguments
         parser.add_argument('-bm', '--big_mem', help='Whether to use Perlmutter\'s large memory gpu nodes with'+
-                            '80GB of memory per GPU (default False)', type=bool, default=False)
+                            '80GB of memory per GPU (default False)', type=bool, default=argparse.SUPPRESS)
         parser.add_argument('-mdos', '--mean_dos', help='whether to store mean DOS data for each band and each atom for all surfaces',
-                            type=bool, default=False)
+                            type=bool, default=argparse.SUPPRESS)
         parser.add_argument('--singlepoint', help='whether to run singlepoint calculations for all surfaces',
-                            type=bool, default=False)
+                            type=bool, default=argparse.SUPPRESS)
+        parser.add_argument('-gpj', '--gpus-per-job', help=('number of processes per job on gpus. Options are 1, 2, 4. '
+                                                                  'Each job will be split into the specified number of tasks. '
+                                                                  'This is useful for gaining memory headroom and speeding up calculations '
+                                                                  'with more than one state.'),
+                            type=int, default=argparse.SUPPRESS)
+        parser.add_argument('-ni', '--native_ionic', help=('whether to use the native_ionic script for running JDFTx.'
+                                                           'ionic optimization is handled through JDFTx and is much faster'
+                                                           'than ASE. However, it cannot do special constrained optimizations like NEBs'),
+                                                           type=bool, default=argparse.SUPPRESS)
         self.args = parser.parse_args()
+        # Set the arguments specified in the config file.
+        # Updates the self.args object with the config file arguments.
+        self.__config_args__()
+        Defaults = DefaultArgs()
+        self.args = Defaults.set_defaults(self.args)
+        print(vars(self.args), "\n\n", "args")
 
     def __get_run_cmd__(self):
         self.run_cmd = run_command
@@ -229,7 +256,30 @@ class jdft_manager():
             self.run_cmd += ' -r True'
         if self.args.gpu == 'True':
             self.run_cmd += ' -g True'
-            
+
+    def __config_args__(self):
+        # read config file and add all arguments to self.args
+        user_args_dict = vars(self.args)
+        if ope('config.txt'):
+            with open('config.txt', 'r') as f:
+                lines = f.readlines()
+            for line in lines:
+                if line[0] == '#':
+                    continue
+                arg = line.split()[0].strip()
+                val = line.split()[1].strip()
+                # if a user already specified the argument, do not update it with
+                # the config file value. This ensures the user arguments always override
+                # the config file.
+                if arg in user_args_dict.keys():
+                    pass
+                else:
+                    user_args_dict[arg] = val
+        else:
+            print('No config file found. Using default arguments and user-specified arguments.')
+
+
+
     def scan_calcs(self, all_data, running_dirs, verbose = True, force_limit = 50):
         '''
         Main function for scanning through all previously-created sub-directories
@@ -1699,10 +1749,11 @@ class jdft_manager():
 #                                  qos = 'standard', gpu = self.args.gpu)
 #            shells.append(out_file + '.sh')
             
-            sub_parallel(roots, self.cwd, self.args.nodes, os.environ['CORES_PER_NODE'],
+            sub_parallel(roots, self.cwd, int(self.args.nodes), os.environ['CORES_PER_NODE'],
                          self.args.run_time, 
                          recursive = True if self.args.short_recursive=='True' else False,
-                         big_mem=self.args.big_mem, singlepoint=self.args.singlepoint)
+                         big_mem=self.args.big_mem, singlepoint=self.args.singlepoint,
+                         gpus_per_job=int(self.args.gpus_per_job), native_ionic=self.args.native_ionic,)
             return
         
         else:
@@ -1828,9 +1879,6 @@ class jdft_manager():
                     print(f"copying singlepoint_inputs file to {root}")
                     with open(opj(root, 'singlepoint_inputs'), 'w') as f:
                         f.write(inputs_str)
-
-                    
-                
 
     def manager(self):
         '''

@@ -14,13 +14,22 @@ from sub_JDFTx import write as sub_write
 opj = os.path.join
 jdftx_python_dir = os.environ['JDFTx_manager_home']
 
+def build_gpu_exeutable(jdftx_executable, gpus_per_job):
+    # Don't need to add srun here because run_JDFTx.py and run_JDFTx_native.py will add it
+    return f" -N 1 -n {gpus_per_job} {jdftx_executable}"
+
 def sub_parallel(roots, cwd, nodes, cores_per_node, 
                 time, procs = 2, testing = 'False',
-                recursive = False, big_mem=False, singlepoint=False):
-    print('Running '+str(len(roots))+ ' jobs in parallel on '+str(nodes)+' nodes (4 jobs/node)')
+                recursive = False, big_mem=False, singlepoint=False,
+                gpus_per_job=1, native_ionic=False):
+    print('Running '+str(len(roots))+ ' jobs in parallel on '+
+          str(nodes)+f' nodes ({int(4/gpus_per_job)} jobs per node)')
     
     manager_home = os.environ['JDFTx_manager_home']
-    script = opj(manager_home, 'run_JDFTx.py')
+    if native_ionic:
+        script = opj(manager_home, 'run_JDFTx_native.py')
+    elif native_ionic == False:
+        script = opj(manager_home, 'run_JDFTx.py')
     parallel_folder = './tmp_parallel'
     if not os.path.exists(parallel_folder):
         print('Making tmp_parallel/')
@@ -39,6 +48,13 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     
     if gpu:
         script += ' -g True'
+        if gpus_per_job > 1:
+            # If we are parallelizing states over gpus (ie multiple gpus per job), we need
+            # to build a custom executable string to pass to run_JDFTx.py or run_JDFTx_native.py
+            jdftx_executable = os.environ['JDFTx_GPU']
+            jdftx_executable = build_gpu_exeutable(jdftx_executable, gpus_per_job)
+            script += f" --executable \"{jdftx_executable}\""
+            print(f"Using custom executable: {jdftx_executable}")
     if singlepoint: # add singlepoint tag for running singlepoints on whole dataset
         script += ' --singlepoint True'
     # tag to include regen attempt 
@@ -57,9 +73,12 @@ def sub_parallel(roots, cwd, nodes, cores_per_node,
     # add recursive logic if needed
     if recursive:
         writelines+='timeout 10 python '+os.path.join(jdftx_python_dir,'timer.py')+' > timer'+'\n\n'
-
     # add logic to launch parallel versions of para_managers (one per node)
-    writelines += 'n_managers=$((4 * ${SLURM_JOB_NUM_NODES})) \n'  # to run one task/node
+    # n_managers is equal to 4 (gpus per node) divided by how many gpus
+    # each job is using. So if we request 4 nodes (16 gpus) and want
+    # two gpus per job, we need 8 managers.
+    writelines += f'n_managers=$(({int(4/gpus_per_job)} '
+    writelines += '* ${SLURM_JOB_NUM_NODES})) \n'
     writelines += 'echo "n_managers = $n_managers" \n'
     writelines += 'for i_manager in $(seq 1 ${n_managers}); do \n'
     writelines += '    python ' + opj(manager_home, 'parallel_manager.py') + ' & \n'
@@ -123,6 +142,7 @@ def parallel_logic():
         try:
             fp = open(f"locks/lock.{i_task}", "x")
         except FileExistsError:
+            print(f"lock file {i_task} exists")
             continue  # another task got to it already
     
         cwd = os.getcwd() # this is the tmp_parallel dir where parallel.sh is called

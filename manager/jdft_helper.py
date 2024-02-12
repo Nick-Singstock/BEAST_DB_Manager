@@ -14,6 +14,7 @@ from ase.dft import get_distribution_moment
 from ase.io import read as ase_read
 import re
 import subprocess
+from ase.units import Hartree, Bohr
 
 opj = os.path.join
 ope = os.path.exists
@@ -383,6 +384,10 @@ class helper():
             return True # convergence based on single point calc (no conv for hitting max_steps otherwise)
         return False
     
+    def check_native_convergence(self, folder):
+        if ope(opj(folder,"converged")):
+            return True
+
     def get_bias(self, bias_str):
         if bias_str in ['No_bias','None']:
             return 'No_bias'
@@ -401,6 +406,7 @@ class helper():
         # currently reads inputs, opt_log for energies, and CONTCAR. Also checks convergence based on forces
         # reads out file for oxidation states and magentic moments
         # Cooper added ability to read Bader charge ACF.dat files and store in dictionary form
+        # Cooper fixed force reading and re-indexed the jdftx force outputs to the CONTCAR atom index
         # Cooper also added reading of s, p, d band averages for each atom in the surfaces #TODO make this general
         inputs = self.read_inputs(folder)
         opt_steps = self.read_optlog(folder)
@@ -428,7 +434,7 @@ class helper():
         
         ecomp = self.read_Ecomponents(folder)
         eigStats = self.read_eigStats(folder)
-        atom_forces = self.read_forces(folder)
+        atom_forces = self.contcar_format_forces(folder)
         
         self.make_tinyout(folder)
         
@@ -463,7 +469,7 @@ class helper():
             bader_dict = self.get_bader_data(folder)
 
         out_steps = self.read_out_steps(folder)
-        
+
         return {'opt': opt_steps, 'current_force': current_force, 'current_step': current_step,
                 'inputs': inputs, 'Ecomponents': ecomp, 'current_energy': current_energy,
                 'Ecomp_energy': ecomp['F'] if 'F' in ecomp else (ecomp['G'] if 'G' in ecomp else 'None'),
@@ -1182,7 +1188,7 @@ class helper():
                 else:
                     # single version of command
                     conv_dic[step][cmd] = val
-        return conv_dic, len(conv_dic)
+        return conv_dic
     
     def read_prev_step(self, file):
         if not os.path.exists(file):
@@ -1309,9 +1315,11 @@ class helper():
 
     def read_atoms(self, restart, script_cmds):
         if restart:
-            atoms = ase_read('CONTCAR',format='vasp')
+            atoms = ase_read('CONTCAR')
+            print('reading CONTCAR')
         else:
-            atoms = ase_read('POSCAR',format='vasp')
+            atoms = ase_read('POSCAR')
+            print('reading POSCAR')
         
         if 'lattice-type' in script_cmds and script_cmds['lattice-type'] in ['bulk','periodic','Bulk','Periodic']:
             return atoms
@@ -1352,11 +1360,11 @@ class helper():
             elif t1 == t2 and t1 and conv[str(step)][tag] != conv[str(step+1)][tag]:
                 diffs = True
         
-        if diffs:
-            files_to_remove = ['wfns','fillings','eigenvals','fluidState']
-            for file in files_to_remove:
-                if ope(opj(folder, file)):
-                    subprocess.call('rm '+opj(folder,file), shell=True)
+        files_to_remove = ['wfns','fillings','eigenvals','fluidState']
+        for file in files_to_remove:
+            if ope(opj(folder, file)):
+                subprocess.call('rm '+opj(folder,file), shell=True)
+                print(f"removed {file}")
 
     def open_inputs(self, inputs_file):
         with open(inputs_file,'r') as f:
@@ -1462,8 +1470,79 @@ class helper():
             return eigs
         return {}
     
+    def index_conversions(self, folder):
+        # returns a list of tuples that converts from the POSCAR index to jdftx index
+        # and vice versa.
+        # The format is: [(POSCAR index, jdftx index)]
+        # This is necessary in cases when the POSCAR does not index all atoms of the same elements
+        # consecutively. For example:
+        '''
+        Si Rh Si Rh Si Rh Si Rh  N
+        1.0000000000000000
+            6.0347039999801808    0.0000000000000000    0.0000174126264223
+            0.0000000000034082    5.5197830000000438   -0.0000007218957321
+            0.0000000000000000    0.0000000000000000   32.0564300000405566
+        Si  Rh  Si  Rh  Si  Rh  Si  Rh  N
+        4   4   4   4   4   4   4   4   2
+        '''
+        # JDFTx would index this as:
+        '''
+        ion Si   1.426338000000000   7.140220999999999  28.050062000000004 1
+        ion Si   4.276159000000000   3.285566000000000  29.321218000000002 1
+        ion Si   1.423628000000000   1.976874999999999  23.338857999999998 1
+        ion Si   4.276628000000001   8.361798999999998  21.822079000000002 0
+        ion Si   1.429070000000000   7.144209999999998  40.102907000000002 1
+        ion Si   4.275000000000000   3.503769000000000  41.464244000000001 1
+        ion Si   1.422953000000000   1.898225000000000  35.442951000000001 1
+        ion Si   4.276124000000000   8.554333000000000  34.093617999999999 1
+        ion Si   7.126092000000001   7.140193999999999  28.050034000000000 1
+        ion Si   9.978161999999999   3.290004000000000  29.335089000000004 1
+        ion Si   7.128936000000001   1.976884000000000  23.338878000000001 1
+        ion Si   9.978597000000001   8.361798999999998  21.822096000000002 0
+        ion Si   7.122771000000000   7.143976999999999  40.104258999999999 1
+        ion Si   9.977941000000000   3.557125999999999  41.366713000000004 1
+        ion Si   7.128935000000000   1.898134000000000  35.442816000000008 1
+        ion Si   9.978042000000000   8.566071999999998  34.076541000000006 1
+        ion Rh   1.425814000000000   5.254724000000000  20.357164000000001 0
+        ion Rh   4.276131000000000   5.180953999999999  25.111956000000003 1
+        ion Rh   1.425763000000000   0.223130000000000  19.442509000000001 0
+        ion Rh   4.276140000000000  10.379369999999998  26.237660000000002 1
+        ion Rh   1.437919000000000   5.264288999999999  32.264671999999997 1
+        ion Rh   4.275996000000000   5.183610999999999  37.021547000000005 1
+        ion Rh   1.432007000000000   0.045765000000000  31.168668000000007 1
+        ion Rh   4.275815000000000  10.438574999999998  38.602764000000008 1
+        ion Rh   7.127784000000000   5.254724000000000  20.357181000000001 0
+        ion Rh   9.978122000000001   5.183246999999999  25.117024000000004 1
+        ion Rh   7.127733000000001   0.223130000000000  19.442526000000001 0
+        ion Rh   9.978114000000001  10.382103999999998  26.242671000000001 1
+        ion Rh   7.114561000000000   5.264237000000000  32.264575000000008 1
+        ion Rh   9.977620999999999   5.190595999999999  36.979070999999998 1
+        ion Rh   7.120513000000000   0.045738000000000  31.168618000000002 1
+        ion Rh   9.977618000000000  10.434933999999998  38.597049000000005 1
+        ion N   9.987715000000000  10.552419999999998  46.292732000000008 1
+        ion N  10.016190000000002   8.523055999999999  46.809176000000001 1
+        '''
+        atoms = ase_read(opj(folder, 'CONTCAR'),format='vasp')
+        species = atoms.get_atomic_numbers()
+        unique_species = []
+        for s in species:
+            if s not in unique_species:
+                unique_species.append(s)
+            
+        jdftx_index = 0
+        index_conversion_list = []
+        for unum in unique_species:
+            for i, anum in enumerate(species):
+                if anum == unum:
+                    index_conversion_list.append((i, jdftx_index))
+                    jdftx_index += 1
+                else:
+                    continue
+
+        return sorted(index_conversion_list, key=lambda x: x[0])
+
     def read_forces(self, folder):
-        file = opj(folder, 'forces')
+        file = opj(folder, 'force')
         if ope(file):
             with open(file, 'r') as f:
                 forces = f.read()
@@ -1477,8 +1556,30 @@ class helper():
                 z = float(line.split()[4])
                 f.append({'atom': atom, 'number': ii, 'SD': sd, 'x': x, 'y': y, 'z': z})
             return f
-        return []
+        else:
+            return []
     
+    def contcar_format_forces(self, folder):
+        forces = self.read_forces(folder)
+        index_conversion_list = self.index_conversions(folder)
+        # by default the index_conversion_list is sorted by POSCAR index
+        # but we need it sorted by the jdftx index because we're converting from jdftx
+        # dumped forces to POSCAR index.
+        # Sort it by the jdftx index number (the second entry in each tuple) with the line below
+        index_conversion_list = sorted(index_conversion_list, key=lambda x: x[1])
+        if len(forces) == 0:
+            return []
+        else:
+            for force in forces:
+                # re-index the forces to the POSCAR index
+                force['number'] = index_conversion_list[force['number']-1][0]
+                # convert units to ev/Angstrom
+                force['x'] = force['x'] * Hartree / Bohr
+                force['y'] = force['y'] * Hartree / Bohr
+                force['z'] = force['z'] * Hartree / Bohr
+        
+        return forces
+
     def get_jdos(self, folder, plot = False):
         cwd = os.getcwd()
         os.chdir(folder)

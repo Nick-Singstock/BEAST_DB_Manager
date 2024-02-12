@@ -920,8 +920,6 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
 
 if __name__ == '__main__':
     
-    jdftx_exe = os.environ['JDFTx']
-    
     # optional, change to another directory (for parallel runs)
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dir', help='Directory to run in and save files to.',
@@ -939,18 +937,31 @@ if __name__ == '__main__':
     parser.add_argument('--singlepoint', help=('If True, run in singlepoint mode. The script looks'
                                                        ' for a single_point_inputs file and ignores everything else but a CONTCAR'),
                         type=bool, default=False)
+    parser.add_argument('--executable', help=('Specify an exectable string. For gpus with 2 gpus per job, the '
+                                              'string should be "-N 1 -n 2 /path/to/jdftx_gpu"'),
+                        type=str, default=None)
 #    parser.add_argument('-p', '--parallel', help='If True, runs parallel sub-job with JDFTx.',
 #                        type=str, default='False')
 
-
     args = parser.parse_args()
+
+    # If an executable is
+    if args.executable == None:
+        jdftx_exe = os.environ['JDFTx']
+    else:
+        jdftx_exe = args.executable
+
     if args.dir != './':
         os.chdir(args.dir)
     if args.gpu == 'True':
-        try:
-            jdftx_exe = os.environ['JDFTx_GPU']
-        except:
-            print('Environment variable "JDFTx_GPU" not found, running standard JDFTx.')
+        if args.executable == None:
+            try:
+                jdftx_exe = os.environ['JDFTx_GPU']
+            except:
+                print('Environment variable "JDFTx_GPU" not found, running standard JDFTx.')
+        else:
+            jdftx_exe = args.executable
+    
     
 #    if args.parallel == 'True':
 #        jdftx_exe = '-N 1 -n 4 '+jdftx_exe

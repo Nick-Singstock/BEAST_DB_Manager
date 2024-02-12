@@ -50,7 +50,7 @@ class JDFTx(Calculator):
                 else:
                         self.pseudoSetCmd = ''
 
-                # Gets the input file template
+                # Gets the input file template by calling the jdftx executable with the -t flag
                 self.acceptableCommands = set(['electronic-SCF'])
                 template = str(shell('%s -t' % (self.executable)))
                 for match in re.findall(r"# (\S+) ", template):
@@ -75,9 +75,9 @@ class JDFTx(Calculator):
                         self.addCommand(cmd, v)
 
                 # Nick edits
-                if ionic_steps != False and type(ionic_steps) == list:
-                        self.addCommand('ionic-minimize', 'nIterations '+str(ionic_steps[0]) + 
-                                        ' energyDiffThreshold '+ str(ionic_steps[1]))
+                # if ionic_steps != False and type(ionic_steps) == list:
+                #         self.addCommand('ionic-minimize', 'nIterations '+str(ionic_steps[0]) + 
+                #                         ' energyDiffThreshold '+ str(ionic_steps[1]))
                         # assert False, ('Command not yet tested! '+
                         # 'May cause errors with ASE ionic minimizer due to changing atom positions.')
 
@@ -87,8 +87,8 @@ class JDFTx(Calculator):
                         for icmd in self.InitCommands: 
                                 continue
                                 # add all default tags for standard operation that are not included directly
-                                if icmd[0] not in self.InitialStateVars:
-                                        self.addCommand(icmd[0], icmd[1])
+                                # if icmd[0] not in self.InitialStateVars:
+                                #         self.addCommand(icmd[0], icmd[1])
 
                 # Accepted pseudopotential formats
                 self.pseudopotentials = ['fhi', 'uspp', 'upf']
@@ -245,6 +245,7 @@ class JDFTx(Calculator):
                 # Add ion info
                 atomPos = [x / Bohr for x in list(atoms.get_positions())]  # Also convert to bohr
                 atomNames = atoms.get_chemical_symbols()   # Get element names in a list
+                print(atoms.constraints, "atoms.constraints")
                 try:
                     fixed_atom_inds = atoms.constraints[0].get_indices()
                 except:
@@ -308,10 +309,13 @@ class JDFTx(Calculator):
         ############## JDFTx command structure ##############
 
         def validCommand(self, command):
+                print(command, "command")
                 """ Checks whether the input string is a valid jdftx command \nby comparing to the input template (jdft -t)"""
                 if(type(command) != str):
                         raise IOError('Please enter a string as the name of the command!\n')
-                if command == 'ionic-minimize':
+                # need to add a few commands that are not found by the regex search of the jdftx template
+                if command.strip() in ['ionic-minimize', 'lattice-minimize']:
+                    print('returning true')
                     return True
                 return command in self.acceptableCommands
 

@@ -5,14 +5,16 @@ from OutParser import OutParser
 from ase import Atoms
 from ase.visualize import view
 from ase.io.trajectory import TrajectoryWriter, TrajectoryReader
+from ase.io import read, write
+from ase.io.vasp import read_vasp
 
 manager_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(manager_path)
 
-traj_write = TrajectoryWriter('sample.traj')
+# traj_write = TrajectoryWriter('sample.traj')
 
-parser = OutParser('lattice_out', 'lattice')
-parser.write_trajectory()
+parser = OutParser('out', 'opt')
+# parser.write_trajectory()
 parser.write_contcar()
 
 # for step_index in index_generator:
@@ -31,10 +33,15 @@ parser.write_contcar()
 #     traj_write.write(atoms, energy=energy, forces=forces)
 
 # traj_write.close()
-traj = TrajectoryReader('sample.traj')
+atoms = read("CONTCAR", format="vasp")
+constraints = atoms.constraints
+print('constraints:', constraints)
+
+# traj = TrajectoryReader('sample.traj')
 # atom = traj[0]
 
 # view(traj)
+view(atoms)
 
 text = parser.build_optlog_boilerplate(1)
 text += parser.build_optlog()
