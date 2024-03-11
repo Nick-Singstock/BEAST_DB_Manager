@@ -207,6 +207,15 @@ def clean_doscmds(cmds):
     conv_logger('clean cmds: '+str(new_cmds))
     return new_cmds
 
+def keys_from_commands(cmds):
+    # cmds is a list of tuples. The first item in each tuple is the command key
+    # and the second item is the value associated with it.
+    # this function returns a list of the command keys
+    keys = []
+    for cmd in cmds:
+        keys.append(cmd[0])
+    return keys
+
 ######## Functions for setting up ASE calculator ########
 def open_inputs(inputs_file):
     with open(inputs_file,'r') as f:
@@ -426,13 +435,14 @@ def run_singlepoint(jdftx_exe, interactive=False):
     path = os.getcwd()
     bias = h.bias_from_path(path)
     sp_conv_logger('bias: '+str(bias)+'\n')
+    print(cmds)
     if bias != None:
         bias_float = h.bias_str_to_float(bias)
         inputs_dict['target_mu'] = str(h.bias_to_mu(bias_float))
         sp_conv_logger('target-mu: '+str(h.bias_to_mu(bias_float))+'\n')
         cmds.append(('target-mu', str(h.bias_to_mu(bias_float))))
     elif bias == None:
-        if 'target_mu' in cmds.keys():
+        if 'target_mu' in keys_from_commands(cmds):
             inputs_dict.pop('target_mu')
     inputs_dict['elec-n-bands'] = nbands
     inputs_dict['kpoint-folding'] = kpt_str
