@@ -65,6 +65,7 @@ class OutParser:
         # of the out lines that begin with the index_string class
         # attribute set in the __init__ method based on the type of calculation
         # can call list() on the generator to get a list of indices
+        print(self.index_string, "index string")
         for i, line in enumerate(self.trimmed_text.split('\n')):
             if line.startswith(self.index_string):
                 yield i
@@ -228,7 +229,7 @@ class OutParser:
         vec2 = self.parse_cell_line(lines[start_line+2])
         vec3 = self.parse_cell_line(lines[start_line+3])
         cell = np.array([vec1, vec2, vec3])
-        return cell * Bohr
+        return cell.T * Bohr
 
     def get_start_cell(self):
         read = False
@@ -245,9 +246,9 @@ class OutParser:
                 i += 1
         return cell.T * Bohr
 
-    def write_trajectory(self):
+    def write_trajectory(self, filename="opt.traj"):
         atoms_list = self.build_atoms()
-        writer = TrajectoryWriter('opt.traj', mode='a')
+        writer = TrajectoryWriter(filename, mode='a')
         for atoms in atoms_list:
             writer.write(atoms=atoms)
         writer.close()
