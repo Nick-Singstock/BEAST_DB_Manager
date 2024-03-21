@@ -97,6 +97,13 @@ def read_convergence_with_type(conv):
                     conv[step] = {cmd: [val,typ]}
         return conv
 
+def remove_command(cmds, cmd):
+    # cmds is a list of tuples where the first entry is the JDFTx command
+    # and the second entry is its arguments
+    cmd_index = [command for command, argument in cmds].index(cmd)
+    cmds.pop(cmd_index)
+    return cmds
+
 def native_exe_cmd(gpu=True, ):
     if comp == 'Eagle':
         exe_cmd = 'mpirun --bind-to none '+jdftx_exe
@@ -112,7 +119,6 @@ def native_exe_cmd(gpu=True, ):
 def convert_cmds_to_native(cmds, script_cmds):
     # convert the ase commands to be compatible with native JDFTx optimization
     ctype = h.calc_type(cmds, script_cmds)
-    print(script_cmds["max_steps"], "max steps command")
     # build the ionic optimization tag
     ionic_tag = "maxThreshold yes "
     if ctype in ['opt', 'sp']:
@@ -134,10 +140,18 @@ def convert_cmds_to_native(cmds, script_cmds):
             max_steps = int(script_cmds.pop("max_steps"))
             ionic_tag += f"nIterations {max_steps} "
         if "econv" in script_cmds:
-            econv = float(script_cmds.pop("econv")) * Hartree
+            econv = float(script_cmds.pop("econv")) / Hartree
             ionic_tag += f"energyDiffThreshold {econv} "
         cmds.append(("lattice-minimize ", ionic_tag))
-        if check_cmd(cmds, "lattice-minimize") == False:
+        if check_cmd(cmds, "lattice-minimize") == False or check_cmd(cmds, "lattice-minimize ") == False:
+            print("lattice-minimize not in cmds")
+            cmds.append(("lattice-minimize", ionic_tag))
+        else:
+            # the lattice minimize tag is what tells run_JDFTx_native.py to run a lattice optimization
+            # so it needs to be removed if it's already there
+            print("lattice-minimize was in cmds")
+            cmds = remove_command(cmds, "lattice-minimize")
+            cmds = remove_command(cmds, "lattice-minimize ")
             cmds.append(("lattice-minimize", ionic_tag))
     return cmds, script_cmds    
 
@@ -346,16 +360,17 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                 f.write('True')
 
             # Parsing output file
-            if convergence_step == steps:
-                # If on last step, feed singlepoint calc type into the outparser
-                #NOTE: This means the last step can only be a single point.
-                ctype_sp = 'sp'
-                parser = convergence_manager.get_parser(conv_logger, ctype_sp)
-                print(parser.index_string, 'parser.index_string')
-                print(list(parser.step_indices()), "step indices")
-            else:
-                print("got parser after calculation")
-                parser = convergence_manager.get_parser(conv_logger, ctype)
+            # if convergence_step == steps:
+            #     # If on last step, feed singlepoint calc type into the outparser
+            #     #NOTE: This means the last step can only be a single point.
+            #     ctype_sp = 'sp'
+            #     parser = convergence_manager.get_parser(conv_logger, ctype_sp)
+            #     print(parser.index_string, 'parser.index_string')
+            #     print(list(parser.step_indices()), "step indices")
+            # else:
+            #     print("got parser after calculation")
+            #     parser = convergence_manager.get_parser(conv_logger, ctype)
+            parser = convergence_manager.get_parser(conv_logger, ctype)
             parser.write_parse_file(convergence_step)
             optlog_text = parser.build_optlog()
             print('built optlog text')

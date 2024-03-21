@@ -1450,7 +1450,28 @@ class helper():
                         txt += cmd + ' ' + v + '\n'
                 else:
                     txt += cmd + ' ' + val + '\n'
-        
+    
+    def optlog_line_dict_to_string(self, line_dict):
+        txt = ''
+        for k,v in line_dict.items():
+            txt += k + ': ' + str(v) + ' '
+        return txt
+
+    def write_optlog(self, root, optlog):
+        """
+        optlog input is the format of what comes out of the read_optlog function
+        """
+        txt = ''
+        for step, step_list in optlog.items():
+            txt += 'Step ' + step + '\n'
+            for line_dict in step_list:
+                txt += self.optlog_line_dict_to_string(line_dict) + '\n'
+
+        with open(opj(root, 'opt_test.log'), 'w') as f:
+            f.write(txt)
+
+
+
         # write convergence file
         with open(opj(root, 'convergence'), 'w') as f:
             f.write(txt)
