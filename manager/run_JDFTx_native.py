@@ -342,7 +342,12 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             print("got executable ", run_exe)
             calculator = JDFTx(run_exe, commands=cmds, outfile=os.getcwd(), ionic_steps = [3, 0.0000], pseudoSet=script_cmds['pseudos'])
             print("initialized calculator")
-            inputFile = calculator.constructInput(atoms)
+            if os.path.exists('lattice') and os.path.exists('ionpos'):
+                # look for lattice and ionpos files. If they aren't found, run from CONTCAR/POSCAR
+                from_vasp = False
+            else:
+                from_vasp = True
+            inputFile = calculator.constructInput(atoms, from_vasp=from_vasp)
             print("Attempting JDFTx calculation")
 
             try: 

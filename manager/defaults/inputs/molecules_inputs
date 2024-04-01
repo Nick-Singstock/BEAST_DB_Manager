@@ -38,6 +38,8 @@ dump End ElecDensity
 dump End KEdensity
 dump End EigStats
 dump End BandEigs
+dump Ionic IonicPositions
+dump Ionic Lattice
 
 ### Density of States ###
 dump End DOS

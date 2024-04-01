@@ -206,19 +206,42 @@ class JDFTx(Calculator):
                 self.E = self.__readEnergy('%s/Ecomponents' % (self.runDir))
                 self.Forces = self.__readForces('%s/force' % (self.runDir))
 
-        def constructInput(self, atoms):
+        def constructInput(self, atoms, from_vasp=True):
                 """ Constructs a JDFTx input string using the input atoms and the input file arguments (kwargs) in self.input """
                 inputfile = ''
 
-                # Add lattice info
-                R = atoms.get_cell() / Bohr
-                inputfile += 'lattice \\\n'
-                for i in range(3):
-                        for j in range(3):
-                                inputfile += '%f  ' % (R[j, i])
-                        if(i != 2):
-                                inputfile += '\\'
-                        inputfile += '\n'
+                if from_vasp == True:
+                        # Add lattice info
+                        R = atoms.get_cell() / Bohr
+                        inputfile += 'lattice \\\n'
+                        for i in range(3):
+                                for j in range(3):
+                                        inputfile += '%f  ' % (R[j, i])
+                                if(i != 2):
+                                        inputfile += '\\'
+                                inputfile += '\n'
+                        
+                        # Add ion info
+                        atomPos = [x / Bohr for x in list(atoms.get_positions())]  # Also convert to bohr
+                        atomNames = atoms.get_chemical_symbols()   # Get element names in a list
+                        try:
+                                fixed_atom_inds = atoms.constraints[0].get_indices()
+                        except:
+                                fixed_atom_inds = []
+                        fixPos = []
+                        for i in range(len(atomPos)):
+                                if i in fixed_atom_inds:
+                                        fixPos.append(0)
+                        else:
+                                fixPos.append(1)
+                        inputfile += '\ncoords-type cartesian\n'
+                        for i in range(len(atomPos)):
+                                inputfile += 'ion %s %f %f %f \t %i\n' % (atomNames[i], atomPos[i][0], atomPos[i][1], atomPos[i][2], fixPos[i])
+                        del i
+                elif from_vasp == False:
+                        # include lattice and ionpos
+                        inputfile += 'include lattice'
+                        inputfile += 'include ionpos'
 
                 # Construct most of the input file
                 inputfile += '\n'
@@ -242,24 +265,7 @@ class JDFTx(Calculator):
                 #print('\nBug checking\n\n')
                 #print(inputfile)
 
-                # Add ion info
-                atomPos = [x / Bohr for x in list(atoms.get_positions())]  # Also convert to bohr
-                atomNames = atoms.get_chemical_symbols()   # Get element names in a list
-                print(atoms.constraints, "atoms.constraints")
-                try:
-                    fixed_atom_inds = atoms.constraints[0].get_indices()
-                except:
-                    fixed_atom_inds = []
-                fixPos = []
-                for i in range(len(atomPos)):
-                    if i in fixed_atom_inds:
-                        fixPos.append(0)
-                    else:
-                        fixPos.append(1)
-                inputfile += '\ncoords-type cartesian\n'
-                for i in range(len(atomPos)):
-                        inputfile += 'ion %s %f %f %f \t %i\n' % (atomNames[i], atomPos[i][0], atomPos[i][1], atomPos[i][2], fixPos[i])
-                del i
+                
 
                 # Add k-points
                 if self.kpoints:
