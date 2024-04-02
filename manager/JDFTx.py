@@ -240,8 +240,8 @@ class JDFTx(Calculator):
                         del i
                 elif from_vasp == False:
                         # include lattice and ionpos
-                        inputfile += 'include lattice'
-                        inputfile += 'include ionpos'
+                        inputfile += 'include lattice \n'
+                        inputfile += 'include ionpos \n'
 
                 # Construct most of the input file
                 inputfile += '\n'
