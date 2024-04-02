@@ -242,6 +242,7 @@ class JDFTx(Calculator):
                         # include lattice and ionpos
                         inputfile += 'include lattice \n'
                         inputfile += 'include ionpos \n'
+                        inputfile += 'coords-type cartesian\n' # Always use cartesian coordinates
 
                 # Construct most of the input file
                 inputfile += '\n'
