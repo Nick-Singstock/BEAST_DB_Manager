@@ -232,8 +232,8 @@ class JDFTx(Calculator):
                         for i in range(len(atomPos)):
                                 if i in fixed_atom_inds:
                                         fixPos.append(0)
-                        else:
-                                fixPos.append(1)
+                                else:
+                                        fixPos.append(1)
                         inputfile += '\ncoords-type cartesian\n'
                         for i in range(len(atomPos)):
                                 inputfile += 'ion %s %f %f %f \t %i\n' % (atomNames[i], atomPos[i][0], atomPos[i][1], atomPos[i][2], fixPos[i])
