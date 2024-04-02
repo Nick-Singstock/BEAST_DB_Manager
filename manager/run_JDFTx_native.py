@@ -236,7 +236,6 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
             else: 
                 restart = True
 
-            
             if not ope(f'parse_{convergence_step}'):
                 if ope('out'):
                     # two options. Advancing to next convergence step in the calculation loop or
@@ -399,14 +398,14 @@ def run_calc(command_file, jdftx_exe, autodoscmd, interactive, killcmd):
                     break
             
             print(convergence_step, steps, 'convergence_step, steps')
-            if convergence_step < steps:
+            # if convergence_step < steps:
                 # clear out state files for early convergence step. State files are preserved for penultimate step
                 # NOTE: This only works if the singlepoint does not change electronic parameters like cutoff energy or kpoints
                 # compared to the penultimate convergence step
-                print("cleaning state files")
-                h.clean_folder(conv, convergence_step) 
+                # print("cleaning state files")
+                # h.clean_folder(conv, convergence_step) 
 
-            elif convergence_step == steps:
+            if convergence_step == steps:
                 # calculation is fully finished
                 h.make_tinyout(os.getcwd())
                 conv_logger('Calculation fully converged')
