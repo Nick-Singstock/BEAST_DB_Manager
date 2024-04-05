@@ -81,6 +81,8 @@ def write(nodes,cores,time,out,alloc,qos,script,short_recursive,procs,gpu,testin
                 writelines+='#SBATCH -C gpu\n'
             writelines+='#SBATCH --gpus-per-task=1\n'
             writelines+='#SBATCH --gpu-bind=none \n'
+        elif gpu != 'True':
+            writelines+='#SBATCH --C cpu \n'
     
     
     elif comp in ['Cori',]:
